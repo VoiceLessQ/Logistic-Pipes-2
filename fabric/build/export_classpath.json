@@ -1,0 +1,14 @@
+{
+  "projectPath": ":fabric",
+  "classpaths": {
+    "test": [
+      "F:\\Minecraft modding\\Projects\\Fabric-Neoforge\\Logistic Pipes 2\\fabric\\build\\classes\\java\\test",
+      "F:\\Minecraft modding\\Projects\\Fabric-Neoforge\\Logistic Pipes 2\\fabric\\build\\resources\\test"
+    ],
+    "main": [
+      "F:\\Minecraft modding\\Projects\\Fabric-Neoforge\\Logistic Pipes 2\\fabric\\build\\classes\\java\\main",
+      "F:\\Minecraft modding\\Projects\\Fabric-Neoforge\\Logistic Pipes 2\\fabric\\build\\resources\\main",
+      "F:\\Minecraft modding\\Projects\\Fabric-Neoforge\\Logistic Pipes 2\\fabric\\build\\devlibs\\morph-fabric-1.0.0-dev.jar"
+    ]
+  }
+}

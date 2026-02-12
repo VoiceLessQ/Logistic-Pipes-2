@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[10,)"
+#issueTrackerURL = ""
+license = "Insert License Here"
+
+[[mods]]
+modId = "morph"
+version = "1.0.0"
+displayName = "Morph"
+authors = "Me!"
+description = '''
+This is an example description! Tell everyone what your mod is about!
+'''
+#logoFile = ""
+
+[[dependencies.morph]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.10,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.morph]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.10,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.morph]]
+modId = "architectury"
+type = "required"
+versionRange = "[18.0.6,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[mixins]]
+config = "morph.mixins.json"
