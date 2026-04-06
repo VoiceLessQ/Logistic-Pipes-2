@@ -16,21 +16,21 @@ This is an example description! Tell everyone what your mod is about!
 [[dependencies.morph]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.10,)"
+versionRange = "[20.1,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.morph]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.10,)"
+versionRange = "[1.20.1,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.morph]]
 modId = "architectury"
 type = "required"
-versionRange = "[18.0.6,)"
+versionRange = "[9.2,)"
 ordering = "AFTER"
 side = "BOTH"
 
