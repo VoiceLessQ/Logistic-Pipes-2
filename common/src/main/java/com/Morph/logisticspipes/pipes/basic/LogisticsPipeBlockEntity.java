@@ -90,6 +90,7 @@ public class LogisticsPipeBlockEntity extends BlockEntity {
         super.saveAdditional(tag);
         if (pipe != null) {
             pipe.transport.save(tag);
+            if (pipe instanceof CoreRoutedPipe crp) crp.saveRouterUUID(tag);
         }
         CompoundTag connTag = new CompoundTag();
         for (Direction dir : Direction.values()) {
@@ -103,6 +104,7 @@ public class LogisticsPipeBlockEntity extends BlockEntity {
         super.load(tag);
         if (pipe != null) {
             pipe.transport.load(tag);
+            if (pipe instanceof CoreRoutedPipe crp) crp.loadRouterUUID(tag);
         }
         if (tag.contains("connections")) {
             CompoundTag connTag = tag.getCompound("connections");
