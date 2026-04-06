@@ -5,12 +5,16 @@ import java.util.Map;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import com.Morph.logisticspipes.LPBlocks;
+import com.Morph.logisticspipes.pipes.PipeRegistry;
 import com.Morph.logisticspipes.transport.PipeTransportLogistics;
 
 /**
@@ -89,8 +93,11 @@ public class LogisticsPipeBlockEntity extends BlockEntity {
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         if (pipe != null) {
+            ResourceLocation key = BuiltInRegistries.ITEM.getKey(pipe.item);
+            if (key != null) tag.putString("pipeItem", key.toString());
             pipe.transport.save(tag);
             if (pipe instanceof CoreRoutedPipe crp) crp.saveRouterUUID(tag);
+            pipe.saveExtra(tag);
         }
         CompoundTag connTag = new CompoundTag();
         for (Direction dir : Direction.values()) {
@@ -102,9 +109,18 @@ public class LogisticsPipeBlockEntity extends BlockEntity {
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
+        if (tag.contains("pipeItem") && pipe == null) {
+            Item item = BuiltInRegistries.ITEM.getValue(
+                    ResourceLocation.parse(tag.getString("pipeItem")));
+            if (item != null) {
+                CoreUnroutedPipe restored = PipeRegistry.createFor(item);
+                if (restored != null) setPipe(restored);
+            }
+        }
         if (pipe != null) {
             pipe.transport.load(tag);
             if (pipe instanceof CoreRoutedPipe crp) crp.loadRouterUUID(tag);
+            pipe.loadExtra(tag);
         }
         if (tag.contains("connections")) {
             CompoundTag connTag = tag.getCompound("connections");

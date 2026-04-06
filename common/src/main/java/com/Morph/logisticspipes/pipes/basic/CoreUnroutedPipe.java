@@ -3,6 +3,7 @@ package com.Morph.logisticspipes.pipes.basic;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -60,4 +61,10 @@ public abstract class CoreUnroutedPipe {
 
     /** Abstract: each pipe type defines its own icon index. */
     public abstract int getIconIndex(@Nullable Direction direction);
+
+    /** Override to save pipe-type-specific extra data. */
+    public void saveExtra(CompoundTag tag) {}
+
+    /** Override to load pipe-type-specific extra data. */
+    public void loadExtra(CompoundTag tag) {}
 }
