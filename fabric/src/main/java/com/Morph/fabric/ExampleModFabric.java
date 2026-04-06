@@ -13,7 +13,7 @@ public final class ExampleModFabric implements ModInitializer {
         // Proceed with mild caution.
 
         PlatformHelper.set(FabricPlatformHelper.INSTANCE);
-        // Run our common setup.
         ExampleMod.init();
+        ExampleMod.postInit();
     }
 }

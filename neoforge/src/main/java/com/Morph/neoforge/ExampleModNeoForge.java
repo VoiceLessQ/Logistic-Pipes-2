@@ -9,7 +9,7 @@ import com.Morph.logisticspipes.platform.PlatformHelper;
 public final class ExampleModNeoForge {
     public ExampleModNeoForge() {
         PlatformHelper.set(NeoForgePlatformHelper.INSTANCE);
-        // Run our common setup.
         ExampleMod.init();
+        ExampleMod.postInit();
     }
 }

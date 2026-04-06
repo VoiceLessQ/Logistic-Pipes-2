@@ -13,8 +13,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import com.Morph.logisticspipes.pipes.basic.CoreRoutedPipe;
 import com.Morph.logisticspipes.pipes.basic.LogisticsPipeBlockEntity;
 import com.Morph.logisticspipes.platform.PlatformHelper;
+import com.Morph.logisticspipes.routing.ExitRoute;
+import com.Morph.logisticspipes.routing.IRouter;
+import com.Morph.logisticspipes.routing.RouterManager;
 
 /**
  * Handles item movement through a pipe.
@@ -47,8 +51,26 @@ public class PipeTransportLogistics {
         }
 
         for (LPTravelingItem item : arrived) {
-            passItemToNeighbor(item);
+            item.output = resolveRoutedOutput(item);
+            if (item.output == null) {
+                // Arrived at destination — deliver to adjacent inventory or drop
+                deliverArrived(item);
+            } else {
+                passItemToNeighbor(item);
+            }
         }
+    }
+
+    /** Resolve routing direction for a routed item at this pipe. */
+    private Direction resolveRoutedOutput(LPTravelingItem item) {
+        if (item.destinationRouterId < 0) return item.output;
+        if (!(container.getPipe() instanceof CoreRoutedPipe crp)) return item.output;
+        IRouter router = crp.getRouter();
+        if (router == null) return item.output;
+        // If we ARE the destination, deliver locally (output = null signals arrival)
+        if (router.getSimpleID() == item.destinationRouterId) return null;
+        ExitRoute exit = router.getExitFor(item.destinationRouterId, true, null);
+        return exit != null ? exit.exitOrientation : item.output;
     }
 
     /**
@@ -108,6 +130,21 @@ public class PipeTransportLogistics {
             if (container.isConnected(dir)) return dir;
         }
         return null;
+    }
+
+    /** Insert arrived item into any adjacent inventory, or drop it. */
+    private void deliverArrived(LPTravelingItem item) {
+        Level level = container.getLevel();
+        BlockPos pos = container.getBlockPos();
+        for (Direction dir : Direction.values()) {
+            if (!container.isConnected(dir)) continue;
+            BlockEntity neighbor = level.getBlockEntity(pos.relative(dir));
+            if (neighbor instanceof LogisticsPipeBlockEntity) continue; // don't deliver into pipes
+            ItemStack remainder = PlatformHelper.get().insertItem(level, pos, dir, item.stack, false);
+            if (remainder.isEmpty()) return;
+            item.stack = remainder;
+        }
+        dropItem(item.stack);
     }
 
     private void dropItem(ItemStack stack) {

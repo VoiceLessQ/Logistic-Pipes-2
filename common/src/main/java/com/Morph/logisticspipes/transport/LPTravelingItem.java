@@ -22,12 +22,26 @@ public class LPTravelingItem {
     // Unique ID for client sync
     public int id;
 
+    /**
+     * Destination router simpleID — set for routed items.
+     * -1 means unrouted (dumb transport, Phase 2 behaviour).
+     */
+    public int destinationRouterId = -1;
+
     private static int nextId = 0;
 
     public LPTravelingItem(ItemStack stack, Direction output) {
         this.stack = stack.copy();
         this.output = output;
         this.ticksInPipe = 8; // ticks to traverse one pipe segment
+        this.id = nextId++;
+    }
+
+    public LPTravelingItem(ItemStack stack, int destinationRouterId) {
+        this.stack = stack.copy();
+        this.output = null; // resolved each hop
+        this.destinationRouterId = destinationRouterId;
+        this.ticksInPipe = 8;
         this.id = nextId++;
     }
 

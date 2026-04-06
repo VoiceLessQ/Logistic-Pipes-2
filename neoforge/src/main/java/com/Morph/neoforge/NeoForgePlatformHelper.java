@@ -1,7 +1,11 @@
 package com.Morph.neoforge;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -22,6 +26,20 @@ public final class NeoForgePlatformHelper implements IPlatformHelper {
         IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos.relative(side), side.getOpposite());
         if (handler == null) return stack;
         return ItemHandlerHelper.insertItemStacked(handler, stack.copy(), simulate);
+    }
+
+    @Override
+    public Map<Item, Integer> getInventoryContents(Level level, BlockPos pos, Direction side) {
+        IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos.relative(side), side.getOpposite());
+        if (handler == null) return Map.of();
+        Map<Item, Integer> result = new HashMap<>();
+        for (int slot = 0; slot < handler.getSlots(); slot++) {
+            ItemStack stack = handler.getStackInSlot(slot);
+            if (!stack.isEmpty()) {
+                result.merge(stack.getItem(), stack.getCount(), Integer::sum);
+            }
+        }
+        return result;
     }
 
     @Override

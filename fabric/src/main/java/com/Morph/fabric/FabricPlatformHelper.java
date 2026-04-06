@@ -1,11 +1,16 @@
 package com.Morph.fabric;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -33,6 +38,19 @@ public final class FabricPlatformHelper implements IPlatformHelper {
             remainder.setCount((int) (stack.getCount() - inserted));
             return remainder;
         }
+    }
+
+    @Override
+    @SuppressWarnings("UnstableApiUsage")
+    public Map<Item, Integer> getInventoryContents(Level level, BlockPos pos, Direction side) {
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(level, pos.relative(side), side.getOpposite());
+        if (storage == null) return Map.of();
+        Map<Item, Integer> result = new HashMap<>();
+        for (StorageView<ItemVariant> view : storage) {
+            if (view.isResourceBlank() || view.getAmount() <= 0) continue;
+            result.merge(view.getResource().getItem(), (int) view.getAmount(), Integer::sum);
+        }
+        return result;
     }
 
     @Override

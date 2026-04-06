@@ -7,6 +7,8 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -21,6 +23,9 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
+import com.Morph.logisticspipes.pipes.PipeRegistry;
+import com.Morph.logisticspipes.pipes.basic.CoreUnroutedPipe;
 
 import com.Morph.logisticspipes.LPBlocks;
 import com.Morph.logisticspipes.LPConstants;
@@ -115,6 +120,25 @@ public class LogisticsPipeBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide ? null
                 : createTickerHelper(type, LPBlocks.PIPE_BLOCK_ENTITY.get(), LogisticsPipeBlockEntity::serverTick);
+    }
+
+    // -------------------------------------------------------------------------
+    // Placement — wire the correct pipe type into the block entity
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state,
+                            @Nullable LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (!level.isClientSide) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof LogisticsPipeBlockEntity lpbe) {
+                CoreUnroutedPipe pipe = PipeRegistry.createFor(stack.getItem());
+                if (pipe != null) {
+                    lpbe.setPipe(pipe);
+                }
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
