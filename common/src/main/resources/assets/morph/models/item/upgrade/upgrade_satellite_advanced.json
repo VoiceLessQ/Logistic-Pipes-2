@@ -1,0 +1,6 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "morph:item/upgrade/satellite_advanced"
+  }
+}

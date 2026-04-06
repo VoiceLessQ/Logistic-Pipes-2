@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DGD",
+    "GCG",
+    "DGD"
+  ],
+  "key": {
+    "D": "minecraft:diamond",
+    "G": "minecraft:glass_pane",
+    "C": "morph:chassis_mk2"
+  },
+  "result": { "id": "morph:chassis_mk3", "count": 1 }
+}

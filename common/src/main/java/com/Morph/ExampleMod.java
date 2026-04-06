@@ -4,6 +4,6 @@ public final class ExampleMod {
     public static final String MOD_ID = "morph";
 
     public static void init() {
-        // Write common init code here.
+        // Phase 1 — blank mod. LP systems registered here as phases complete.
     }
 }

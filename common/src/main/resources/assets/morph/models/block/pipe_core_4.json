@@ -1,0 +1,6 @@
+{
+  "parent": "morph:block/pipe_core_base",
+  "textures": {
+    "pipe": "morph:block/pipe_satellite"
+  }
+}

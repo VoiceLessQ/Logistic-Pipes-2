@@ -1,0 +1,4 @@
+accessWidener v2 named
+
+# BlockEntityType constructor is private in MC 1.21.11 common jar; widen so LPBlocks.java can call it
+accessible method net/minecraft/world/level/block/entity/BlockEntityType <init> (Lnet/minecraft/world/level/block/entity/BlockEntityType$BlockEntitySupplier;Ljava/util/Set;)V

@@ -7,7 +7,7 @@ license = "Insert License Here"
 modId = "morph"
 version = "1.0.0"
 displayName = "Morph"
-authors = "Me!"
+authors = "NoZeroG"
 description = '''
 This is an example description! Tell everyone what your mod is about!
 '''

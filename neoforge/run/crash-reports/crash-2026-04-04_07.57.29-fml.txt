@@ -1,0 +1,116 @@
+---- Minecraft Crash Report ----
+// There are four lights!
+
+Time: 2026-04-04 07:57:29
+Description: Mod loading failures have occurred; consult the issue messages for more details
+
+net.neoforged.neoforge.logging.CrashReportExtender$ModLoadingCrashException: Mod loading has failed
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Mod loading issue --
+Details:
+	Mod file: <No mod information provided>
+	Failure message: loadwarning.neoforge.onlyin
+	Mod version: <No mod information provided>
+	Mod issues URL: <No issues URL found>
+	Exception message: <No associated exception found>
+
+-- Mod loading issue for: architectury --
+Details:
+	Mod file: /F:/Minecraft modding/Projects/Fabric-Neoforge/Logistic Pipes 2/.gradle/loom-cache/remapped_mods/remapped/dev/architectury/architectury-neoforge-d73eb3ca/19.0.1/architectury-neoforge-d73eb3ca-19.0.1.jar
+	Failure message: Architectury (architectury) encountered an error while dispatching the net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent event
+		java.lang.UnsupportedOperationException: Cannot register payload morph:pipe_sync_s2c as it is already registered.
+	Mod version: 19.0.1
+	Mod issues URL: https://github.com/shedaniel/architectury/issues
+	Exception message: java.lang.UnsupportedOperationException: Cannot register payload morph:pipe_sync_s2c as it is already registered.
+Stacktrace:
+	at TRANSFORMER/neoforge@21.11.38-beta/net.neoforged.neoforge.network.registration.NetworkRegistry.register(NetworkRegistry.java:189) ~[neoforge-21.11.38-beta-minecraft-merged-1.21.11-loom.mappings.1_21_11.layered+hash.40359-v2-neoforge-21.11.38-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.11.38-beta/net.neoforged.neoforge.network.registration.PayloadRegistrar.register(PayloadRegistrar.java:232) ~[neoforge-21.11.38-beta-minecraft-merged-1.21.11-loom.mappings.1_21_11.layered+hash.40359-v2-neoforge-21.11.38-beta.jar:?] {}
+	at TRANSFORMER/neoforge@21.11.38-beta/net.neoforged.neoforge.network.registration.PayloadRegistrar.playToClient(PayloadRegistrar.java:45) ~[neoforge-21.11.38-beta-minecraft-merged-1.21.11-loom.mappings.1_21_11.layered+hash.40359-v2-neoforge-21.11.38-beta.jar:?] {}
+	at TRANSFORMER/architectury@19.0.1/dev.architectury.networking.forge.NetworkManagerImpl$1.lambda$registerS2C$4(NetworkManagerImpl.java:72) ~[architectury-neoforge-d73eb3ca-19.0.1.jar:?] {}
+	at net.neoforged.bus.ConsumerEventHandler.invoke(ConsumerEventHandler.java:27) ~[bus-8.0.5.jar:?] {}
+	at net.neoforged.bus.EventBus.post(EventBus.java:360) ~[bus-8.0.5.jar:?] {}
+	at net.neoforged.bus.EventBus.post(EventBus.java:342) ~[bus-8.0.5.jar:?] {}
+	at net.neoforged.fml.ModContainer.acceptEvent(ModContainer.java:177) ~[loader-10.0.36.jar:10.0] {}
+	at net.neoforged.fml.ModLoader.lambda$postEvent$10(ModLoader.java:330) ~[loader-10.0.36.jar:10.0] {}
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75) ~[?:?] {}
+	at net.neoforged.fml.ModList.forEachModInOrder(ModList.java:175) ~[loader-10.0.36.jar:10.0] {}
+	at net.neoforged.fml.ModLoader.postEvent(ModLoader.java:330) ~[loader-10.0.36.jar:10.0] {}
+	at TRANSFORMER/neoforge@21.11.38-beta/net.neoforged.neoforge.network.registration.NetworkRegistry.setup(NetworkRegistry.java:130) ~[neoforge-21.11.38-beta-minecraft-merged-1.21.11-loom.mappings.1_21_11.layered+hash.40359-v2-neoforge-21.11.38-beta.jar:?] {}
+	at java.base/java.util.concurrent.CompletableFuture$AsyncRun.run(CompletableFuture.java:1804) ~[?:?] {}
+	at TRANSFORMER/minecraft@1.21.11/net.minecraft.server.packs.resources.SimpleReloadInstance.method_67574(SimpleReloadInstance.java:71) ~[client-extra.jar:?] {unprotect:processor}
+	at TRANSFORMER/minecraft@1.21.11/net.minecraft.util.thread.BlockableEventLoop.doRunTask(BlockableEventLoop.java:157) ~[client-extra.jar:?] {neoforge:access_transformer,unprotect:processor,neoforge:access_transformer}
+	at TRANSFORMER/minecraft@1.21.11/net.minecraft.util.thread.ReentrantBlockableEventLoop.doRunTask(ReentrantBlockableEventLoop.java:24) ~[client-extra.jar:?] {unprotect:processor}
+	at TRANSFORMER/minecraft@1.21.11/net.minecraft.util.thread.BlockableEventLoop.pollTask(BlockableEventLoop.java:131) ~[client-extra.jar:?] {neoforge:access_transformer,unprotect:processor,neoforge:access_transformer}
+	at TRANSFORMER/minecraft@1.21.11/net.minecraft.util.thread.BlockableEventLoop.runAllTasks(BlockableEventLoop.java:116) ~[client-extra.jar:?] {neoforge:access_transformer,unprotect:processor,neoforge:access_transformer}
+	at TRANSFORMER/minecraft@1.21.11/net.minecraft.client.Minecraft.runTick(Minecraft.java:1284) [client-extra.jar:?] {neoforge:access_transformer,neoforge:access_transformer,neoforge:mixin[APP:architectury.mixins.json:MixinMinecraft from mod architectury],unprotect:processor}
+	at TRANSFORMER/minecraft@1.21.11/net.minecraft.client.Minecraft.run(Minecraft.java:918) [client-extra.jar:?] {neoforge:access_transformer,neoforge:access_transformer,neoforge:mixin[APP:architectury.mixins.json:MixinMinecraft from mod architectury],unprotect:processor}
+	at TRANSFORMER/minecraft@1.21.11/net.minecraft.client.main.Main.main(Main.java:229) [client-extra.jar:?] {unprotect:processor}
+	at net.neoforged.fml.startup.Client.main(Client.java:19) [loader-10.0.36.jar:10.0] {}
+	at net.fabricmc.devlaunchinjector.Main.main(Main.java:86) [dev-launch-injector-0.2.1+build.8.jar:?] {}
+	at dev.architectury.transformer.TransformerRuntime.main(TransformerRuntime.java:220) [architectury-transformer-5.2.87-runtime.jar:5.2.87] {}
+
+
+-- System Details --
+Details:
+	Minecraft Version: 1.21.11
+	Minecraft Version ID: 1.21.11
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 21.0.9, Microsoft
+	Java VM Version: OpenJDK 64-Bit Server VM (mixed mode, sharing), Microsoft
+	Memory: 354157240 bytes (337 MiB) / 1887436800 bytes (1800 MiB) up to 8568963072 bytes (8172 MiB)
+	CPUs: 24
+	Processor Vendor: AuthenticAMD
+	Processor Name: AMD Ryzen 9 5900X 12-Core Processor            
+	Identifier: AuthenticAMD Family 25 Model 33 Stepping 2
+	Microarchitecture: Zen 3
+	Frequency (GHz): 3.70
+	Number of physical packages: 1
+	Number of physical CPUs: 12
+	Number of logical CPUs: 24
+	Graphics card #0 name: NVIDIA GeForce RTX 4090
+	Graphics card #0 vendor: NVIDIA
+	Graphics card #0 VRAM (MiB): 24564.00
+	Graphics card #0 deviceId: VideoController1
+	Graphics card #0 versionInfo: 32.0.15.9186
+	Memory slot #0 capacity (MiB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 3.60
+	Memory slot #0 type: DDR4
+	Memory slot #1 capacity (MiB): 16384.00
+	Memory slot #1 clockSpeed (GHz): 3.60
+	Memory slot #1 type: DDR4
+	Virtual memory max (MiB): 60988.62
+	Virtual memory used (MiB): 40084.72
+	Swap memory total (MiB): 28307.75
+	Swap memory used (MiB): 1322.02
+	Space in storage for jna.tmpdir (MiB): <path not set>
+	Space in storage for org.lwjgl.system.SharedLibraryExtractPath (MiB): <path not set>
+	Space in storage for io.netty.native.workdir (MiB): <path not set>
+	Space in storage for java.io.tmpdir (MiB): available: 550593.19, total: 1906380.00
+	Space in storage for workdir (MiB): available: 57861.02, total: 244197.00
+	JVM Flags: 0 total; 
+	Debug Flags: 0 total; 
+	Class Processors: 
+		00.00%: neoforge:neoforge_dev_dist_cleaner
+		00.00%: neoforge:computing_frames (marker)
+		00.00%: neoforge:runtime_enum_extender
+		05.16%: neoforge:access_transformer
+		00.27%: neoforge:mixin
+		00.00%: neoforge:simple_processors_default (marker)
+		00.01%: neoforge.coremods:field_to_getter.net.minecraft.world.level.biome.biome
+		00.01%: neoforge.coremods:field_to_getter.net.minecraft.world.level.block.flowerpotblock
+		00.01%: neoforge.coremods:field_to_getter.net.minecraft.world.level.levelgen.structure.structure
+		00.27%: neoforge.coremods:method_redirector
+		83.10%: unprotect:processor
+	Mod List: 
+		architectury-neoforge-d73eb3ca-19.0.1.jar         |Architectury                  |architectury                  |19.0.1              |Manifest: c55f4a49a397b5ee366f6651261f9a1fd576620778ba73e5cdea19f1b7e4db52
+		15055153113373893078.jar                          |generated_95deba0             |generated_95deba0             |1                   |Manifest: b663b159ebbe24bfda0b1f0bcef76cdd7be30b56b6a18819ed1e851ebbafbd4b
+		client-extra.jar                                  |Minecraft                     |minecraft                     |1.21.11             |Manifest: NOSIGNATURE
+		main                                              |Morph                         |morph                         |1.0.0               |Manifest: NOSIGNATURE
+		neoforge-21.11.38-beta-minecraft-merged-1.21.11-lo|NeoForge                      |neoforge                      |21.11.38-beta       |Manifest: NOSIGNATURE
+	Crash Report UUID: c62975f8-2902-44a5-80d2-8a1486e1d185
+	FML: 10.0.36
+	NeoForge: 21.11.38-beta

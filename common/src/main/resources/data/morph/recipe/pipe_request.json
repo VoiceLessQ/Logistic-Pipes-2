@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " L ",
+    "LPL",
+    " L "
+  ],
+  "key": {
+    "L": "minecraft:lapis_lazuli",
+    "P": "morph:pipe_basic"
+  },
+  "result": { "id": "morph:pipe_request", "count": 1 }
+}

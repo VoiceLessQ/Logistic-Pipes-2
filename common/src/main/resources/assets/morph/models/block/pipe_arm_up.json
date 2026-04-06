@@ -1,0 +1,17 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": { "pipe": "morph:block/pipe_glass", "particle": "morph:block/pipe_glass" },
+  "elements": [
+    {
+      "from": [6, 10, 6],
+      "to":   [10, 16, 10],
+      "faces": {
+        "up":    { "texture": "#pipe", "cullface": "up" },
+        "north": { "texture": "#pipe" },
+        "south": { "texture": "#pipe" },
+        "east":  { "texture": "#pipe" },
+        "west":  { "texture": "#pipe" }
+      }
+    }
+  ]
+}

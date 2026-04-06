@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " B ",
+    "BPB",
+    " B "
+  ],
+  "key": {
+    "B": "minecraft:bucket",
+    "P": "morph:pipe_basic"
+  },
+  "result": { "id": "morph:pipe_fluid_basic", "count": 1 }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "NgN",
+    "gCg",
+    "NgN"
+  ],
+  "key": {
+    "N": "minecraft:netherite_ingot",
+    "g": "minecraft:gold_ingot",
+    "C": "morph:chassis_mk4"
+  },
+  "result": { "id": "morph:chassis_mk5", "count": 1 }
+}
