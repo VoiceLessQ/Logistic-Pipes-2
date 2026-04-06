@@ -7,7 +7,15 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -20,15 +28,23 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import com.Morph.logisticspipes.pipes.PipeRegistry;
-import com.Morph.logisticspipes.pipes.basic.CoreUnroutedPipe;
+import dev.architectury.registry.menu.ExtendedMenuProvider;
+import dev.architectury.registry.menu.MenuRegistry;
 
 import com.Morph.logisticspipes.LPBlocks;
 import com.Morph.logisticspipes.LPConstants;
+import com.Morph.logisticspipes.gui.ChassisPipeMenu;
+import com.Morph.logisticspipes.gui.RequestPipeMenu;
+import com.Morph.logisticspipes.gui.SupplierPipeMenu;
+import com.Morph.logisticspipes.pipes.PipeItemsRequestLogistics;
+import com.Morph.logisticspipes.pipes.PipeItemsSupplierLogistics;
+import com.Morph.logisticspipes.pipes.PipeLogisticsChassis;
+import com.Morph.logisticspipes.pipes.PipeRegistry;
 
 /**
  * The pipe block. Handles connection state and voxel shape.
@@ -139,6 +155,72 @@ public class LogisticsPipeBlock extends BaseEntityBlock {
                 }
             }
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Right-click interaction — open pipe GUI
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                               Player player, BlockHitResult hit) {
+        if (level.isClientSide) return InteractionResult.SUCCESS;
+        if (!(player instanceof ServerPlayer sp)) return InteractionResult.PASS;
+
+        BlockEntity be = level.getBlockEntity(pos);
+        if (!(be instanceof LogisticsPipeBlockEntity lpbe)) return InteractionResult.PASS;
+        CoreUnroutedPipe pipe = lpbe.getPipe();
+        if (pipe == null) return InteractionResult.PASS;
+
+        if (pipe instanceof PipeItemsRequestLogistics req) {
+            MenuRegistry.openExtendedMenu(sp, new ExtendedMenuProvider() {
+                @Override
+                public void saveExtraData(FriendlyByteBuf buf) {
+                    buf.writeBlockPos(pos);
+                    RequestPipeMenu.writeItemsToBuf(buf, req.getNetworkItems());
+                }
+                @Override
+                public Component getDisplayName() { return Component.literal("Request Pipe"); }
+                @Override
+                public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
+                    return new RequestPipeMenu(id, inv, pos);
+                }
+            });
+            return InteractionResult.CONSUME;
+        }
+
+        if (pipe instanceof PipeLogisticsChassis chassis) {
+            MenuRegistry.openExtendedMenu(sp, new ExtendedMenuProvider() {
+                @Override
+                public void saveExtraData(FriendlyByteBuf buf) {
+                    buf.writeBlockPos(pos);
+                    buf.writeInt(chassis.getChassisSize());
+                }
+                @Override
+                public Component getDisplayName() { return Component.literal("Chassis Pipe"); }
+                @Override
+                public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
+                    return new ChassisPipeMenu(id, inv, pos);
+                }
+            });
+            return InteractionResult.CONSUME;
+        }
+
+        if (pipe instanceof PipeItemsSupplierLogistics) {
+            MenuRegistry.openExtendedMenu(sp, new ExtendedMenuProvider() {
+                @Override
+                public void saveExtraData(FriendlyByteBuf buf) { buf.writeBlockPos(pos); }
+                @Override
+                public Component getDisplayName() { return Component.literal("Supplier Pipe"); }
+                @Override
+                public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
+                    return new SupplierPipeMenu(id, inv, pos);
+                }
+            });
+            return InteractionResult.CONSUME;
+        }
+
+        return InteractionResult.PASS;
     }
 
     // -------------------------------------------------------------------------

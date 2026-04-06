@@ -6,6 +6,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
+import com.Morph.logisticspipes.modules.ModuleItemSink;
+import com.Morph.logisticspipes.modules.ModuleProvider;
+import com.Morph.logisticspipes.modules.ModuleRegistry;
 import com.Morph.logisticspipes.pipes.PipeItemsBasicLogistics;
 import com.Morph.logisticspipes.pipes.PipeItemsProviderLogistics;
 import com.Morph.logisticspipes.pipes.PipeItemsRequestLogistics;
@@ -22,6 +25,7 @@ public final class LPItems {
     private static final DeferredRegister<Item> ITEMS =
             DeferredRegister.create(LPConstants.MOD_ID, Registries.ITEM);
 
+    // Pipe items
     public static final RegistrySupplier<Item> PIPE_BASIC =
             ITEMS.register("pipe_basic", () -> new BlockItem(
                     LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
@@ -58,11 +62,18 @@ public final class LPItems {
             ITEMS.register("pipe_chassis_mk5", () -> new BlockItem(
                     LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
 
+    // Module items (non-placeable)
+    public static final RegistrySupplier<Item> MODULE_ITEM_SINK =
+            ITEMS.register("module_item_sink", () -> new Item(new Item.Properties()));
+
+    public static final RegistrySupplier<Item> MODULE_PROVIDER =
+            ITEMS.register("module_provider", () -> new Item(new Item.Properties()));
+
     public static void register() {
         ITEMS.register();
     }
 
-    /** Called after items are registered to wire the PipeRegistry factories. */
+    /** Called after registry freeze to wire PipeRegistry and ModuleRegistry factories. */
     public static void registerPipeFactories() {
         PipeRegistry.register(PIPE_BASIC.get(),
                 () -> new PipeItemsBasicLogistics(PIPE_BASIC.get()));
@@ -82,5 +93,8 @@ public final class LPItems {
                 () -> new PipeLogisticsChassisMk4(PIPE_CHASSIS_MK4.get()));
         PipeRegistry.register(PIPE_CHASSIS_MK5.get(),
                 () -> new PipeLogisticsChassisMk5(PIPE_CHASSIS_MK5.get()));
+
+        ModuleRegistry.register(MODULE_ITEM_SINK.get(), ModuleItemSink::new);
+        ModuleRegistry.register(MODULE_PROVIDER.get(), ModuleProvider::new);
     }
 }

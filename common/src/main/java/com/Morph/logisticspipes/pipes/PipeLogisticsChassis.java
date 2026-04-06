@@ -5,15 +5,20 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 import com.Morph.logisticspipes.interfaces.routing.IAdditionalTargetInformation;
 import com.Morph.logisticspipes.interfaces.routing.IProvideItems;
 import com.Morph.logisticspipes.interfaces.routing.IRequestItems;
 import com.Morph.logisticspipes.modules.LogisticsModule;
-import com.Morph.logisticspipes.modules.ModuleItemSink;
-import com.Morph.logisticspipes.modules.ModuleProvider;
+import com.Morph.logisticspipes.modules.ModuleRegistry;
 import com.Morph.logisticspipes.pipes.basic.CoreRoutedPipe;
 import com.Morph.logisticspipes.routing.IRouter;
 import com.Morph.logisticspipes.routing.LogisticsPromise;
@@ -23,23 +28,34 @@ import com.Morph.logisticspipes.utils.SinkReply;
 import com.Morph.logisticspipes.utils.item.ItemIdentifier;
 
 /**
- * Base class for all chassis pipe types (Mk1-5).
- * Hosts module slots; delegates item sinking and providing to installed modules.
- * Ported from LP 1.12.2 PipeLogisticsChassis — simplified for Phase 5 (no upgrade manager, no CC).
+ * Base class for chassis pipe types (Mk1-5).
+ * Hosts module slots backed by a SimpleContainer; delegates sink/provide to installed modules.
+ * Ported from LP 1.12.2 PipeLogisticsChassis — simplified for Phase 5/6.
  */
 public abstract class PipeLogisticsChassis extends CoreRoutedPipe implements IProvideItems {
 
+    /** Live module logic instances — derived from moduleContainer via listener. */
     protected final LogisticsModule[] modules;
+
+    /** Item storage for GUI; changing items here installs/removes modules. */
+    public final SimpleContainer moduleContainer;
 
     @Nullable
     private Direction pointedDirection = null;
 
     public PipeLogisticsChassis(Item item) {
         super(new PipeTransportLogistics(), item);
-        modules = new LogisticsModule[getChassisSize()];
+        int size = getChassisSize();
+        modules = new LogisticsModule[size];
+        moduleContainer = new SimpleContainer(size);
+        moduleContainer.addListener(c -> syncModulesFromContainer());
     }
 
     public abstract int getChassisSize();
+
+    // -------------------------------------------------------------------------
+    // Module management
+    // -------------------------------------------------------------------------
 
     public void installModule(int slot, @Nullable LogisticsModule module) {
         if (slot < 0 || slot >= getChassisSize()) return;
@@ -53,13 +69,31 @@ public abstract class PipeLogisticsChassis extends CoreRoutedPipe implements IPr
         return modules[slot];
     }
 
+    private void syncModulesFromContainer() {
+        for (int i = 0; i < getChassisSize(); i++) {
+            ItemStack stack = moduleContainer.getItem(i);
+            if (stack.isEmpty()) {
+                if (modules[i] != null) installModule(i, null);
+            } else {
+                LogisticsModule existing = modules[i];
+                LogisticsModule created = ModuleRegistry.createFor(stack.getItem());
+                if (created != null
+                        && (existing == null || !existing.getClass().equals(created.getClass()))) {
+                    installModule(i, created);
+                } else if (created == null && existing != null) {
+                    installModule(i, null);
+                }
+            }
+        }
+    }
+
     @Nullable
     public Direction getPointedDirection() { return pointedDirection; }
 
     public void setPointedDirection(@Nullable Direction dir) { this.pointedDirection = dir; }
 
     // -------------------------------------------------------------------------
-    // Sink query — used by routing to check if items can be delivered here
+    // Sink query
     // -------------------------------------------------------------------------
 
     @Nullable
@@ -80,7 +114,7 @@ public abstract class PipeLogisticsChassis extends CoreRoutedPipe implements IPr
     }
 
     // -------------------------------------------------------------------------
-    // IProvideItems — delegates to ModuleProvider modules
+    // IProvideItems
     // -------------------------------------------------------------------------
 
     @Override
@@ -108,7 +142,7 @@ public abstract class PipeLogisticsChassis extends CoreRoutedPipe implements IPr
     public IRouter getRouter() { return super.getRouter(); }
 
     // -------------------------------------------------------------------------
-    // Tick — delegates to each module
+    // Tick
     // -------------------------------------------------------------------------
 
     @Override
@@ -120,18 +154,28 @@ public abstract class PipeLogisticsChassis extends CoreRoutedPipe implements IPr
     }
 
     // -------------------------------------------------------------------------
-    // NBT — pipe type and module state
+    // NBT
     // -------------------------------------------------------------------------
 
     @Override
     public void saveExtra(CompoundTag tag) {
-        if (pointedDirection != null) {
-            tag.putString("pointedDir", pointedDirection.getName());
+        if (pointedDirection != null) tag.putString("pointedDir", pointedDirection.getName());
+
+        ListTag moduleItems = new ListTag();
+        for (int i = 0; i < getChassisSize(); i++) {
+            ItemStack stack = moduleContainer.getItem(i);
+            if (stack.isEmpty()) continue;
+            CompoundTag slot = new CompoundTag();
+            slot.putInt("slot", i);
+            ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
+            if (key != null) slot.putString("item", key.toString());
+            moduleItems.add(slot);
         }
-        for (int i = 0; i < modules.length; i++) {
+        tag.put("moduleItems", moduleItems);
+
+        for (int i = 0; i < getChassisSize(); i++) {
             LogisticsModule m = modules[i];
             if (m == null) continue;
-            tag.putString("module_" + i + "_type", moduleTypeName(m));
             m.saveToNBT(tag, "module_" + i + "_");
         }
     }
@@ -141,34 +185,24 @@ public abstract class PipeLogisticsChassis extends CoreRoutedPipe implements IPr
         if (tag.contains("pointedDir")) {
             pointedDirection = Direction.byName(tag.getString("pointedDir"));
         }
-        for (int i = 0; i < modules.length; i++) {
-            String key = "module_" + i + "_type";
-            if (!tag.contains(key)) continue;
-            LogisticsModule m = createModuleByType(tag.getString(key));
-            if (m != null) {
-                installModule(i, m);
-                m.loadFromNBT(tag, "module_" + i + "_");
+        if (tag.contains("moduleItems")) {
+            ListTag list = tag.getList("moduleItems", Tag.TAG_COMPOUND);
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag slot = list.getCompound(i);
+                int slotIndex = slot.getInt("slot");
+                if (slotIndex < getChassisSize() && slot.contains("item")) {
+                    Item item = BuiltInRegistries.ITEM.getValue(
+                            ResourceLocation.parse(slot.getString("item")));
+                    if (item != null) moduleContainer.setItem(slotIndex, new ItemStack(item));
+                }
             }
+        }
+        for (int i = 0; i < getChassisSize(); i++) {
+            LogisticsModule m = modules[i];
+            if (m != null) m.loadFromNBT(tag, "module_" + i + "_");
         }
     }
 
-    private static String moduleTypeName(LogisticsModule m) {
-        if (m instanceof ModuleItemSink) return "ModuleItemSink";
-        if (m instanceof ModuleProvider) return "ModuleProvider";
-        return m.getClass().getSimpleName();
-    }
-
-    @Nullable
-    private static LogisticsModule createModuleByType(String type) {
-        return switch (type) {
-            case "ModuleItemSink" -> new ModuleItemSink();
-            case "ModuleProvider" -> new ModuleProvider();
-            default -> null;
-        };
-    }
-
     @Override
-    public int getIconIndex(@Nullable Direction direction) {
-        return 3;
-    }
+    public int getIconIndex(@Nullable Direction direction) { return 3; }
 }

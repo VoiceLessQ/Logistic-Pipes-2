@@ -12,6 +12,16 @@ public final class ExampleModNeoForgeClient {
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        // Client setup registered here as phases complete.
+        event.enqueueWork(() -> {
+            dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                    com.Morph.logisticspipes.LPMenuTypes.REQUEST_PIPE.get(),
+                    com.Morph.logisticspipes.gui.screen.RequestPipeScreen::new);
+            dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                    com.Morph.logisticspipes.LPMenuTypes.CHASSIS_PIPE.get(),
+                    com.Morph.logisticspipes.gui.screen.ChassisPipeScreen::new);
+            dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                    com.Morph.logisticspipes.LPMenuTypes.SUPPLIER_PIPE.get(),
+                    com.Morph.logisticspipes.gui.screen.SupplierPipeScreen::new);
+        });
     }
 }

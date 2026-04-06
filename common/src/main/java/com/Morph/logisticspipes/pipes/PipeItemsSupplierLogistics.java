@@ -8,8 +8,12 @@ import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import com.Morph.logisticspipes.interfaces.routing.IAdditionalTargetInformation;
@@ -24,15 +28,18 @@ import com.Morph.logisticspipes.utils.item.ItemIdentifier;
 import com.Morph.logisticspipes.utils.item.ItemIdentifierStack;
 
 /**
- * Supplier pipe — actively maintains a target stock level in adjacent inventory.
- * Every 40 ticks scans connected inventories, computes shortfall, requests from network.
- * Ported from LP 1.12.2 PipeItemsSupplierLogistics — simplified for Phase 5 (no pattern mode).
+ * Supplier pipe — maintains target stock in adjacent inventory by requesting from network.
+ * Each of 9 supply slots holds: item type + target amount (encoded as stack count).
+ * Every 40 ticks: scans connected inventories, computes deficit, requests shortfall.
+ * Ported from LP 1.12.2 PipeItemsSupplierLogistics — simplified for Phase 5/6.
  */
 public class PipeItemsSupplierLogistics extends CoreRoutedPipe implements IRequestItems {
 
     public static final int SUPPLY_SLOTS = 9;
 
-    private final ItemIdentifierStack[] supplyConfig = new ItemIdentifierStack[SUPPLY_SLOTS];
+    /** GUI-accessible container: item type + stack size = target amount per slot. */
+    public final SimpleContainer supplyContainer = new SimpleContainer(SUPPLY_SLOTS);
+
     private int tickCounter = 0;
 
     public PipeItemsSupplierLogistics(Item item) {
@@ -49,8 +56,7 @@ public class PipeItemsSupplierLogistics extends CoreRoutedPipe implements IReque
         if (container == null || container.getLevel() == null) return;
         if (container.getLevel().isClientSide) return;
 
-        tickCounter++;
-        if (tickCounter >= 40) {
+        if (++tickCounter >= 40) {
             tickCounter = 0;
             checkAndRequest();
         }
@@ -73,32 +79,22 @@ public class PipeItemsSupplierLogistics extends CoreRoutedPipe implements IReque
             }
         }
 
-        for (ItemIdentifierStack config : supplyConfig) {
-            if (config == null) continue;
-            int current = currentStock.getOrDefault(config.item, 0);
-            int deficit = config.stackSize - current;
+        for (int i = 0; i < SUPPLY_SLOTS; i++) {
+            ItemStack stack = supplyContainer.getItem(i);
+            if (stack.isEmpty()) continue;
+            ItemIdentifier id = ItemIdentifier.get(stack.getItem());
+            int targetAmount = stack.getCount();
+            int deficit = targetAmount - currentStock.getOrDefault(id, 0);
             if (deficit <= 0) continue;
 
             LogisticsPromise promise = LogisticsManager.getBestProvider(
-                    router.getIRoutersByCost(), config.item, deficit);
+                    router.getIRoutersByCost(), id, deficit);
             if (promise == null) {
-                itemCouldNotBeSent(new ItemIdentifierStack(config.item, deficit), null);
+                itemCouldNotBeSent(new ItemIdentifierStack(id, deficit), null);
             } else {
                 promise.sender.fullFill(promise, this, null);
             }
         }
-    }
-
-    // -------------------------------------------------------------------------
-    // Supply slot configuration
-    // -------------------------------------------------------------------------
-
-    public ItemIdentifierStack[] getSupplyConfig() { return supplyConfig; }
-
-    public void setSupplySlot(int slot, @Nullable ItemIdentifierStack stack) {
-        if (slot < 0 || slot >= SUPPLY_SLOTS) return;
-        supplyConfig[slot] = stack;
-        if (container != null) container.setChanged();
     }
 
     // -------------------------------------------------------------------------
@@ -122,28 +118,34 @@ public class PipeItemsSupplierLogistics extends CoreRoutedPipe implements IReque
 
     @Override
     public void saveExtra(CompoundTag tag) {
+        ListTag list = new ListTag();
         for (int i = 0; i < SUPPLY_SLOTS; i++) {
-            if (supplyConfig[i] == null) continue;
+            ItemStack stack = supplyContainer.getItem(i);
+            if (stack.isEmpty()) continue;
             CompoundTag slot = new CompoundTag();
-            ResourceLocation key = BuiltInRegistries.ITEM.getKey(supplyConfig[i].item.item);
-            if (key == null) continue;
-            slot.putString("item", key.toString());
-            slot.putInt("amount", supplyConfig[i].stackSize);
-            tag.put("supply_" + i, slot);
+            slot.putInt("slot", i);
+            ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
+            if (key != null) slot.putString("item", key.toString());
+            slot.putInt("amount", stack.getCount());
+            list.add(slot);
         }
+        tag.put("supply", list);
     }
 
     @Override
     public void loadExtra(CompoundTag tag) {
-        for (int i = 0; i < SUPPLY_SLOTS; i++) {
-            String key = "supply_" + i;
-            if (!tag.contains(key)) continue;
-            CompoundTag slot = tag.getCompound(key);
-            Item item = BuiltInRegistries.ITEM.getValue(
-                    ResourceLocation.parse(slot.getString("item")));
-            if (item != null) {
-                supplyConfig[i] = new ItemIdentifierStack(ItemIdentifier.get(item),
-                        slot.getInt("amount"));
+        if (!tag.contains("supply")) return;
+        ListTag list = tag.getList("supply", Tag.TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) {
+            CompoundTag slot = list.getCompound(i);
+            int slotIndex = slot.getInt("slot");
+            if (slotIndex < SUPPLY_SLOTS && slot.contains("item")) {
+                Item item = BuiltInRegistries.ITEM.getValue(
+                        ResourceLocation.parse(slot.getString("item")));
+                if (item != null) {
+                    supplyContainer.setItem(slotIndex,
+                            new ItemStack(item, slot.getInt("amount")));
+                }
             }
         }
     }
