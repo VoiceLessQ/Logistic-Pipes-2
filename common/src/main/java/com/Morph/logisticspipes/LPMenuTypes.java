@@ -7,6 +7,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 
 import com.Morph.logisticspipes.gui.ChassisPipeMenu;
+import com.Morph.logisticspipes.gui.PowerJunctionMenu;
 import com.Morph.logisticspipes.gui.RequestPipeMenu;
 import com.Morph.logisticspipes.gui.SupplierPipeMenu;
 
@@ -29,6 +30,11 @@ public final class LPMenuTypes {
             MENU_TYPES.register("supplier_pipe",
                     () -> MenuRegistry.ofExtended(
                             (id, inv, buf) -> new SupplierPipeMenu(id, inv, buf)));
+
+    public static final RegistrySupplier<MenuType<PowerJunctionMenu>> POWER_JUNCTION =
+            MENU_TYPES.register("power_junction",
+                    () -> MenuRegistry.ofExtended(
+                            (id, inv, buf) -> new PowerJunctionMenu(id, inv, buf)));
 
     public static void register() {
         MENU_TYPES.register();

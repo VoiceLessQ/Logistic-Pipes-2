@@ -11,6 +11,7 @@ import com.Morph.logisticspipes.LPBlocks;
 import com.Morph.logisticspipes.LPMenuTypes;
 import com.Morph.logisticspipes.client.LPPipeRenderer;
 import com.Morph.logisticspipes.gui.screen.ChassisPipeScreen;
+import com.Morph.logisticspipes.gui.screen.PowerJunctionScreen;
 import com.Morph.logisticspipes.gui.screen.RequestPipeScreen;
 import com.Morph.logisticspipes.gui.screen.SupplierPipeScreen;
 
@@ -22,6 +23,7 @@ public final class ExampleModNeoForgeClient {
         event.register(LPMenuTypes.REQUEST_PIPE.get(), RequestPipeScreen::new);
         event.register(LPMenuTypes.CHASSIS_PIPE.get(), ChassisPipeScreen::new);
         event.register(LPMenuTypes.SUPPLIER_PIPE.get(), SupplierPipeScreen::new);
+        event.register(LPMenuTypes.POWER_JUNCTION.get(), PowerJunctionScreen::new);
     }
 
     @SubscribeEvent
