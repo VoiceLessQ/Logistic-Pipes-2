@@ -20,15 +20,17 @@ Work in progress. The migration is an ongoing port of the original 1.12.2 codeba
 |---|---|
 | **NeoForge 21.1.x** (MC 1.21.1) | ✅ primary target — Power Junction RF intake wired via `IEnergyStorage` |
 | **Fabric** (MC 1.21.1, via Architectury) | ✅ core supported (external Fabric energy import via Team Reborn Energy is still stubbed) |
-| **Forge** (any version) | ❌ **not supported** — see below |
+| **Forge** (any version) | ❌ not supported on 1.21.1 — may return for an eventual 1.20.1 backport (see below) |
 
-### Why no Forge
+### Why no Forge on 1.21.1
 
-NeoForge and Forge have diverged enough in API, mappings, and capability handling that supporting both means maintaining two platform-helper layers, two energy-cap bridges, and two registry styles for the same engine. Not paying that cost. The 1.21+ modding ecosystem has consolidated heavily on NeoForge; Fabric (already supported via Architectury) covers the rest.
+On the 1.21.x line NeoForge and Forge have diverged enough in API, mappings, and capability handling that supporting both means maintaining two platform-helper layers, two energy-cap bridges, and two registry styles for the same engine. The 1.21+ modding ecosystem has consolidated heavily on NeoForge, and Fabric (already supported via Architectury) covers the rest, so paying the dual-platform tax here isn't worth it. A future 1.20.1 backport is a different story — on that MC version Forge 47.x is what's actually alive, so that build (if it happens) will target Forge, not NeoForge.
 
-### Why no MC 1.20.1
+### MC 1.20.1 — delayed, not abandoned
 
-NeoForge dropped 1.20.1 — the `20.1.x` line was unpublished from their Maven and can no longer be fetched for fresh builds. An old `0.0.1` jar on the `1.20.1` branch of this repo was built against NeoForge 20.1.88 and **does not load on current Forge or NeoForge runtimes** (see [issue #1](https://github.com/VoiceLessQ/Logistic-Pipes-2/issues/1)). That release is deprecated — use the 1.21.1 build instead.
+The old `0.0.1` jar on the `1.20.1` branch of this repo was built against NeoForge `20.1.88`, which NeoForge has since unpublished from their Maven. With the field-name mappings on that runtime gone, the jar throws `NoSuchFieldError: BLOCK_ENTITY_TYPE` on any current Forge 47.x or NeoForge 47.x loader (see [issue #1](https://github.com/VoiceLessQ/Logistic-Pipes-2/issues/1)).
+
+We haven't given up on 1.20.1 — players on that version deserve a working build. The current focus is finishing the 1.21.1 line first, then revisiting 1.20.1 with whichever loader is realistic at that point (likely Forge 47.x, since the NeoForge 1.20.1 line is dead). No timeline yet. In the meantime the 1.21.1 build is the working one.
 
 ## Known limitations
 
