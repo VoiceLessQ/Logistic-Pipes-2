@@ -52,11 +52,10 @@ We haven't given up on 1.20.1 — players on that version deserve a working buil
 ## Versions
 
 - Minecraft **1.21.1**
-- NeoForge **21.11.38-beta**
-- Fabric Loader **0.18.4** + Fabric API **0.139.5+1.21.11**
-- Architectury **19.0.1**
+- NeoForge **21.1.172**
+- Fabric Loader **0.16.9** + Fabric API **0.116.0+1.21.1**
 - Java **21** (provisioned automatically via Gradle toolchains)
-- Gradle **8.14** + architectury-loom 1.13-SNAPSHOT
+- Gradle **8.14** + architectury-loom 1.13-SNAPSHOT (build tooling only — Architectury runtime API is not used)
 
 ## Building
 
