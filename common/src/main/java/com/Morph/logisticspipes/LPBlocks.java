@@ -1,9 +1,7 @@
 package com.Morph.logisticspipes;
 
-import dev.architectury.registry.registries.DeferredRegister;
-import dev.architectury.registry.registries.RegistrySupplier;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.level.block.Block;
+import java.util.function.Supplier;
+
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -13,44 +11,36 @@ import com.Morph.logisticspipes.blocks.power.LogisticsPowerJunctionBlock;
 import com.Morph.logisticspipes.blocks.power.LogisticsPowerJunctionBlockEntity;
 import com.Morph.logisticspipes.pipes.basic.LogisticsPipeBlock;
 import com.Morph.logisticspipes.pipes.basic.LogisticsPipeBlockEntity;
+import com.Morph.logisticspipes.platform.Registrar;
 
 public final class LPBlocks {
 
-    private static final DeferredRegister<Block> BLOCKS =
-            DeferredRegister.create(LPConstants.MOD_ID, Registries.BLOCK);
+    private LPBlocks() {}
 
-    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
-            DeferredRegister.create(LPConstants.MOD_ID, Registries.BLOCK_ENTITY_TYPE);
+    public static Supplier<LogisticsPipeBlock> PIPE_BLOCK;
+    public static Supplier<BlockEntityType<LogisticsPipeBlockEntity>> PIPE_BLOCK_ENTITY;
 
-    public static final RegistrySupplier<LogisticsPipeBlock> PIPE_BLOCK =
-            BLOCKS.register("pipe", () -> new LogisticsPipeBlock(
-                    BlockBehaviour.Properties.of()
-                            .mapColor(MapColor.METAL)
-                            .sound(SoundType.METAL)
-                            .strength(1.5f)
-                            .noOcclusion()
-            ));
+    public static Supplier<LogisticsPowerJunctionBlock> POWER_JUNCTION_BLOCK;
+    public static Supplier<BlockEntityType<LogisticsPowerJunctionBlockEntity>> POWER_JUNCTION_BLOCK_ENTITY;
 
-    public static final RegistrySupplier<BlockEntityType<LogisticsPipeBlockEntity>> PIPE_BLOCK_ENTITY =
-            BLOCK_ENTITIES.register("pipe", () ->
-                    BlockEntityType.Builder.of(LogisticsPipeBlockEntity::new, PIPE_BLOCK.get()).build(null)
-            );
+    public static void init(Registrar r) {
+        PIPE_BLOCK = r.registerBlock("pipe", () -> new LogisticsPipeBlock(
+                BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.METAL)
+                        .sound(SoundType.METAL)
+                        .strength(1.5f)
+                        .noOcclusion()));
 
-    public static final RegistrySupplier<LogisticsPowerJunctionBlock> POWER_JUNCTION_BLOCK =
-            BLOCKS.register("power_junction", () -> new LogisticsPowerJunctionBlock(
-                    BlockBehaviour.Properties.of()
-                            .mapColor(MapColor.METAL)
-                            .sound(SoundType.METAL)
-                            .strength(2.0f)
-            ));
+        POWER_JUNCTION_BLOCK = r.registerBlock("power_junction", () -> new LogisticsPowerJunctionBlock(
+                BlockBehaviour.Properties.of()
+                        .mapColor(MapColor.METAL)
+                        .sound(SoundType.METAL)
+                        .strength(2.0f)));
 
-    public static final RegistrySupplier<BlockEntityType<LogisticsPowerJunctionBlockEntity>> POWER_JUNCTION_BLOCK_ENTITY =
-            BLOCK_ENTITIES.register("power_junction", () ->
-                    BlockEntityType.Builder.of(LogisticsPowerJunctionBlockEntity::new, POWER_JUNCTION_BLOCK.get()).build(null)
-            );
+        PIPE_BLOCK_ENTITY = r.registerBlockEntity("pipe", () ->
+                BlockEntityType.Builder.of(LogisticsPipeBlockEntity::new, PIPE_BLOCK.get()).build(null));
 
-    public static void register() {
-        BLOCKS.register();
-        BLOCK_ENTITIES.register();
+        POWER_JUNCTION_BLOCK_ENTITY = r.registerBlockEntity("power_junction", () ->
+                BlockEntityType.Builder.of(LogisticsPowerJunctionBlockEntity::new, POWER_JUNCTION_BLOCK.get()).build(null));
     }
 }

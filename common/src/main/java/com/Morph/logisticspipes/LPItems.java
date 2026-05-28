@@ -1,8 +1,7 @@
 package com.Morph.logisticspipes;
 
-import dev.architectury.registry.registries.DeferredRegister;
-import dev.architectury.registry.registries.RegistrySupplier;
-import net.minecraft.core.registries.Registries;
+import java.util.function.Supplier;
+
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
@@ -19,42 +18,42 @@ import com.Morph.logisticspipes.pipes.PipeLogisticsChassisMk3;
 import com.Morph.logisticspipes.pipes.PipeLogisticsChassisMk4;
 import com.Morph.logisticspipes.pipes.PipeLogisticsChassisMk5;
 import com.Morph.logisticspipes.pipes.PipeRegistry;
+import com.Morph.logisticspipes.platform.Registrar;
 
 public final class LPItems {
 
-    private static final DeferredRegister<Item> ITEMS =
-            DeferredRegister.create(LPConstants.MOD_ID, Registries.ITEM);
+    private LPItems() {}
 
-    // Pipe items
-    public static final RegistrySupplier<Item> PIPE_BASIC =
-            ITEMS.register("pipe_basic",    () -> pipeItem("pipe_basic"));
-    public static final RegistrySupplier<Item> PIPE_PROVIDER =
-            ITEMS.register("pipe_provider", () -> pipeItem("pipe_provider"));
-    public static final RegistrySupplier<Item> PIPE_REQUEST =
-            ITEMS.register("pipe_request",  () -> pipeItem("pipe_request"));
-    public static final RegistrySupplier<Item> PIPE_SUPPLIER =
-            ITEMS.register("pipe_supplier", () -> pipeItem("pipe_supplier"));
-    public static final RegistrySupplier<Item> PIPE_CHASSIS_MK1 =
-            ITEMS.register("pipe_chassis_mk1", () -> pipeItem("pipe_chassis_mk1"));
-    public static final RegistrySupplier<Item> PIPE_CHASSIS_MK2 =
-            ITEMS.register("pipe_chassis_mk2", () -> pipeItem("pipe_chassis_mk2"));
-    public static final RegistrySupplier<Item> PIPE_CHASSIS_MK3 =
-            ITEMS.register("pipe_chassis_mk3", () -> pipeItem("pipe_chassis_mk3"));
-    public static final RegistrySupplier<Item> PIPE_CHASSIS_MK4 =
-            ITEMS.register("pipe_chassis_mk4", () -> pipeItem("pipe_chassis_mk4"));
-    public static final RegistrySupplier<Item> PIPE_CHASSIS_MK5 =
-            ITEMS.register("pipe_chassis_mk5", () -> pipeItem("pipe_chassis_mk5"));
+    public static Supplier<Item> PIPE_BASIC;
+    public static Supplier<Item> PIPE_PROVIDER;
+    public static Supplier<Item> PIPE_REQUEST;
+    public static Supplier<Item> PIPE_SUPPLIER;
+    public static Supplier<Item> PIPE_CHASSIS_MK1;
+    public static Supplier<Item> PIPE_CHASSIS_MK2;
+    public static Supplier<Item> PIPE_CHASSIS_MK3;
+    public static Supplier<Item> PIPE_CHASSIS_MK4;
+    public static Supplier<Item> PIPE_CHASSIS_MK5;
+    public static Supplier<Item> POWER_JUNCTION;
+    public static Supplier<Item> MODULE_ITEM_SINK;
+    public static Supplier<Item> MODULE_PROVIDER;
 
-    // Power blocks
-    public static final RegistrySupplier<Item> POWER_JUNCTION =
-            ITEMS.register("power_junction", () -> new BlockItem(LPBlocks.POWER_JUNCTION_BLOCK.get(), new Item.Properties()));
+    public static void init(Registrar r) {
+        PIPE_BASIC       = r.registerItem("pipe_basic",       () -> pipeItem("pipe_basic"));
+        PIPE_PROVIDER    = r.registerItem("pipe_provider",    () -> pipeItem("pipe_provider"));
+        PIPE_REQUEST     = r.registerItem("pipe_request",     () -> pipeItem("pipe_request"));
+        PIPE_SUPPLIER    = r.registerItem("pipe_supplier",    () -> pipeItem("pipe_supplier"));
+        PIPE_CHASSIS_MK1 = r.registerItem("pipe_chassis_mk1", () -> pipeItem("pipe_chassis_mk1"));
+        PIPE_CHASSIS_MK2 = r.registerItem("pipe_chassis_mk2", () -> pipeItem("pipe_chassis_mk2"));
+        PIPE_CHASSIS_MK3 = r.registerItem("pipe_chassis_mk3", () -> pipeItem("pipe_chassis_mk3"));
+        PIPE_CHASSIS_MK4 = r.registerItem("pipe_chassis_mk4", () -> pipeItem("pipe_chassis_mk4"));
+        PIPE_CHASSIS_MK5 = r.registerItem("pipe_chassis_mk5", () -> pipeItem("pipe_chassis_mk5"));
 
-    // Module items (non-placeable)
-    public static final RegistrySupplier<Item> MODULE_ITEM_SINK =
-            ITEMS.register("module_item_sink", () -> new Item(new Item.Properties()));
+        POWER_JUNCTION   = r.registerItem("power_junction",
+                () -> new BlockItem(LPBlocks.POWER_JUNCTION_BLOCK.get(), new Item.Properties()));
 
-    public static final RegistrySupplier<Item> MODULE_PROVIDER =
-            ITEMS.register("module_provider", () -> new Item(new Item.Properties()));
+        MODULE_ITEM_SINK = r.registerItem("module_item_sink", () -> new Item(new Item.Properties()));
+        MODULE_PROVIDER  = r.registerItem("module_provider",  () -> new Item(new Item.Properties()));
+    }
 
     /** BlockItem whose display name comes from its own item translation key, not the shared block key. */
     private static BlockItem pipeItem(String key) {
@@ -62,10 +61,6 @@ public final class LPItems {
         return new BlockItem(LPBlocks.PIPE_BLOCK.get(), new Item.Properties()) {
             @Override public String getDescriptionId() { return descId; }
         };
-    }
-
-    public static void register() {
-        ITEMS.register();
     }
 
     /** Called after registry freeze to wire PipeRegistry and ModuleRegistry factories. */
