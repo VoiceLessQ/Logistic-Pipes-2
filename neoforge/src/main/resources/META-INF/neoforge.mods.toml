@@ -1,5 +1,7 @@
 modLoader = "javafml"
-loaderVersion = "[10,)"
+# javafml is at 4.x on NeoForge 21.1.x — was "[10,)" (Forge 1.20.1 scheme) which
+# fails the load with "Mod needs language provider javafml:10 or above to load".
+loaderVersion = "[4,)"
 issueTrackerURL = "https://github.com/VoiceLessQ/Logistic-Pipes-2/issues"
 license = "MMPL-1.0.1"
 
