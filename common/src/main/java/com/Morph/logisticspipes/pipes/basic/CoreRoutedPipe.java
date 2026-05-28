@@ -8,6 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 
+import com.Morph.logisticspipes.api.ILogisticsPowerProvider;
 import com.Morph.logisticspipes.routing.IRouter;
 import com.Morph.logisticspipes.routing.RouterManager;
 import com.Morph.logisticspipes.routing.ServerRouter;
@@ -131,6 +132,34 @@ public abstract class CoreRoutedPipe extends CoreUnroutedPipe {
             routerUUID = tag.getUUID("routerUUID");
         }
         routerCache = null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Power
+    // -------------------------------------------------------------------------
+
+    /**
+     * Try to draw {@code amount} LP units from the network's power providers.
+     * Walks providers in cost order (nearest first); returns true on the first
+     * provider that successfully serves the request.
+     */
+    public boolean useEnergy(int amount) {
+        IRouter router = getRouter();
+        if (!(router instanceof ServerRouter sr)) return false;
+        for (ILogisticsPowerProvider p : sr.getPowerProvidersInNetwork()) {
+            if (p.useEnergy(amount)) return true;
+        }
+        return false;
+    }
+
+    /** Same as {@link #useEnergy} but non-consuming — checks availability only. */
+    public boolean canUseEnergy(int amount) {
+        IRouter router = getRouter();
+        if (!(router instanceof ServerRouter sr)) return false;
+        for (ILogisticsPowerProvider p : sr.getPowerProvidersInNetwork()) {
+            if (p.canUseEnergy(amount)) return true;
+        }
+        return false;
     }
 
     // -------------------------------------------------------------------------

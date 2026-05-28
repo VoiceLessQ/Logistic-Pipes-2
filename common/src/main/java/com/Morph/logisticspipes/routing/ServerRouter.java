@@ -18,6 +18,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import com.Morph.logisticspipes.api.ILogisticsPowerProvider;
 import com.Morph.logisticspipes.pipes.basic.CoreRoutedPipe;
 import com.Morph.logisticspipes.pipes.basic.LogisticsPipeBlockEntity;
 import com.Morph.logisticspipes.routing.pathfinder.PathFinder;
@@ -75,6 +76,9 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
     /** Direct adjacent routed pipes → exit route from this router's perspective. */
     public Map<CoreRoutedPipe, ExitRoute> adjacent = new HashMap<>();
 
+    /** Power providers (e.g. Power Junction) sitting on this router's 6 neighbours. */
+    private List<ILogisticsPowerProvider> localPowerProviders = Collections.emptyList();
+
     /**
      * Route table: index = destination simpleID → sorted list of ExitRoutes.
      * Rebuilt by Dijkstra. AtomicReference for lock-free reads while rebuild runs.
@@ -111,9 +115,26 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
         if (destroyed) return;
         if (doFullRefresh || connectionDirty) {
             refreshAdjacent(pipe);
+            refreshLocalPowerProviders();
             connectionDirty = false;
         }
         rebuildRoutingTable();
+    }
+
+    /**
+     * Returns every {@link ILogisticsPowerProvider} reachable through the LP network,
+     * ordered by routing cost (closest first). Includes this router's own local
+     * adjacent providers at the front, followed by reachable routers' providers in
+     * the order they appear in {@link #routeCosts}.
+     */
+    public List<ILogisticsPowerProvider> getPowerProvidersInNetwork() {
+        List<ILogisticsPowerProvider> all = new ArrayList<>(localPowerProviders);
+        for (ExitRoute route : routeCosts.get()) {
+            if (route.destination instanceof ServerRouter sr && sr != this) {
+                all.addAll(sr.localPowerProviders);
+            }
+        }
+        return all;
     }
 
     @Override
@@ -219,6 +240,19 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
         for (ExitRoute route : adjacent.values()) {
             route.root = this;
         }
+    }
+
+    /** Scans the 6 cardinal neighbours of this router's pipe for power providers. */
+    private void refreshLocalPowerProviders() {
+        List<ILogisticsPowerProvider> found = null;
+        for (Direction dir : Direction.values()) {
+            BlockEntity be = level.getBlockEntity(pos.relative(dir));
+            if (be instanceof ILogisticsPowerProvider provider) {
+                if (found == null) found = new ArrayList<>(2);
+                found.add(provider);
+            }
+        }
+        localPowerProviders = found != null ? found : Collections.emptyList();
     }
 
     /**
