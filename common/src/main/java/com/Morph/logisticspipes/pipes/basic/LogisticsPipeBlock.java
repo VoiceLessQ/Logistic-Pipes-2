@@ -35,8 +35,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import dev.architectury.registry.menu.ExtendedMenuProvider;
-import dev.architectury.registry.menu.MenuRegistry;
+import com.Morph.logisticspipes.platform.MenuOpener;
 
 import com.Morph.logisticspipes.LPBlocks;
 import com.Morph.logisticspipes.LPConstants;
@@ -195,50 +194,32 @@ public class LogisticsPipeBlock extends BaseEntityBlock {
         if (pipe == null) return InteractionResult.PASS;
 
         if (pipe instanceof PipeItemsRequestLogistics req) {
-            MenuRegistry.openExtendedMenu(sp, new ExtendedMenuProvider() {
-                @Override
-                public void saveExtraData(FriendlyByteBuf buf) {
-                    buf.writeBlockPos(pos);
-                    RequestPipeMenu.writeItemsToBuf(buf, req.getNetworkItems());
-                }
-                @Override
-                public Component getDisplayName() { return Component.literal("Request Pipe"); }
-                @Override
-                public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
-                    return new RequestPipeMenu(id, inv, pos);
-                }
-            });
+            MenuOpener.get().openExtendedMenu(sp,
+                    Component.literal("Request Pipe"),
+                    (id, inv, p) -> new RequestPipeMenu(id, inv, pos),
+                    buf -> {
+                        buf.writeBlockPos(pos);
+                        RequestPipeMenu.writeItemsToBuf(buf, req.getNetworkItems());
+                    });
             return InteractionResult.CONSUME;
         }
 
         if (pipe instanceof PipeLogisticsChassis chassis) {
-            MenuRegistry.openExtendedMenu(sp, new ExtendedMenuProvider() {
-                @Override
-                public void saveExtraData(FriendlyByteBuf buf) {
-                    buf.writeBlockPos(pos);
-                    buf.writeInt(chassis.getChassisSize());
-                }
-                @Override
-                public Component getDisplayName() { return Component.literal("Chassis Pipe"); }
-                @Override
-                public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
-                    return new ChassisPipeMenu(id, inv, pos);
-                }
-            });
+            MenuOpener.get().openExtendedMenu(sp,
+                    Component.literal("Chassis Pipe"),
+                    (id, inv, p) -> new ChassisPipeMenu(id, inv, pos),
+                    buf -> {
+                        buf.writeBlockPos(pos);
+                        buf.writeInt(chassis.getChassisSize());
+                    });
             return InteractionResult.CONSUME;
         }
 
         if (pipe instanceof PipeItemsSupplierLogistics) {
-            MenuRegistry.openExtendedMenu(sp, new ExtendedMenuProvider() {
-                @Override
-                public void saveExtraData(FriendlyByteBuf buf) { buf.writeBlockPos(pos); }
-                @Override
-                public Component getDisplayName() { return Component.literal("Supplier Pipe"); }
-                @Override
-                public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
-                    return new SupplierPipeMenu(id, inv, pos);
-                }
-            });
+            MenuOpener.get().openExtendedMenu(sp,
+                    Component.literal("Supplier Pipe"),
+                    (id, inv, p) -> new SupplierPipeMenu(id, inv, pos),
+                    buf -> buf.writeBlockPos(pos));
             return InteractionResult.CONSUME;
         }
 
