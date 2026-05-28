@@ -6,6 +6,7 @@ import com.Morph.ExampleMod;
 import com.Morph.fabric.network.FabricNetworking;
 import com.Morph.fabric.platform.FabricMenuOpener;
 import com.Morph.fabric.platform.FabricRegistrar;
+import com.Morph.fabric.power.FabricPowerHooks;
 import com.Morph.logisticspipes.platform.MenuOpener;
 import com.Morph.logisticspipes.platform.PlatformHelper;
 
@@ -16,6 +17,7 @@ public final class ExampleModFabric implements ModInitializer {
         MenuOpener.set(FabricMenuOpener.INSTANCE);
         ExampleMod.init(new FabricRegistrar());
         FabricNetworking.register();
+        FabricPowerHooks.register();
         ExampleMod.postInit();
     }
 }

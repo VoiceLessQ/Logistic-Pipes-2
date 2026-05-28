@@ -33,6 +33,10 @@ dependencies {
     // Architectury runtime API was dropped — only the architectury-loom + architectury-plugin
     // build tooling remains, providing the cross-platform transform pipeline.
 
+    // Team Reborn Energy — Fabric RF/FE energy API bridge (Power Junction import).
+    // Published to maven.fabricmc.net (already configured by Architectury).
+    modImplementation "teamreborn:energy:$rootProject.tr_energy_version"
+
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
 }

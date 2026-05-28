@@ -1,29 +1,23 @@
 package com.Morph.fabric.power;
 
+import team.reborn.energy.api.EnergyStorage;
+
+import com.Morph.logisticspipes.LPBlocks;
+
 /**
- * Placeholder for the Fabric energy bridge.
+ * Wires Team Reborn Energy lookup for the Power Junction block entity, so
+ * Fabric machines (cables, generators, etc. that use {@code team.reborn.energy.api})
+ * can push RF into a Junction the same way NeoForge cables do via {@code IEnergyStorage}.
  *
- * Status: not wired. The Power Junction works on Fabric for LP-internal use
- * ({@code useEnergy} / {@code canUseEnergy} via the LP network), but no
- * external Fabric machine can push RF into it yet because Team Reborn Energy
- * (the de-facto Fabric energy std) is not declared as a dependency.
- *
- * To wire it later:
- *   1. fabric/build.gradle:  modImplementation "teamreborn:energy:<ver-for-1.21.1>"
- *      (TR-Energy publishes to https://maven.fabricmc.net/ which is already configured).
- *   2. Implement an {@code EnergyStorage} adapter mirroring
- *      {@code com.Morph.neoforge.power.PowerJunctionEnergyAdapter}.
- *   3. Register via {@code EnergyStorage.SIDED.registerForBlockEntity(...)} at
- *      Fabric mod-init time.
- *
- * Until that's done this class is intentionally inert.
+ * Called once from {@code ExampleModFabric.onInitialize}.
  */
 public final class FabricPowerHooks {
 
     private FabricPowerHooks() {}
 
-    /** Called from {@code ExampleModFabric}. No-op until TR-Energy is wired. */
     public static void register() {
-        // intentional no-op
+        EnergyStorage.SIDED.registerForBlockEntity(
+                (be, side) -> new FabricPowerJunctionEnergyAdapter(be),
+                LPBlocks.POWER_JUNCTION_BLOCK_ENTITY.get());
     }
 }

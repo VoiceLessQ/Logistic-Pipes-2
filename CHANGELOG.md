@@ -20,7 +20,7 @@ The 1.21.1 line is a retarget from the abandoned NeoForge 1.20.1 line (see 0.0.1
   - `ILogisticsPowerProvider` / `IRoutedPowerProvider` interfaces
   - `LogisticsPowerJunctionBlock` + `BlockEntity` — 2,000,000 LP buffer with 2 RF = 1 LP conversion
   - NeoForge `IEnergyStorage` capability — cables can push RF in
-  - Fabric Team Reborn Energy bridge stubbed (LP-internal use works on Fabric; external RF import deferred)
+  - Fabric Team Reborn Energy bridge wired — Fabric machines using `team.reborn.energy.api.EnergyStorage` can now push RF into a Power Junction (receive-only, matches the NeoForge IEnergyStorage adapter shape)
   - ServerRouter scans 6 neighbours for providers; CoreRoutedPipe `useEnergy()` / `canUseEnergy()` walk providers in cost order
   - Power Junction GUI with live RF fill bar
 - **Config**: JSON config at `config/morph.json` — `power.usageMultiplier`, `power.usageDisabled`, `power.maxStorage`, `routing.refreshTicks`, `routing.maxNetworkSize`.
@@ -29,9 +29,8 @@ The 1.21.1 line is a retarget from the abandoned NeoForge 1.20.1 line (see 0.0.1
 - **Architectury runtime removal**: dropped every `dev.architectury.*` runtime import — registries, GUI opening, networking are all platform-native (vanilla `Registry.register` / `DeferredRegister`, `ExtendedScreenHandlerFactory` / NeoForge `Player.openMenu` overload, typed `CustomPacketPayload` + `PayloadTypeRegistry` / `RegisterPayloadHandlersEvent`). The architectury-loom + architectury-plugin **build** tooling stays — same setup Orevein uses.
 
 ### Known issues
-- **Per-pipe power gates not wired** — Power Junction stores and serves energy, but no pipe currently calls `useEnergy()` yet. The plumbing is ready; gates land per pipe type during ongoing migration.
+- **Per-pipe power gates incomplete** — the per-hop routing gate is live (each routed item-hop debits `power.routingCost` LP from the network), but other pipe operations (extract, request fulfill, crafter step, etc.) don't gate on power yet. They land per pipe type as the migration proceeds.
 - **Missing GUIs** — Crafter, Provider, Item Sink, Satellite, Firewall, Orderer, Security Station screens not yet ported.
-- **Fabric external energy import** — Team Reborn Energy bridge is stubbed; cables on Fabric can't push RF into a Power Junction yet.
 - **Third-party mod integrations** — JEI, TheOneProbe, AE2, CC:Tweaked are stubbed/absent.
 - **Items-in-transit rendering** — visible but still being tuned.
 - **No world upgrade path from 1.12.2 or 1.20.1 saves** — legacy data fixers are not ported; start on a fresh 1.21.1 world.
