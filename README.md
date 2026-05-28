@@ -85,4 +85,4 @@ Issues and PRs welcome. Skim [PROJECT_STATE.md](PROJECT_STATE.md) and the open i
 
 Distributed under the Minecraft Mod Public License 1.0.1 — see LICENSE.md.
 
-— The Logistic Pipes 2 Team
+— The Logistic Pipes 2 Team (Me)
