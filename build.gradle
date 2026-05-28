@@ -2,14 +2,7 @@ plugins {
     id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.gradleup.shadow' version '8.3.6' apply false
-    // Forgix universal-jar build temporarily disabled — re-enabling needs either
-    // (a) per-subproject plugins{} apply for loom (Orevein pattern), which currently
-    //     conflicts with root subprojects{} dependencies block referencing
-    //     loom.officialMojangMappings(), or
-    // (b) deferring forgix{} config until after all subprojects evaluate without
-    //     using evaluationDependsOn at script scope.
-    // Tackled in a follow-up; build is green without it.
-    // id 'io.github.pacifistmc.forgix' version '2.0.0-SNAPSHOT.5.1'
+    id 'io.github.pacifistmc.forgix' version '2.0.0-SNAPSHOT.5.1'
 }
 
 architectury {
@@ -20,23 +13,6 @@ allprojects {
     group = rootProject.maven_group
     version = rootProject.mod_version
 }
-
-// Forgix universal-jar config — disabled in tandem with the plugin above; see comment there.
-// evaluationDependsOn(":fabric")
-// evaluationDependsOn(":neoforge")
-// forgix {
-//     silence = false
-//     autoRun = false
-//     archiveClassifier = "universal"
-//     archiveVersion = "${rootProject.mod_version}-V${rootProject.minecraft_version}"
-//     destinationDirectory = layout.projectDirectory.dir("build/libs")
-//     fabric {
-//         inputJar.set(project(":fabric").tasks.named("shadowJar").flatMap { it.archiveFile })
-//     }
-//     neoforge {
-//         inputJar.set(project(":neoforge").tasks.named("shadowJar").flatMap { it.archiveFile })
-//     }
-// }
 
 // Collect both loader JARs into root build/libs after a full build.
 tasks.register('collectJars', Copy) {
@@ -139,5 +115,35 @@ subprojects {
             // The repositories here will be used for publishing your artifact, not for
             // retrieving dependencies.
         }
+    }
+}
+
+// Forgix universal-jar configuration.
+//
+// CRITICAL: the evaluationDependsOn calls and forgix{} block MUST live AFTER
+// the subprojects{} block above. evaluationDependsOn pauses root evaluation
+// and configures the named subproject immediately — if it ran before
+// subprojects{}, the per-subproject actions (apply plugin loom, dependencies,
+// java config) wouldn't be queued yet, and :fabric would configure with no
+// loom plugin and no minecraft dep ("Extension 'loom' does not exist" /
+// "Configuration 'minecraft' has no dependencies"). Placed here, the
+// subprojects{} actions are queued first, then eval-depends configures
+// :fabric / :neoforge fully (with loom + deps + shadowJar tasks), and Forgix
+// can resolve the shadowJar tasks for its inputJar references.
+evaluationDependsOn(":fabric")
+evaluationDependsOn(":neoforge")
+
+forgix {
+    silence = false
+    autoRun = false
+    archiveClassifier = "universal"
+    archiveVersion = "${rootProject.mod_version}-V${rootProject.minecraft_version}"
+    destinationDirectory = layout.projectDirectory.dir("build/libs")
+
+    fabric {
+        inputJar.set(project(":fabric").tasks.named("shadowJar").flatMap { it.archiveFile })
+    }
+    neoforge {
+        inputJar.set(project(":neoforge").tasks.named("shadowJar").flatMap { it.archiveFile })
     }
 }
