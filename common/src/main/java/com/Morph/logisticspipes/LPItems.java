@@ -45,6 +45,10 @@ public final class LPItems {
     public static final RegistrySupplier<Item> PIPE_CHASSIS_MK5 =
             ITEMS.register("pipe_chassis_mk5", () -> pipeItem("pipe_chassis_mk5"));
 
+    // Power blocks
+    public static final RegistrySupplier<Item> POWER_JUNCTION =
+            ITEMS.register("power_junction", () -> new BlockItem(LPBlocks.POWER_JUNCTION_BLOCK.get(), new Item.Properties()));
+
     // Module items (non-placeable)
     public static final RegistrySupplier<Item> MODULE_ITEM_SINK =
             ITEMS.register("module_item_sink", () -> new Item(new Item.Properties()));

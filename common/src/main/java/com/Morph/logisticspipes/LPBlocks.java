@@ -9,6 +9,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 
+import com.Morph.logisticspipes.blocks.power.LogisticsPowerJunctionBlock;
+import com.Morph.logisticspipes.blocks.power.LogisticsPowerJunctionBlockEntity;
 import com.Morph.logisticspipes.pipes.basic.LogisticsPipeBlock;
 import com.Morph.logisticspipes.pipes.basic.LogisticsPipeBlockEntity;
 
@@ -32,6 +34,19 @@ public final class LPBlocks {
     public static final RegistrySupplier<BlockEntityType<LogisticsPipeBlockEntity>> PIPE_BLOCK_ENTITY =
             BLOCK_ENTITIES.register("pipe", () ->
                     BlockEntityType.Builder.of(LogisticsPipeBlockEntity::new, PIPE_BLOCK.get()).build(null)
+            );
+
+    public static final RegistrySupplier<LogisticsPowerJunctionBlock> POWER_JUNCTION_BLOCK =
+            BLOCKS.register("power_junction", () -> new LogisticsPowerJunctionBlock(
+                    BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .sound(SoundType.METAL)
+                            .strength(2.0f)
+            ));
+
+    public static final RegistrySupplier<BlockEntityType<LogisticsPowerJunctionBlockEntity>> POWER_JUNCTION_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("power_junction", () ->
+                    BlockEntityType.Builder.of(LogisticsPowerJunctionBlockEntity::new, POWER_JUNCTION_BLOCK.get()).build(null)
             );
 
     public static void register() {
