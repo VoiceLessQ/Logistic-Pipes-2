@@ -2,16 +2,17 @@
   "schemaVersion": 1,
   "id": "morph",
   "version": "${version}",
-  "name": "Morph",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Logistic Pipes 2",
+  "description": "Request-based item routing, automated crafting, and modular chassis pipes — a revival of LogisticsPipes for modern Minecraft.",
   "authors": [
-    "NoZeroG"
+    "NoZeroG (VoiceLessQ)"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/logistics-pipes",
+    "sources": "https://github.com/VoiceLessQ/Logistic-Pipes-2",
+    "issues": "https://github.com/VoiceLessQ/Logistic-Pipes-2/issues"
   },
-  "license": "CC0-1.0",
+  "license": "MMPL-1.0.1",
   "icon": "assets/morph/icon.png",
   "environment": "*",
   "entrypoints": {
@@ -29,10 +30,6 @@
     "fabricloader": ">=0.16.9",
     "minecraft": "~1.21.1",
     "java": ">=21",
-    "architectury": ">=13.0.8",
     "fabric-api": "*"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }

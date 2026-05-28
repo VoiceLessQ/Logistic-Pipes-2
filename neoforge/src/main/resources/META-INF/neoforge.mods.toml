@@ -1,15 +1,15 @@
 modLoader = "javafml"
 loaderVersion = "[10,)"
-#issueTrackerURL = ""
-license = "Insert License Here"
+issueTrackerURL = "https://github.com/VoiceLessQ/Logistic-Pipes-2/issues"
+license = "MMPL-1.0.1"
 
 [[mods]]
 modId = "morph"
 version = "${version}"
-displayName = "Morph"
-authors = "NoZeroG"
+displayName = "Logistic Pipes 2"
+authors = "NoZeroG (VoiceLessQ)"
 description = '''
-This is an example description! Tell everyone what your mod is about!
+Request-based item routing, automated crafting, and modular chassis pipes — a revival of LogisticsPipes for modern Minecraft.
 '''
 #logoFile = ""
 
@@ -25,13 +25,6 @@ modId = "minecraft"
 type = "required"
 versionRange = "[1.21.1,)"
 ordering = "NONE"
-side = "BOTH"
-
-[[dependencies.morph]]
-modId = "architectury"
-type = "required"
-versionRange = "[13.0,)"
-ordering = "AFTER"
 side = "BOTH"
 
 [[mixins]]
