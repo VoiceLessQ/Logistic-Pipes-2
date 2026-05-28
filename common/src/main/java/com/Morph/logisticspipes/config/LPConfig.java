@@ -44,6 +44,16 @@ public final class LPConfig {
     /** Per-Power-Junction storage cap in LP units. LP1 default: 2,000,000. */
     public static int POWER_MAX_STORAGE = 2_000_000;
 
+    /** LP units consumed each time a routed pipe hops an item to the next pipe. */
+    public static int POWER_ROUTING_COST = 1;
+
+    /**
+     * If true and the network is out of power, a routed pipe will refuse to route
+     * (item falls back to local delivery, usually = drop). If false, routing
+     * succeeds for free when no power is available — useful for early-game play.
+     */
+    public static boolean POWER_REQUIRE_FOR_ROUTING = false;
+
     /** How often {@code ServerRouter.update} runs per pipe, in ticks. */
     public static int ROUTING_REFRESH_TICKS = 20;
 
@@ -61,11 +71,13 @@ public final class LPConfig {
             }
             String text = Files.readString(CONFIG_PATH);
             JsonObject root = JsonParser.parseString(text).getAsJsonObject();
-            POWER_USAGE_MULTIPLIER = getDouble(root, "power.usageMultiplier", POWER_USAGE_MULTIPLIER);
-            POWER_USAGE_DISABLED   = getBool  (root, "power.usageDisabled",   POWER_USAGE_DISABLED);
-            POWER_MAX_STORAGE      = getInt   (root, "power.maxStorage",      POWER_MAX_STORAGE);
-            ROUTING_REFRESH_TICKS  = getInt   (root, "routing.refreshTicks",  ROUTING_REFRESH_TICKS);
-            MAX_NETWORK_SIZE       = getInt   (root, "routing.maxNetworkSize", MAX_NETWORK_SIZE);
+            POWER_USAGE_MULTIPLIER     = getDouble(root, "power.usageMultiplier",     POWER_USAGE_MULTIPLIER);
+            POWER_USAGE_DISABLED       = getBool  (root, "power.usageDisabled",       POWER_USAGE_DISABLED);
+            POWER_MAX_STORAGE          = getInt   (root, "power.maxStorage",          POWER_MAX_STORAGE);
+            POWER_ROUTING_COST         = getInt   (root, "power.routingCost",         POWER_ROUTING_COST);
+            POWER_REQUIRE_FOR_ROUTING  = getBool  (root, "power.requireForRouting",   POWER_REQUIRE_FOR_ROUTING);
+            ROUTING_REFRESH_TICKS      = getInt   (root, "routing.refreshTicks",      ROUTING_REFRESH_TICKS);
+            MAX_NETWORK_SIZE           = getInt   (root, "routing.maxNetworkSize",    MAX_NETWORK_SIZE);
         } catch (Exception e) {
             // Corrupt file → keep defaults, log to stderr (no logger in common yet)
             System.err.println("[morph] Failed to read " + CONFIG_PATH + ": " + e.getMessage()
@@ -80,11 +92,13 @@ public final class LPConfig {
                 Files.createDirectories(CONFIG_PATH.getParent());
             }
             JsonObject root = new JsonObject();
-            root.add("power.usageMultiplier", new JsonPrimitive(POWER_USAGE_MULTIPLIER));
-            root.add("power.usageDisabled",   new JsonPrimitive(POWER_USAGE_DISABLED));
-            root.add("power.maxStorage",      new JsonPrimitive(POWER_MAX_STORAGE));
-            root.add("routing.refreshTicks",  new JsonPrimitive(ROUTING_REFRESH_TICKS));
-            root.add("routing.maxNetworkSize", new JsonPrimitive(MAX_NETWORK_SIZE));
+            root.add("power.usageMultiplier",    new JsonPrimitive(POWER_USAGE_MULTIPLIER));
+            root.add("power.usageDisabled",      new JsonPrimitive(POWER_USAGE_DISABLED));
+            root.add("power.maxStorage",         new JsonPrimitive(POWER_MAX_STORAGE));
+            root.add("power.routingCost",        new JsonPrimitive(POWER_ROUTING_COST));
+            root.add("power.requireForRouting",  new JsonPrimitive(POWER_REQUIRE_FOR_ROUTING));
+            root.add("routing.refreshTicks",     new JsonPrimitive(ROUTING_REFRESH_TICKS));
+            root.add("routing.maxNetworkSize",   new JsonPrimitive(MAX_NETWORK_SIZE));
             Files.writeString(CONFIG_PATH, GSON.toJson(root));
         } catch (IOException e) {
             System.err.println("[morph] Failed to write " + CONFIG_PATH + ": " + e.getMessage());

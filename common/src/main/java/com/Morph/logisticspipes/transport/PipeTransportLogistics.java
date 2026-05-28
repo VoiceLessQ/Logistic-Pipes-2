@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import com.Morph.logisticspipes.config.LPConfig;
 import com.Morph.logisticspipes.pipes.basic.CoreRoutedPipe;
 import com.Morph.logisticspipes.pipes.basic.LogisticsPipeBlockEntity;
 import com.Morph.logisticspipes.platform.PlatformHelper;
@@ -61,7 +62,15 @@ public class PipeTransportLogistics {
         }
     }
 
-    /** Resolve routing direction for a routed item at this pipe. */
+    /**
+     * Resolve routing direction for a routed item at this pipe.
+     *
+     * Power gate (LP1-style): each successful hop debits {@link LPConfig#POWER_ROUTING_COST}
+     * LP from the network. If the network has the energy, it's consumed and we route normally.
+     * If not, behaviour depends on {@link LPConfig#POWER_REQUIRE_FOR_ROUTING}:
+     *   true  → return null (forces local delivery; effectively the item drops);
+     *   false → route anyway for free (default — keeps gameplay functional pre-Power-Junction).
+     */
     private Direction resolveRoutedOutput(LPTravelingItem item) {
         if (item.destinationRouterId < 0) return item.output;
         if (!(container.getPipe() instanceof CoreRoutedPipe crp)) return item.output;
@@ -70,7 +79,17 @@ public class PipeTransportLogistics {
         // If we ARE the destination, deliver locally (output = null signals arrival)
         if (router.getSimpleID() == item.destinationRouterId) return null;
         ExitRoute exit = router.getExitFor(item.destinationRouterId, true, null);
-        return exit != null ? exit.exitOrientation : item.output;
+        if (exit == null) return item.output;
+
+        int cost = LPConfig.POWER_ROUTING_COST;
+        if (cost > 0 && !LPConfig.POWER_USAGE_DISABLED) {
+            boolean paid = crp.useEnergy(cost);
+            if (!paid && LPConfig.POWER_REQUIRE_FOR_ROUTING) {
+                return null; // out of power, strict mode → deliver locally (drops)
+            }
+            // paid==true OR strict mode is off: route normally
+        }
+        return exit.exitOrientation;
     }
 
     /**
