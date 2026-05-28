@@ -28,6 +28,7 @@ public final class LPCreativeTab {
                         output.accept(LPItems.PIPE_CHASSIS_MK5.get());
                         output.accept(LPItems.MODULE_ITEM_SINK.get());
                         output.accept(LPItems.MODULE_PROVIDER.get());
+                        output.accept(LPItems.POWER_JUNCTION.get());
                     })
                     .build());
 

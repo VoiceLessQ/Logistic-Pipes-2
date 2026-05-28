@@ -43,6 +43,8 @@
   "block.morph.security_station": "Security Station",
 
   "item.morph.security_station":  "Security Station",
+  "item.morph.power_junction":    "Logistics Power Junction",
+  "block.morph.power_junction":   "Logistics Power Junction",
 
   "item.morph.module_itemsink":          "Item Sink Module",
   "item.morph.module_item_sink":         "Item Sink Module",
