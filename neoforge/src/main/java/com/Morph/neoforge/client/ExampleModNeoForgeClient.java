@@ -14,9 +14,15 @@ import com.Morph.logisticspipes.gui.screen.ChassisPipeScreen;
 import com.Morph.logisticspipes.gui.screen.PowerJunctionScreen;
 import com.Morph.logisticspipes.gui.screen.RequestPipeScreen;
 import com.Morph.logisticspipes.gui.screen.SupplierPipeScreen;
+import com.Morph.logisticspipes.platform.NetworkSender;
+import com.Morph.neoforge.platform.NeoForgeNetworkSender;
 
 @EventBusSubscriber(modid = ExampleMod.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ExampleModNeoForgeClient {
+
+    static {
+        NetworkSender.set(NeoForgeNetworkSender.INSTANCE);
+    }
 
     @SubscribeEvent
     public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {

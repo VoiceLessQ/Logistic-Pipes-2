@@ -10,10 +10,11 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-import dev.architectury.networking.NetworkManager;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import com.Morph.logisticspipes.gui.RequestPipeMenu;
-import com.Morph.logisticspipes.network.LPNetworking;
+import com.Morph.logisticspipes.network.RequestItemPayload;
+import com.Morph.logisticspipes.platform.NetworkSender;
 import com.Morph.logisticspipes.utils.item.ItemIdentifierStack;
 
 /**
@@ -84,8 +85,10 @@ public class RequestPipeScreen extends AbstractContainerScreen<RequestPipeMenu> 
                 ItemIdentifierStack entry = items.get(i);
                 int amount = hasShiftDown() ? 1 : Math.min(entry.stackSize,
                         entry.item.item.getDefaultMaxStackSize());
-                NetworkManager.sendToServer(LPNetworking.REQUEST_ITEM,
-                        LPNetworking.buildRequestItemPacket(menu.getPipePos(), entry.item, amount));
+                NetworkSender.get().sendToServer(new RequestItemPayload(
+                        menu.getPipePos(),
+                        BuiltInRegistries.ITEM.getKey(entry.item.item),
+                        amount));
                 return true;
             }
         }

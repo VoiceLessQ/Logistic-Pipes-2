@@ -1,61 +1,46 @@
 package com.Morph.logisticspipes.network;
 
-import dev.architectury.networking.NetworkManager;
-import io.netty.buffer.Unpooled;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import com.Morph.logisticspipes.LPConstants;
 import com.Morph.logisticspipes.pipes.PipeItemsRequestLogistics;
 import com.Morph.logisticspipes.pipes.basic.LogisticsPipeBlockEntity;
 import com.Morph.logisticspipes.utils.item.ItemIdentifier;
 
 /**
- * Central registration of all LP network packets.
- * C2S packets registered here; S2C registered from client init via registerClientReceivers().
+ * Platform-agnostic LP packet handler bodies.
+ *
+ * Payload types live in their own files ({@link RequestItemPayload} etc.).
+ * Platform-specific wiring (codec registration + receiver registration) lives in
+ * {@code com.Morph.fabric.network.FabricNetworking} and
+ * {@code com.Morph.neoforge.network.NeoForgeNetworking}; both delegate to the
+ * static handlers below so the LP-domain logic stays in one place.
+ *
+ * Receivers must call these from the main thread (already true on both
+ * platforms — Fabric uses {@code context.player().server.execute(...)} and
+ * NeoForge uses {@code context.enqueueWork(...)}).
  */
 public final class LPNetworking {
 
-    /** C2S: client requests an item from the request pipe network. */
-    public static final ResourceLocation REQUEST_ITEM =
-            ResourceLocation.fromNamespaceAndPath(LPConstants.MOD_ID, "request_item");
-
     private LPNetworking() {}
 
+    /** Phase 3 stub — kept so {@code ExampleMod.init()} still compiles. Platforms register payloads themselves. */
     public static void init() {
-        NetworkManager.registerReceiver(NetworkManager.Side.C2S, REQUEST_ITEM,
-                (buf, ctx) -> {
-                    BlockPos pos = buf.readBlockPos();
-                    ResourceLocation itemKey = buf.readResourceLocation();
-                    int amount = buf.readInt();
-                    ctx.queue(() -> {
-                        Player player = ctx.getPlayer();
-                        Level level = player.level();
-                        net.minecraft.world.item.Item item =
-                                BuiltInRegistries.ITEM.getOptional(itemKey).orElse(null);
-                        if (item == null) return;
-                        BlockEntity be = level.getBlockEntity(pos);
-                        if (be instanceof LogisticsPipeBlockEntity lpbe
-                                && lpbe.getPipe() instanceof PipeItemsRequestLogistics req) {
-                            req.requestItem(ItemIdentifier.get(item), amount);
-                        }
-                    });
-                });
+        // no-op
     }
 
-    /** Build a REQUEST_ITEM packet buffer (called from client screen). */
-    public static RegistryFriendlyByteBuf buildRequestItemPacket(BlockPos pos,
-                                                                  ItemIdentifier item, int amount) {
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.EMPTY);
-        buf.writeBlockPos(pos);
-        buf.writeResourceLocation(BuiltInRegistries.ITEM.getKey(item.item));
-        buf.writeInt(amount);
-        return buf;
+    /** C2S: client requested an item; resolve the pipe at {@code pos} and forward to its request handler. */
+    public static void handleRequestItem(Player player, RequestItemPayload payload) {
+        Level level = player.level();
+        Item item = BuiltInRegistries.ITEM.getOptional(payload.itemKey()).orElse(null);
+        if (item == null) return;
+        BlockEntity be = level.getBlockEntity(payload.pos());
+        if (be instanceof LogisticsPipeBlockEntity lpbe
+                && lpbe.getPipe() instanceof PipeItemsRequestLogistics req) {
+            req.requestItem(ItemIdentifier.get(item), payload.amount());
+        }
     }
 }
