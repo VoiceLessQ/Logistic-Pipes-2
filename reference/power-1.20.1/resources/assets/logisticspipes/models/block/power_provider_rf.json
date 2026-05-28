@@ -1,0 +1,1 @@
+{ "parent": "block/cube_all", "textures": { "all": "logisticspipes:solid_block/power_provider_rf" } }
