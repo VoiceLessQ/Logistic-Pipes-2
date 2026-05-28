@@ -25,6 +25,7 @@ The 1.21.1 line is a retarget from the abandoned NeoForge 1.20.1 line (see 0.0.1
   - Power Junction GUI with live RF fill bar
 - **Config**: JSON config at `config/morph.json` — `power.usageMultiplier`, `power.usageDisabled`, `power.maxStorage`, `routing.refreshTicks`, `routing.maxNetworkSize`.
 - **Docs**: `PROJECT_STATE.md` (directory map + stripped-work index), `LP1_ANALYSIS.md` (upstream codebase breakdown), `reference/power-1.20.1/` (151 files of the abandoned port preserved for reference).
+- **Build**: Forgix plugin wired — `./gradlew mergeJars` now produces a single `*-universal.jar` that works in both Fabric and NeoForge from one file (per-loader jars still produced for users who prefer them). Release helpers `collectJars` and `checksums` added.
 
 ### Known issues
 - **Per-pipe power gates not wired** — Power Junction stores and serves energy, but no pipe currently calls `useEnergy()` yet. The plumbing is ready; gates land per pipe type during ongoing migration.

@@ -61,11 +61,16 @@ We haven't given up on 1.20.1 — players on that version deserve a working buil
 ## Building
 
 ```
-./gradlew build         # full build; output in fabric/build/libs/ and neoforge/build/libs/
+./gradlew build         # full build; per-loader jars in fabric/build/libs/ and neoforge/build/libs/
+./gradlew mergeJars     # also produce a single morph-X.Y.Z-VMC.M.P-universal.jar via Forgix
+./gradlew collectJars   # copy per-loader jars into root build/libs/ for release
+./gradlew checksums     # write .sha256 sidecar files next to each release jar
 ./gradlew runClient     # launch a dev client (per platform module)
 ./gradlew runServer     # launch a dev server
 ./gradlew check         # unit tests
 ```
+
+The **universal jar** drops into either a Fabric or NeoForge mods folder and works in both — the same file. Per-loader jars are still produced for users who prefer a loader-specific build.
 
 ## Contributing
 
