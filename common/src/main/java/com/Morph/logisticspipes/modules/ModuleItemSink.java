@@ -64,7 +64,7 @@ public class ModuleItemSink extends LogisticsModule {
         filterItems.clear();
         ListTag list = tag.getList(prefix + "filter", Tag.TAG_STRING);
         for (int i = 0; i < list.size(); i++) {
-            Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(list.getString(i)));
+            Item item = BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(list.getString(i))).orElse(null);
             if (item != null) filterItems.add(ItemIdentifier.get(item));
         }
     }

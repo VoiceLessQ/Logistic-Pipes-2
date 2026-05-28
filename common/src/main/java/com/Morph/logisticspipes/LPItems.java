@@ -27,40 +27,23 @@ public final class LPItems {
 
     // Pipe items
     public static final RegistrySupplier<Item> PIPE_BASIC =
-            ITEMS.register("pipe_basic", () -> new BlockItem(
-                    LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
-
+            ITEMS.register("pipe_basic",    () -> pipeItem("pipe_basic"));
     public static final RegistrySupplier<Item> PIPE_PROVIDER =
-            ITEMS.register("pipe_provider", () -> new BlockItem(
-                    LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
-
+            ITEMS.register("pipe_provider", () -> pipeItem("pipe_provider"));
     public static final RegistrySupplier<Item> PIPE_REQUEST =
-            ITEMS.register("pipe_request", () -> new BlockItem(
-                    LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
-
+            ITEMS.register("pipe_request",  () -> pipeItem("pipe_request"));
     public static final RegistrySupplier<Item> PIPE_SUPPLIER =
-            ITEMS.register("pipe_supplier", () -> new BlockItem(
-                    LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
-
+            ITEMS.register("pipe_supplier", () -> pipeItem("pipe_supplier"));
     public static final RegistrySupplier<Item> PIPE_CHASSIS_MK1 =
-            ITEMS.register("pipe_chassis_mk1", () -> new BlockItem(
-                    LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
-
+            ITEMS.register("pipe_chassis_mk1", () -> pipeItem("pipe_chassis_mk1"));
     public static final RegistrySupplier<Item> PIPE_CHASSIS_MK2 =
-            ITEMS.register("pipe_chassis_mk2", () -> new BlockItem(
-                    LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
-
+            ITEMS.register("pipe_chassis_mk2", () -> pipeItem("pipe_chassis_mk2"));
     public static final RegistrySupplier<Item> PIPE_CHASSIS_MK3 =
-            ITEMS.register("pipe_chassis_mk3", () -> new BlockItem(
-                    LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
-
+            ITEMS.register("pipe_chassis_mk3", () -> pipeItem("pipe_chassis_mk3"));
     public static final RegistrySupplier<Item> PIPE_CHASSIS_MK4 =
-            ITEMS.register("pipe_chassis_mk4", () -> new BlockItem(
-                    LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
-
+            ITEMS.register("pipe_chassis_mk4", () -> pipeItem("pipe_chassis_mk4"));
     public static final RegistrySupplier<Item> PIPE_CHASSIS_MK5 =
-            ITEMS.register("pipe_chassis_mk5", () -> new BlockItem(
-                    LPBlocks.PIPE_BLOCK.get(), new Item.Properties()));
+            ITEMS.register("pipe_chassis_mk5", () -> pipeItem("pipe_chassis_mk5"));
 
     // Module items (non-placeable)
     public static final RegistrySupplier<Item> MODULE_ITEM_SINK =
@@ -68,6 +51,14 @@ public final class LPItems {
 
     public static final RegistrySupplier<Item> MODULE_PROVIDER =
             ITEMS.register("module_provider", () -> new Item(new Item.Properties()));
+
+    /** BlockItem whose display name comes from its own item translation key, not the shared block key. */
+    private static BlockItem pipeItem(String key) {
+        String descId = "item." + LPConstants.MOD_ID + "." + key;
+        return new BlockItem(LPBlocks.PIPE_BLOCK.get(), new Item.Properties()) {
+            @Override public String getDescriptionId() { return descId; }
+        };
+    }
 
     public static void register() {
         ITEMS.register();

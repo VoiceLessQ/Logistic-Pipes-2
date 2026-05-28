@@ -1,9 +1,10 @@
 This is a port of LogisticsPipes (originally 1.12.2) to Minecraft 1.21.11, targeting both Fabric and NeoForge via Architectury.
 
 --- Current state ---
-build: PASSING (common + fabric + neoforge all compile clean)
-completed: all CRITICAL, all HIGH, all MEDIUM items done — see REMAINING_WORK.md
-remaining: LOW cosmetic items (texture indices, IGuiTileEntity generics, IRouteLayer stubs)
+build: PASSING (common + fabric + neoforge all compile clean, zero runtime errors)
+completed: Phases 1-6 + rendering (OBJ-based BESR, LP1-accurate geometry, mount brackets, correct indicators)
+remaining: indicator duplicate fix, power system, config system, remaining GUIs — see REMAINING_WORK.md
+analysis: full LP1 codebase breakdown in LP1_ANALYSIS.md
 
 --- Source references ---
 porting source: F:\Minecraft modding\Mod Github\LogisticsPipes

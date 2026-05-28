@@ -6,9 +6,18 @@
     "IGI"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "G": "minecraft:glass_pane",
-    "P": "morph:pipe_basic"
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "P": {
+      "item": "morph:pipe_basic"
+    }
   },
-  "result": { "id": "morph:chassis_mk1", "count": 1 }
+  "result": {
+    "id": "morph:pipe_chassis_mk1",
+    "count": 1
+  }
 }

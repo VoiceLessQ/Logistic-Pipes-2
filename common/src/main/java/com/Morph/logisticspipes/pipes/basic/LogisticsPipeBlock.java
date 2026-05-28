@@ -19,6 +19,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -28,6 +29,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -41,6 +43,7 @@ import com.Morph.logisticspipes.LPConstants;
 import com.Morph.logisticspipes.gui.ChassisPipeMenu;
 import com.Morph.logisticspipes.gui.RequestPipeMenu;
 import com.Morph.logisticspipes.gui.SupplierPipeMenu;
+import com.Morph.logisticspipes.pipes.PipeItemsProviderLogistics;
 import com.Morph.logisticspipes.pipes.PipeItemsRequestLogistics;
 import com.Morph.logisticspipes.pipes.PipeItemsSupplierLogistics;
 import com.Morph.logisticspipes.pipes.PipeLogisticsChassis;
@@ -54,6 +57,9 @@ import com.Morph.logisticspipes.pipes.PipeRegistry;
  * matching the original LP pipe connection system.
  */
 public class LogisticsPipeBlock extends BaseEntityBlock {
+
+    public static final EnumProperty<PipeType> PIPE_TYPE =
+            EnumProperty.create("pipe_type", PipeType.class);
 
     // One property per direction — true = pipe arm extends in that direction
     public static final BooleanProperty CONNECTED_DOWN  = BooleanProperty.create("connected_down");
@@ -93,12 +99,21 @@ public class LogisticsPipeBlock extends BaseEntityBlock {
         for (BooleanProperty prop : CONNECTED.values()) {
             def = def.setValue(prop, false);
         }
+        def = def.setValue(PIPE_TYPE, PipeType.BASIC);
         this.registerDefaultState(def);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(CONNECTED_DOWN, CONNECTED_UP, CONNECTED_NORTH, CONNECTED_SOUTH, CONNECTED_WEST, CONNECTED_EAST);
+        builder.add(PIPE_TYPE, CONNECTED_DOWN, CONNECTED_UP, CONNECTED_NORTH, CONNECTED_SOUTH, CONNECTED_WEST, CONNECTED_EAST);
+    }
+
+    private static PipeType typeOf(CoreUnroutedPipe pipe) {
+        if (pipe instanceof PipeItemsRequestLogistics)  return PipeType.REQUEST;
+        if (pipe instanceof PipeItemsProviderLogistics) return PipeType.PROVIDER;
+        if (pipe instanceof PipeItemsSupplierLogistics) return PipeType.SUPPLIER;
+        if (pipe instanceof PipeLogisticsChassis)       return PipeType.CHASSIS;
+        return PipeType.BASIC;
     }
 
     // -------------------------------------------------------------------------
@@ -121,8 +136,13 @@ public class LogisticsPipeBlock extends BaseEntityBlock {
     // -------------------------------------------------------------------------
 
     @Override
+    public MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
+    }
+
+    @Override
     public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
+        return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
     @Nullable
@@ -152,6 +172,8 @@ public class LogisticsPipeBlock extends BaseEntityBlock {
                 CoreUnroutedPipe pipe = PipeRegistry.createFor(stack.getItem());
                 if (pipe != null) {
                     lpbe.setPipe(pipe);
+                    level.setBlock(pos, level.getBlockState(pos).setValue(PIPE_TYPE, typeOf(pipe)), 2);
+                    lpbe.updateConnections();
                 }
             }
         }

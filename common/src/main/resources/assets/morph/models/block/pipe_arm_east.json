@@ -1,16 +1,16 @@
 {
   "parent": "minecraft:block/block",
-  "textures": { "pipe": "morph:block/pipe_glass", "particle": "morph:block/pipe_glass" },
+  "textures": { "pipe": "minecraft:block/iron_block", "particle": "minecraft:block/iron_block" },
   "elements": [
     {
-      "from": [10, 6, 6],
+      "from": [12, 6, 6],
       "to":   [16, 10, 10],
       "faces": {
-        "east":  { "texture": "#pipe", "cullface": "east" },
-        "north": { "texture": "#pipe" },
-        "south": { "texture": "#pipe" },
-        "up":    { "texture": "#pipe" },
-        "down":  { "texture": "#pipe" }
+        "east":  { "uv": [6, 6, 10, 10], "texture": "#pipe", "cullface": "east" },
+        "north": { "uv": [12, 6, 16, 10], "texture": "#pipe" },
+        "south": { "uv": [12, 6, 16, 10], "texture": "#pipe" },
+        "up":    { "uv": [12, 6, 16, 10], "texture": "#pipe" },
+        "down":  { "uv": [12, 6, 16, 10], "texture": "#pipe" }
       }
     }
   ]

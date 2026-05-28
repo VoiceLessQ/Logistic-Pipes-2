@@ -1,10 +1,12 @@
 package com.Morph.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
+import net.minecraft.client.gui.screens.MenuScreens;
 
-import dev.architectury.registry.menu.MenuRegistry;
-
+import com.Morph.logisticspipes.LPBlocks;
 import com.Morph.logisticspipes.LPMenuTypes;
+import com.Morph.logisticspipes.client.LPPipeRenderer;
 import com.Morph.logisticspipes.gui.screen.ChassisPipeScreen;
 import com.Morph.logisticspipes.gui.screen.RequestPipeScreen;
 import com.Morph.logisticspipes.gui.screen.SupplierPipeScreen;
@@ -12,8 +14,10 @@ import com.Morph.logisticspipes.gui.screen.SupplierPipeScreen;
 public final class ExampleModFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        MenuRegistry.registerScreenFactory(LPMenuTypes.REQUEST_PIPE.get(), RequestPipeScreen::new);
-        MenuRegistry.registerScreenFactory(LPMenuTypes.CHASSIS_PIPE.get(), ChassisPipeScreen::new);
-        MenuRegistry.registerScreenFactory(LPMenuTypes.SUPPLIER_PIPE.get(), SupplierPipeScreen::new);
+        MenuScreens.register(LPMenuTypes.REQUEST_PIPE.get(), RequestPipeScreen::new);
+        MenuScreens.register(LPMenuTypes.CHASSIS_PIPE.get(), ChassisPipeScreen::new);
+        MenuScreens.register(LPMenuTypes.SUPPLIER_PIPE.get(), SupplierPipeScreen::new);
+
+        BlockEntityRendererRegistry.register(LPBlocks.PIPE_BLOCK_ENTITY.get(), LPPipeRenderer::new);
     }
 }

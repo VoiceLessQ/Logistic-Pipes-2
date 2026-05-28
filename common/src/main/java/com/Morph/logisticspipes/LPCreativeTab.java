@@ -13,7 +13,7 @@ public final class LPCreativeTab {
             DeferredRegister.create(LPConstants.MOD_ID, Registries.CREATIVE_MODE_TAB);
 
     public static final RegistrySupplier<CreativeModeTab> LP_TAB = TABS.register("lp_tab", () ->
-            CreativeModeTab.builder()
+            CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
                     .title(Component.translatable("itemGroup." + LPConstants.MOD_ID))
                     .icon(() -> new ItemStack(LPItems.PIPE_BASIC.get()))
                     .displayItems((params, output) -> {

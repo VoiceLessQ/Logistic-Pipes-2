@@ -6,9 +6,18 @@
     "RER"
   ],
   "key": {
-    "R": "minecraft:redstone",
-    "E": "minecraft:emerald",
-    "P": "morph:pipe_provider"
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "P": {
+      "item": "morph:pipe_provider"
+    }
   },
-  "result": { "id": "morph:pipe_supplier", "count": 1 }
+  "result": {
+    "id": "morph:pipe_supplier",
+    "count": 1
+  }
 }

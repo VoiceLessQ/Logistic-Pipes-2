@@ -1,7 +1,9 @@
 package com.Morph.logisticspipes.transport;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -52,7 +54,9 @@ public class LPTravelingItem {
         tag.putInt("ticks", ticksInPipe);
         tag.putInt("dir", output.ordinal());
         tag.putInt("id", id);
-        tag.put("stack", stack.save(new CompoundTag()));
+        ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        tag.putString("stackItem", key != null ? key.toString() : "minecraft:air");
+        tag.putInt("stackCount", stack.getCount());
         return tag;
     }
 
@@ -61,7 +65,10 @@ public class LPTravelingItem {
         item.ticksInPipe = tag.getInt("ticks");
         item.output = Direction.values()[tag.getInt("dir")];
         item.id = tag.getInt("id");
-        item.stack = ItemStack.of(tag.getCompound("stack"));
+        net.minecraft.world.item.Item stackItem = BuiltInRegistries.ITEM
+                .getOptional(ResourceLocation.parse(tag.getString("stackItem")))
+                .orElse(net.minecraft.world.item.Items.AIR);
+        item.stack = new ItemStack(stackItem, tag.getInt("stackCount"));
         return item;
     }
 }

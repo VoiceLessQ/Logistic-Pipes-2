@@ -3,8 +3,9 @@ package com.Morph.logisticspipes.network;
 import dev.architectury.networking.NetworkManager;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -37,7 +38,7 @@ public final class LPNetworking {
                         Player player = ctx.getPlayer();
                         Level level = player.level();
                         net.minecraft.world.item.Item item =
-                                BuiltInRegistries.ITEM.getValue(itemKey);
+                                BuiltInRegistries.ITEM.getOptional(itemKey).orElse(null);
                         if (item == null) return;
                         BlockEntity be = level.getBlockEntity(pos);
                         if (be instanceof LogisticsPipeBlockEntity lpbe
@@ -49,9 +50,9 @@ public final class LPNetworking {
     }
 
     /** Build a REQUEST_ITEM packet buffer (called from client screen). */
-    public static FriendlyByteBuf buildRequestItemPacket(BlockPos pos,
-                                                          ItemIdentifier item, int amount) {
-        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+    public static RegistryFriendlyByteBuf buildRequestItemPacket(BlockPos pos,
+                                                                  ItemIdentifier item, int amount) {
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.EMPTY);
         buf.writeBlockPos(pos);
         buf.writeResourceLocation(BuiltInRegistries.ITEM.getKey(item.item));
         buf.writeInt(amount);

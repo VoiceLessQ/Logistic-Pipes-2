@@ -191,8 +191,8 @@ public abstract class PipeLogisticsChassis extends CoreRoutedPipe implements IPr
                 CompoundTag slot = list.getCompound(i);
                 int slotIndex = slot.getInt("slot");
                 if (slotIndex < getChassisSize() && slot.contains("item")) {
-                    Item item = BuiltInRegistries.ITEM.getValue(
-                            ResourceLocation.parse(slot.getString("item")));
+                    Item item = BuiltInRegistries.ITEM.getOptional(
+                            ResourceLocation.parse(slot.getString("item"))).orElse(null);
                     if (item != null) moduleContainer.setItem(slotIndex, new ItemStack(item));
                 }
             }

@@ -140,8 +140,8 @@ public class PipeItemsSupplierLogistics extends CoreRoutedPipe implements IReque
             CompoundTag slot = list.getCompound(i);
             int slotIndex = slot.getInt("slot");
             if (slotIndex < SUPPLY_SLOTS && slot.contains("item")) {
-                Item item = BuiltInRegistries.ITEM.getValue(
-                        ResourceLocation.parse(slot.getString("item")));
+                Item item = BuiltInRegistries.ITEM.getOptional(
+                        ResourceLocation.parse(slot.getString("item"))).orElse(null);
                 if (item != null) {
                     supplyContainer.setItem(slotIndex,
                             new ItemStack(item, slot.getInt("amount")));

@@ -1,0 +1,28 @@
+# Gradle
+.gradle/
+**/.gradle/
+build/
+**/build/
+**/run/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Architectury transformer
+**/.architectury-transformer/
+
+# Claude / local tooling
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

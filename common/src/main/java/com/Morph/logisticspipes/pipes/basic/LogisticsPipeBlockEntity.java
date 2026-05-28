@@ -5,6 +5,7 @@ import java.util.Map;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -90,8 +91,8 @@ public class LogisticsPipeBlockEntity extends BlockEntity {
     // -------------------------------------------------------------------------
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (pipe != null) {
             ResourceLocation key = BuiltInRegistries.ITEM.getKey(pipe.item);
             if (key != null) tag.putString("pipeItem", key.toString());
@@ -107,11 +108,11 @@ public class LogisticsPipeBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         if (tag.contains("pipeItem") && pipe == null) {
-            Item item = BuiltInRegistries.ITEM.getValue(
-                    ResourceLocation.parse(tag.getString("pipeItem")));
+            Item item = BuiltInRegistries.ITEM.getOptional(
+                    ResourceLocation.parse(tag.getString("pipeItem"))).orElse(null);
             if (item != null) {
                 CoreUnroutedPipe restored = PipeRegistry.createFor(item);
                 if (restored != null) setPipe(restored);

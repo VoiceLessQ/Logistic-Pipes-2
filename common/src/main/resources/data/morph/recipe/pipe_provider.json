@@ -6,8 +6,15 @@
     " R "
   ],
   "key": {
-    "R": "minecraft:redstone",
-    "P": "morph:pipe_basic"
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "P": {
+      "item": "morph:pipe_basic"
+    }
   },
-  "result": { "id": "morph:pipe_provider", "count": 1 }
+  "result": {
+    "id": "morph:pipe_provider",
+    "count": 1
+  }
 }

@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "morph:block/pipe_remote_orderer"
-  }
-}

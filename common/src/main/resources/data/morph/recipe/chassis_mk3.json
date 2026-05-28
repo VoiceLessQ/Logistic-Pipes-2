@@ -6,9 +6,18 @@
     "DGD"
   ],
   "key": {
-    "D": "minecraft:diamond",
-    "G": "minecraft:glass_pane",
-    "C": "morph:chassis_mk2"
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "C": {
+      "item": "morph:pipe_chassis_mk2"
+    }
   },
-  "result": { "id": "morph:chassis_mk3", "count": 1 }
+  "result": {
+    "id": "morph:pipe_chassis_mk3",
+    "count": 1
+  }
 }

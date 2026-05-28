@@ -6,8 +6,15 @@
     " L "
   ],
   "key": {
-    "L": "minecraft:lapis_lazuli",
-    "P": "morph:pipe_basic"
+    "L": {
+      "item": "minecraft:lapis_lazuli"
+    },
+    "P": {
+      "item": "morph:pipe_basic"
+    }
   },
-  "result": { "id": "morph:pipe_request", "count": 1 }
+  "result": {
+    "id": "morph:pipe_request",
+    "count": 1
+  }
 }

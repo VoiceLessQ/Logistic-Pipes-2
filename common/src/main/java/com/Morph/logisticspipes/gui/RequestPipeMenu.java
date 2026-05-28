@@ -40,7 +40,7 @@ public class RequestPipeMenu extends AbstractContainerMenu {
         int count = buf.readInt();
         for (int i = 0; i < count; i++) {
             net.minecraft.world.item.Item item =
-                    BuiltInRegistries.ITEM.getValue(buf.readResourceLocation());
+                    BuiltInRegistries.ITEM.getOptional(buf.readResourceLocation()).orElse(null);
             int amount = buf.readInt();
             if (item != null) {
                 networkItems.add(new ItemIdentifierStack(ItemIdentifier.get(item), amount));
@@ -54,6 +54,11 @@ public class RequestPipeMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(Player player) { return true; }
+
+    @Override
+    public net.minecraft.world.item.ItemStack quickMoveStack(Player player, int index) {
+        return net.minecraft.world.item.ItemStack.EMPTY;
+    }
 
     // -------------------------------------------------------------------------
     // Static helper: write network items to buf for the client constructor

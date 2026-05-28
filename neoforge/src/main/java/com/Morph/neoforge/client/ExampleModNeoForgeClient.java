@@ -3,25 +3,29 @@ package com.Morph.neoforge.client;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 import com.Morph.ExampleMod;
+import com.Morph.logisticspipes.LPBlocks;
+import com.Morph.logisticspipes.LPMenuTypes;
+import com.Morph.logisticspipes.client.LPPipeRenderer;
+import com.Morph.logisticspipes.gui.screen.ChassisPipeScreen;
+import com.Morph.logisticspipes.gui.screen.RequestPipeScreen;
+import com.Morph.logisticspipes.gui.screen.SupplierPipeScreen;
 
-@EventBusSubscriber(modid = ExampleMod.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ExampleMod.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class ExampleModNeoForgeClient {
 
     @SubscribeEvent
-    public static void onClientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> {
-            dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
-                    com.Morph.logisticspipes.LPMenuTypes.REQUEST_PIPE.get(),
-                    com.Morph.logisticspipes.gui.screen.RequestPipeScreen::new);
-            dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
-                    com.Morph.logisticspipes.LPMenuTypes.CHASSIS_PIPE.get(),
-                    com.Morph.logisticspipes.gui.screen.ChassisPipeScreen::new);
-            dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
-                    com.Morph.logisticspipes.LPMenuTypes.SUPPLIER_PIPE.get(),
-                    com.Morph.logisticspipes.gui.screen.SupplierPipeScreen::new);
-        });
+    public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(LPMenuTypes.REQUEST_PIPE.get(), RequestPipeScreen::new);
+        event.register(LPMenuTypes.CHASSIS_PIPE.get(), ChassisPipeScreen::new);
+        event.register(LPMenuTypes.SUPPLIER_PIPE.get(), SupplierPipeScreen::new);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(LPBlocks.PIPE_BLOCK_ENTITY.get(), LPPipeRenderer::new);
     }
 }
