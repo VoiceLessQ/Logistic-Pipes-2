@@ -60,10 +60,11 @@ public final class NeoForgeRegistrar implements Registrar {
 
     @Override
     public <T extends BlockEntity> Supplier<BlockEntityType<T>> registerBlockEntity(
-            String name, Supplier<BlockEntityType<T>> factory) {
+            String name, BlockEntityFactory<T> factory, Supplier<? extends Block> block) {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> h =
-                (DeferredHolder) BES.register(name, (Supplier) factory);
+                (DeferredHolder) BES.register(name, () ->
+                        BlockEntityType.Builder.<T>of(factory::create, block.get()).build(null));
         return h::get;
     }
 

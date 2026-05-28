@@ -37,10 +37,12 @@ public final class LPBlocks {
                         .sound(SoundType.METAL)
                         .strength(2.0f)));
 
-        PIPE_BLOCK_ENTITY = r.registerBlockEntity("pipe", () ->
-                BlockEntityType.Builder.of(LogisticsPipeBlockEntity::new, PIPE_BLOCK.get()).build(null));
+        PIPE_BLOCK_ENTITY = r.registerBlockEntity("pipe",
+                LogisticsPipeBlockEntity::new,
+                PIPE_BLOCK);
 
-        POWER_JUNCTION_BLOCK_ENTITY = r.registerBlockEntity("power_junction", () ->
-                BlockEntityType.Builder.of(LogisticsPowerJunctionBlockEntity::new, POWER_JUNCTION_BLOCK.get()).build(null));
+        POWER_JUNCTION_BLOCK_ENTITY = r.registerBlockEntity("power_junction",
+                LogisticsPowerJunctionBlockEntity::new,
+                POWER_JUNCTION_BLOCK);
     }
 }

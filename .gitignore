@@ -19,6 +19,7 @@ build/
 
 # Claude / local tooling
 .claude/settings.local.json
+REMAINING_WORK.md
 
 # OS
 .DS_Store

@@ -2,7 +2,14 @@ plugins {
     id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.gradleup.shadow' version '8.3.6' apply false
-    id 'io.github.pacifistmc.forgix' version '2.0.0-SNAPSHOT.5.1'
+    // Forgix universal-jar build temporarily disabled — re-enabling needs either
+    // (a) per-subproject plugins{} apply for loom (Orevein pattern), which currently
+    //     conflicts with root subprojects{} dependencies block referencing
+    //     loom.officialMojangMappings(), or
+    // (b) deferring forgix{} config until after all subprojects evaluate without
+    //     using evaluationDependsOn at script scope.
+    // Tackled in a follow-up; build is green without it.
+    // id 'io.github.pacifistmc.forgix' version '2.0.0-SNAPSHOT.5.1'
 }
 
 architectury {
@@ -14,27 +21,22 @@ allprojects {
     version = rootProject.mod_version
 }
 
-// Forgix references subproject tasks at root-eval time, so make sure both loader
-// subprojects are configured first.
-evaluationDependsOn(":fabric")
-evaluationDependsOn(":neoforge")
-
-// Merge Fabric + NeoForge remapped jars into a single universal jar via Forgix.
-// Run `./gradlew mergeJars` after `build` (or `build mergeJars` together).
-forgix {
-    silence = false
-    autoRun = false
-    archiveClassifier = "universal"
-    archiveVersion = "${rootProject.mod_version}-V${rootProject.minecraft_version}"
-    destinationDirectory = layout.projectDirectory.dir("build/libs")
-
-    fabric {
-        inputJar.set(project(":fabric").tasks.named("shadowJar").flatMap { it.archiveFile })
-    }
-    neoforge {
-        inputJar.set(project(":neoforge").tasks.named("shadowJar").flatMap { it.archiveFile })
-    }
-}
+// Forgix universal-jar config — disabled in tandem with the plugin above; see comment there.
+// evaluationDependsOn(":fabric")
+// evaluationDependsOn(":neoforge")
+// forgix {
+//     silence = false
+//     autoRun = false
+//     archiveClassifier = "universal"
+//     archiveVersion = "${rootProject.mod_version}-V${rootProject.minecraft_version}"
+//     destinationDirectory = layout.projectDirectory.dir("build/libs")
+//     fabric {
+//         inputJar.set(project(":fabric").tasks.named("shadowJar").flatMap { it.archiveFile })
+//     }
+//     neoforge {
+//         inputJar.set(project(":neoforge").tasks.named("shadowJar").flatMap { it.archiveFile })
+//     }
+// }
 
 // Collect both loader JARs into root build/libs after a full build.
 tasks.register('collectJars', Copy) {

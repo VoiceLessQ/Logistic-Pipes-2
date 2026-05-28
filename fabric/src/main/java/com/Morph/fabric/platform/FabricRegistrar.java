@@ -51,9 +51,10 @@ public final class FabricRegistrar implements Registrar {
 
     @Override
     public <T extends BlockEntity> Supplier<BlockEntityType<T>> registerBlockEntity(
-            String name, Supplier<BlockEntityType<T>> factory) {
-        BlockEntityType<T> value = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, rl(name), factory.get());
-        return () -> value;
+            String name, BlockEntityFactory<T> factory, Supplier<? extends Block> block) {
+        BlockEntityType<T> type = BlockEntityType.Builder.<T>of(factory::create, block.get()).build(null);
+        BlockEntityType<T> registered = Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, rl(name), type);
+        return () -> registered;
     }
 
     @Override

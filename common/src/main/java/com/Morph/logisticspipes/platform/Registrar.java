@@ -2,6 +2,7 @@ package com.Morph.logisticspipes.platform;
 
 import java.util.function.Supplier;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -11,6 +12,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Platform-agnostic registration facade. Replaces the per-category Architectury
@@ -44,8 +46,24 @@ public interface Registrar {
 
     <T extends Item> Supplier<T> registerItem(String name, Supplier<T> factory);
 
+    /**
+     * Register a block entity type. The factory + block-supplier shape is required
+     * because Architectury's common compileClasspath does not expose
+     * {@code BlockEntityType.Builder.of} (its SAM type
+     * {@code BlockEntityType.BlockEntitySupplier} is hidden as platform-specific),
+     * so the actual {@code BlockEntityType} has to be constructed by the platform impl.
+     *
+     * Pass the block as a {@link Supplier} so registration order doesn't matter —
+     * the platform impl resolves it when actually building the type.
+     */
     <T extends BlockEntity> Supplier<BlockEntityType<T>> registerBlockEntity(
-            String name, Supplier<BlockEntityType<T>> factory);
+            String name, BlockEntityFactory<T> factory, Supplier<? extends Block> block);
+
+    /** SAM mirror of {@code BlockEntityType.BlockEntitySupplier} for common-side type-naming. */
+    @FunctionalInterface
+    interface BlockEntityFactory<T extends BlockEntity> {
+        T create(BlockPos pos, BlockState state);
+    }
 
     /**
      * Registers a menu type that supports an extra {@link FriendlyByteBuf}
