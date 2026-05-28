@@ -1,43 +1,82 @@
-# Logistic Pipes 2 (Morph)
+# Logistic Pipes 2
 
-Port of [LogisticsPipes](https://github.com/RS485/LogisticsPipes) (originally 1.12.2) to **Minecraft 1.21.1**.
+A revival of LogisticsPipes, ported from Forge 1.12.2 to **NeoForge 1.21.1** — bringing the classic request-based item routing, automated crafting, and modular chassis pipes back to modern Minecraft. Also runs on **Fabric 1.21.1** via Architectury.
 
-Mod ID: `morph` &nbsp;·&nbsp; Group: `com.Morph` &nbsp;·&nbsp; License: see upstream LP1
+See the original [CurseForge page](https://www.curseforge.com/minecraft/mc-mods/logistics-pipes) for background on what the mod has been since its 1.4.x days.
+
+> **Beta / work in progress.** Expect bugs, crashes, missing polish, and the occasional broken feature. Back up your worlds before testing, and please open an issue if something goes wrong — noisy reports are more useful than silent frustration.
+
+## What is Logistic Pipes
+
+A logistics mod that lets you build pipe networks capable of requesting items on demand, automatically sorting inventory, and triggering crafting chains. Pipes connect to any inventory and route items intelligently based on your configured rules — no constant item flow, no lost items, just point-to-point delivery driven by what you ask for.
+
+## Status
+
+Work in progress. The migration is an ongoing port of the original 1.12.2 codebase to the modern toolchain. Core gameplay (placing pipes, routing, requesting, chassis modules, crafting) is functional. Power Junction + RF intake works on NeoForge. Polish, missing GUIs, and third-party integrations are the main outstanding work. See [PROJECT_STATE.md](PROJECT_STATE.md) for the directory layout and what's been stripped from earlier attempts.
 
 ## Supported loaders
 
 | Loader | Support |
 |---|---|
-| **NeoForge 21.1.x** (1.21.1) | ✅ primary target |
-| **Fabric 0.18.x** (1.21.1, via Architectury) | ✅ supported (external Fabric energy import via Team Reborn Energy still stubbed) |
-| **Forge** (any version) | ❌ **not supported** |
+| **NeoForge 21.1.x** (MC 1.21.1) | ✅ primary target — Power Junction RF intake wired via `IEnergyStorage` |
+| **Fabric** (MC 1.21.1, via Architectury) | ✅ core supported (external Fabric energy import via Team Reborn Energy is still stubbed) |
+| **Forge** (any version) | ❌ **not supported** — see below |
 
-### Why no Forge?
+### Why no Forge
 
-NeoForge forked from Forge during the MC 1.20.1 cycle and the two have diverged in API, mappings, and capability handling. Supporting both would mean maintaining two platform-helper layers, two energy-cap bridges, and two registry styles for what amounts to the same engine — a cost we're not paying. The MC modding community on current versions has consolidated heavily on NeoForge, and Fabric (which we already support via Architectury) covers the rest.
+NeoForge and Forge have diverged enough in API, mappings, and capability handling that supporting both means maintaining two platform-helper layers, two energy-cap bridges, and two registry styles for the same engine. Not paying that cost. The 1.21+ modding ecosystem has consolidated heavily on NeoForge; Fabric (already supported via Architectury) covers the rest.
 
-### Why not MC 1.20.1?
+### Why no MC 1.20.1
 
-NeoForge dropped 1.20.1 — the `20.1.x` line was unpublished from their Maven and is no longer fetchable for fresh builds. The earliest MC where NeoForge is alive and supported is the 1.20.4+ range; 1.21.1 is the version this project targets and is the lowest version we intend to backport to.
+NeoForge dropped 1.20.1 — the `20.1.x` line was unpublished from their Maven and can no longer be fetched for fresh builds. An old `0.0.1` jar on the `1.20.1` branch of this repo was built against NeoForge 20.1.88 and **does not load on current Forge or NeoForge runtimes** (see [issue #1](https://github.com/VoiceLessQ/Logistic-Pipes-2/issues/1)). That release is deprecated — use the 1.21.1 build instead.
 
-A legacy `0.0.1` release jar exists on the `1.20.1` branch of this repo — it was built against the now-unpublished NeoForge 20.1.88 and **does not load on current Forge or NeoForge runtimes** (GitHub issue #1). That release is deprecated; use the 1.21.1 build instead.
+## Known limitations
 
-## Status
+- **Mod integrations disabled** — BuildCraft, IndustrialCraft 2, Thermal Dynamics, JEI, TheOneProbe, AE2 and similar integrations are stubbed out; most are waiting on upstream ports or haven't been wired yet.
+- **Missing GUIs** — Power Junction has one (procedural energy bar). Crafter, Provider, Item Sink, Satellite, Firewall, Orderer, Security Station GUIs are not yet ported.
+- **Per-pipe power gates not wired** — Power Junction stores and serves energy, but no pipe currently calls `useEnergy()` yet. Power flow is end-to-end ready; per-action gates land per pipe type as they migrate.
+- **Items-in-transit rendering** — visible but still being polished.
+- **No world upgrade path from 1.12.2 saves** — legacy data fixers are not ported; start on a 1.21.1 world.
 
-Active development. See [PROJECT_STATE.md](PROJECT_STATE.md) for the directory layout, what's been stripped from earlier attempts and where it lives, and the canonical branch (`mc-1.21.1` locally, `1.21.1` on GitHub).
+## Planned
 
-Implemented: routing engine (Dijkstra/BFS/LSA), request/crafting system, all core pipe types, modules, chassis Mk1-5, BESR pipe rendering, Power Junction (block + GUI + NeoForge `IEnergyStorage` cap), JSON config.
+- Per-pipe power gates (Power Junction → routed pipe operations)
+- Remaining pipe GUIs (Crafter, Provider, Item Sink, Satellite, Firewall, Orderer)
+- Team Reborn Energy bridge for Fabric (external energy import)
+- JEI and TheOneProbe integration
+- Published API jar so addons can be built against a stable surface
+- Performance improvements (render caching, dirty-flag system)
 
-In progress / TODO: per-pipe power gates, remaining GUIs, Fabric Team Reborn Energy bridge, JEI/TheOneProbe integration. See REMAINING_WORK locally for the full checklist.
+## Versions
+
+- Minecraft **1.21.1**
+- NeoForge **21.11.38-beta**
+- Fabric Loader **0.18.4** + Fabric API **0.139.5+1.21.11**
+- Architectury **19.0.1**
+- Java **21** (provisioned automatically via Gradle toolchains)
+- Gradle **8.14** + architectury-loom 1.13-SNAPSHOT
 
 ## Building
 
 ```
-./gradlew build
+./gradlew build         # full build; output in fabric/build/libs/ and neoforge/build/libs/
+./gradlew runClient     # launch a dev client (per platform module)
+./gradlew runServer     # launch a dev server
+./gradlew check         # unit tests
 ```
 
-Artifacts land in `fabric/build/libs/` and `neoforge/build/libs/`.
+## Contributing
 
-## Acknowledgements
+Issues and PRs welcome. Skim [PROJECT_STATE.md](PROJECT_STATE.md) and the open issues for current focus areas before starting work. The `mc-1.21.1` local branch (pushed as `1.21.1` on GitHub) is the active development line.
 
-Original LogisticsPipes by the [RS485 team](https://github.com/RS485/LogisticsPipes) — all the design and most of the algorithms are theirs. This is a re-port to the modern MC platform.
+## Credits
+
+- **Krapht** — original concept and early codebase
+- **RS485 and LogisticsPipes contributors** — the 1.12.2 codebase this project is built on
+- **NoZeroG (VoiceLessQ)** — modern port and ongoing maintenance
+
+## License
+
+Distributed under the Minecraft Mod Public License 1.0.1 — see LICENSE.md.
+
+— The Logistic Pipes 2 Team
