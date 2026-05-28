@@ -2,6 +2,7 @@ plugins {
     id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.gradleup.shadow' version '8.3.6' apply false
+    id 'io.github.pacifistmc.forgix' version '2.0.0-SNAPSHOT.5.1'
 }
 
 architectury {
@@ -11,6 +12,72 @@ architectury {
 allprojects {
     group = rootProject.maven_group
     version = rootProject.mod_version
+}
+
+// Forgix references subproject tasks at root-eval time, so make sure both loader
+// subprojects are configured first.
+evaluationDependsOn(":fabric")
+evaluationDependsOn(":neoforge")
+
+// Merge Fabric + NeoForge remapped jars into a single universal jar via Forgix.
+// Run `./gradlew mergeJars` after `build` (or `build mergeJars` together).
+forgix {
+    silence = false
+    autoRun = false
+    archiveClassifier = "universal"
+    archiveVersion = "${rootProject.mod_version}-V${rootProject.minecraft_version}"
+    destinationDirectory = layout.projectDirectory.dir("build/libs")
+
+    fabric {
+        inputJar.set(project(":fabric").tasks.named("shadowJar").flatMap { it.archiveFile })
+    }
+    neoforge {
+        inputJar.set(project(":neoforge").tasks.named("shadowJar").flatMap { it.archiveFile })
+    }
+}
+
+// Collect both loader JARs into root build/libs after a full build.
+tasks.register('collectJars', Copy) {
+    dependsOn ':fabric:remapJar', ':neoforge:remapJar'
+    from("${project(':fabric').buildDir}/libs") {
+        include "${rootProject.archives_name}-fabric-*.jar"
+        exclude "*-sources*"
+        exclude "*-dev*"
+    }
+    from("${project(':neoforge').buildDir}/libs") {
+        include "${rootProject.archives_name}-neoforge-*.jar"
+        exclude "*-sources*"
+        exclude "*-dev*"
+    }
+    into "${rootProject.buildDir}/libs"
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+// Produce a .sha256 file next to every built loader jar. Useful for paste into
+// changelogs / release notes and for verifying upload integrity against
+// CurseForge's own hash.
+tasks.register('checksums') {
+    dependsOn ':fabric:build', ':neoforge:build'
+    doLast {
+        def jarDirs = [
+                project(':fabric').layout.buildDirectory.dir('libs').get().asFile,
+                project(':neoforge').layout.buildDirectory.dir('libs').get().asFile
+        ]
+        jarDirs.each { dir ->
+            if (!dir.exists()) return
+            fileTree(dir).matching {
+                include "${rootProject.archives_name}-*.jar"
+                exclude "*-sources*"
+                exclude "*-dev*"
+            }.each { file ->
+                def hash = java.security.MessageDigest.getInstance("SHA-256")
+                        .digest(file.bytes)
+                        .collect { String.format("%02x", it) }.join()
+                new File(file.path + ".sha256").text = "${hash}  ${file.name}\n"
+                println "SHA-256: ${hash}  ${file.name}"
+            }
+        }
+    }
 }
 
 subprojects {
