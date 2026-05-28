@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 
 import com.Morph.logisticspipes.api.ILogisticsPowerProvider;
+import com.Morph.logisticspipes.config.LPConfig;
 import com.Morph.logisticspipes.routing.IRouter;
 import com.Morph.logisticspipes.routing.RouterManager;
 import com.Morph.logisticspipes.routing.ServerRouter;
@@ -78,8 +79,9 @@ public abstract class CoreRoutedPipe extends CoreUnroutedPipe {
 
         IRouter router = getRouter();
         if (router != null) {
-            // Refresh routing table periodically (every 20 ticks = 1 second)
-            if (container.getLevel().getGameTime() % 20 == 0) {
+            // Refresh routing table periodically (configurable; LP2 default = 20 ticks)
+            int period = Math.max(1, LPConfig.ROUTING_REFRESH_TICKS);
+            if (container.getLevel().getGameTime() % period == 0) {
                 router.update(false, this);
             }
         }

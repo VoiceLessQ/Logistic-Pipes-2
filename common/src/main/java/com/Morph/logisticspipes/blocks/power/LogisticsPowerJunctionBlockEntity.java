@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import com.Morph.logisticspipes.LPBlocks;
 import com.Morph.logisticspipes.api.ILogisticsPowerProvider;
+import com.Morph.logisticspipes.config.LPConfig;
 
 /**
  * Central LP power buffer block entity.
@@ -21,7 +22,7 @@ import com.Morph.logisticspipes.api.ILogisticsPowerProvider;
  *   - POWER_USAGE_MULTIPLIER config (no config system yet — fixed 1.0 multiplier)
  *
  * Storage model carried from LP1:
- *   - internal LP units, MAX_STORAGE = 2_000_000
+ *   - internal LP units, maxStorage() = 2_000_000
  *   - RF→LP conversion: RF_DIVISOR = 2 (2 RF per 1 LP)
  *   - internalRFbuffer holds the fractional RF that hasn't yet ticked into a whole LP
  *
@@ -31,8 +32,15 @@ import com.Morph.logisticspipes.api.ILogisticsPowerProvider;
  */
 public class LogisticsPowerJunctionBlockEntity extends BlockEntity implements ILogisticsPowerProvider {
 
-    public static final int MAX_STORAGE = 2_000_000;
-    public static final int RF_DIVISOR  = 2;
+    /** Default storage cap (LP units). Overridden by {@link LPConfig#POWER_MAX_STORAGE}. */
+    public static final int MAX_STORAGE_DEFAULT = 2_000_000;
+    public static final int RF_DIVISOR = 2;
+
+    /** Live storage cap — reads the config each call so reloads are picked up. */
+    private static int maxStorage() {
+        int v = LPConfig.POWER_MAX_STORAGE;
+        return v > 0 ? v : MAX_STORAGE_DEFAULT;
+    }
 
     private int internalStorage = 0;
     private int internalRFbuffer = 0;
@@ -69,9 +77,11 @@ public class LogisticsPowerJunctionBlockEntity extends BlockEntity implements IL
     @Override
     public boolean useEnergy(int amount, List<Object> providersToIgnore) {
         if (providersToIgnore != null && providersToIgnore.contains(this)) return false;
-        if (!canUseEnergy(amount, null)) return false;
-        internalStorage -= amount;
-        if (internalStorage < MAX_STORAGE / 2) needMorePowerTriggerCheck = true;
+        if (LPConfig.POWER_USAGE_DISABLED) return true;
+        int effective = (int) Math.round(amount * LPConfig.POWER_USAGE_MULTIPLIER);
+        if (internalStorage < effective) return false;
+        internalStorage -= effective;
+        if (internalStorage < maxStorage() / 2) needMorePowerTriggerCheck = true;
         setChanged();
         return true;
     }
@@ -79,7 +89,8 @@ public class LogisticsPowerJunctionBlockEntity extends BlockEntity implements IL
     @Override
     public boolean canUseEnergy(int amount, List<Object> providersToIgnore) {
         if (providersToIgnore != null && providersToIgnore.contains(this)) return false;
-        return internalStorage >= amount;
+        if (LPConfig.POWER_USAGE_DISABLED) return true;
+        return internalStorage >= (int) Math.round(amount * LPConfig.POWER_USAGE_MULTIPLIER);
     }
 
     // ---------------------------------------------------------------------
@@ -88,7 +99,7 @@ public class LogisticsPowerJunctionBlockEntity extends BlockEntity implements IL
 
     /** Free LP-unit space remaining in storage. */
     public int freeSpace() {
-        return MAX_STORAGE - internalStorage;
+        return maxStorage() - internalStorage;
     }
 
     /**
@@ -118,13 +129,13 @@ public class LogisticsPowerJunctionBlockEntity extends BlockEntity implements IL
 
     /** Max storable energy expressed in RF (for IEnergyStorage.getMaxEnergyStored). */
     public int getMaxEnergyStoredRf() {
-        return MAX_STORAGE * RF_DIVISOR;
+        return maxStorage() * RF_DIVISOR;
     }
 
     public void addEnergy(int amount) {
         if (level == null || level.isClientSide) return;
-        internalStorage = Math.min(MAX_STORAGE, internalStorage + amount);
-        if (internalStorage == MAX_STORAGE) needMorePowerTriggerCheck = false;
+        internalStorage = Math.min(maxStorage(), internalStorage + amount);
+        if (internalStorage == maxStorage()) needMorePowerTriggerCheck = false;
         setChanged();
     }
 
