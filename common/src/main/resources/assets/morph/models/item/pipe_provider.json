@@ -1,1 +1,1 @@
-{ "parent": "minecraft:item/generated", "textures": { "layer0": "morph:pipe/indicator_provider" } }
+{ "parent": "minecraft:item/generated", "textures": { "layer0": "morph:block/indicator_provider" } }
