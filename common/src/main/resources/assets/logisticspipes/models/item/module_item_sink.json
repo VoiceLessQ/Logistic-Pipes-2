@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "logisticspipes:item/module_item_sink"
+  }
+}

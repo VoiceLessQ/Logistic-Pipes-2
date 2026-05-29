@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RER",
+    "EPE",
+    "RER"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "P": {
+      "item": "logisticspipes:pipe_provider"
+    }
+  },
+  "result": {
+    "id": "logisticspipes:pipe_supplier",
+    "count": 1
+  }
+}

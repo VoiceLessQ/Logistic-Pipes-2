@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DGD",
+    "GCG",
+    "DGD"
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "C": {
+      "item": "logisticspipes:pipe_chassis_mk2"
+    }
+  },
+  "result": {
+    "id": "logisticspipes:pipe_chassis_mk3",
+    "count": 1
+  }
+}

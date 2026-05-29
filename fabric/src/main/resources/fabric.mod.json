@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "morph",
+  "id": "logisticspipes",
   "version": "${version}",
   "name": "Logistic Pipes 2",
   "description": "Request-based item routing, automated crafting, and modular chassis pipes — a revival of LogisticsPipes for modern Minecraft.",
@@ -13,7 +13,7 @@
     "issues": "https://github.com/VoiceLessQ/Logistic-Pipes-2/issues"
   },
   "license": "MMPL-1.0.1",
-  "icon": "assets/morph/icon.png",
+  "icon": "assets/logisticspipes/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -24,7 +24,7 @@
     ]
   },
   "mixins": [
-    "morph.mixins.json"
+    "logisticspipes.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.16.9",

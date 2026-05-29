@@ -9,7 +9,7 @@ import com.Morph.logisticspipes.network.LPNetworking;
 import com.Morph.logisticspipes.platform.Registrar;
 
 public final class ExampleMod {
-    public static final String MOD_ID = "morph";
+    public static final String MOD_ID = "logisticspipes";
 
     /**
      * Called by each platform's mod-init class with its Registrar implementation.

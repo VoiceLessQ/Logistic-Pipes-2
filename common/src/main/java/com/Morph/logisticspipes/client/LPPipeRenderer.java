@@ -45,18 +45,18 @@ import static net.minecraft.core.Direction.*;
 public class LPPipeRenderer implements BlockEntityRenderer<LogisticsPipeBlockEntity> {
 
     private static final ResourceLocation PIPE_TEX =
-            ResourceLocation.fromNamespaceAndPath("morph", "textures/pipe/pipemodel.png");
+            ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/pipe/pipemodel.png");
 
     /**
      * Per-type face-plate <em>background</em> — the LP1 {@code new_texture/<type>.png}
      * equivalent. Coloured per type (yellow request, green provider, etc.).
      */
     private static final Map<PipeType, ResourceLocation> PLATE_TEX = new EnumMap<>(Map.of(
-            PipeType.BASIC,    ResourceLocation.fromNamespaceAndPath("morph", "textures/block/pipe_basic.png"),
-            PipeType.PROVIDER, ResourceLocation.fromNamespaceAndPath("morph", "textures/block/pipe_provider.png"),
-            PipeType.REQUEST,  ResourceLocation.fromNamespaceAndPath("morph", "textures/block/pipe_request.png"),
-            PipeType.SUPPLIER, ResourceLocation.fromNamespaceAndPath("morph", "textures/block/pipe_supplier.png"),
-            PipeType.CHASSIS,  ResourceLocation.fromNamespaceAndPath("morph", "textures/block/chassis_mk1.png")
+            PipeType.BASIC,    ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/block/pipe_basic.png"),
+            PipeType.PROVIDER, ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/block/pipe_provider.png"),
+            PipeType.REQUEST,  ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/block/pipe_request.png"),
+            PipeType.SUPPLIER, ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/block/pipe_supplier.png"),
+            PipeType.CHASSIS,  ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/block/chassis_mk1.png")
     ));
 
     /**
@@ -66,11 +66,11 @@ public class LPPipeRenderer implements BlockEntityRenderer<LogisticsPipeBlockEnt
      * alpha values {0, 255} so the plate colour shows through the transparent cells.
      */
     private static final Map<PipeType, ResourceLocation> INDICATOR_TEX = new EnumMap<>(Map.of(
-            PipeType.BASIC,    ResourceLocation.fromNamespaceAndPath("morph", "textures/pipe/indicator_basic.png"),
-            PipeType.PROVIDER, ResourceLocation.fromNamespaceAndPath("morph", "textures/pipe/indicator_provider.png"),
-            PipeType.REQUEST,  ResourceLocation.fromNamespaceAndPath("morph", "textures/pipe/indicator_request.png"),
-            PipeType.SUPPLIER, ResourceLocation.fromNamespaceAndPath("morph", "textures/pipe/indicator_supplier.png"),
-            PipeType.CHASSIS,  ResourceLocation.fromNamespaceAndPath("morph", "textures/pipe/indicator_chassis.png")
+            PipeType.BASIC,    ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/pipe/indicator_basic.png"),
+            PipeType.PROVIDER, ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/pipe/indicator_provider.png"),
+            PipeType.REQUEST,  ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/pipe/indicator_request.png"),
+            PipeType.SUPPLIER, ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/pipe/indicator_supplier.png"),
+            PipeType.CHASSIS,  ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/pipe/indicator_chassis.png")
     ));
 
     private static volatile LPPipeModel model = null;
@@ -254,7 +254,7 @@ public class LPPipeRenderer implements BlockEntityRenderer<LogisticsPipeBlockEnt
             synchronized (LPPipeRenderer.class) {
                 if (model == null) {
                     try {
-                        ResourceLocation objLoc = ResourceLocation.fromNamespaceAndPath("morph", "pipe/pipemodel_moved.obj");
+                        ResourceLocation objLoc = ResourceLocation.fromNamespaceAndPath("logisticspipes", "pipe/pipemodel_moved.obj");
                         try (InputStream is = Minecraft.getInstance().getResourceManager().open(objLoc)) {
                             model = LPPipeModel.parse(is);
                         }

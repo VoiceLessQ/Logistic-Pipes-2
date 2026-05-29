@@ -1,0 +1,6 @@
+{
+  "parent": "logisticspipes:block/pipe_core_base",
+  "textures": {
+    "pipe": "logisticspipes:block/pipe_fluid_supplier_mk2"
+  }
+}

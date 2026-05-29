@@ -6,7 +6,7 @@ issueTrackerURL = "https://github.com/VoiceLessQ/Logistic-Pipes-2/issues"
 license = "MMPL-1.0.1"
 
 [[mods]]
-modId = "morph"
+modId = "logisticspipes"
 version = "${version}"
 displayName = "Logistic Pipes 2"
 authors = "NoZeroG (VoiceLessQ)"
@@ -15,14 +15,14 @@ Request-based item routing, automated crafting, and modular chassis pipes — a 
 '''
 #logoFile = ""
 
-[[dependencies.morph]]
+[[dependencies.logisticspipes]]
 modId = "neoforge"
 type = "required"
 versionRange = "[21.1,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.morph]]
+[[dependencies.logisticspipes]]
 modId = "minecraft"
 type = "required"
 versionRange = "[1.21.1,)"
@@ -30,4 +30,4 @@ ordering = "NONE"
 side = "BOTH"
 
 [[mixins]]
-config = "morph.mixins.json"
+config = "logisticspipes.mixins.json"

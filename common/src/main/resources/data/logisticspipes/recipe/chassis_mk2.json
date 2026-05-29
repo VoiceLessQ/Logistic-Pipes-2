@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IGI",
+    "GCG",
+    "IGI"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "C": {
+      "item": "logisticspipes:pipe_chassis_mk1"
+    }
+  },
+  "result": {
+    "id": "logisticspipes:pipe_chassis_mk2",
+    "count": 1
+  }
+}

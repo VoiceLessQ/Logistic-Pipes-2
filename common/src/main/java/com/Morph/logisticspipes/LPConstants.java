@@ -1,7 +1,7 @@
 package com.Morph.logisticspipes;
 
 public final class LPConstants {
-    public static final String MOD_ID = "morph";
+    public static final String MOD_ID = "logisticspipes";
 
     // Pipe geometry — 5/16 to 11/16 of a block (matches LP1 PipeModel_moved.obj)
     public static final double PIPE_MIN_POS = 5.0 / 16.0;
