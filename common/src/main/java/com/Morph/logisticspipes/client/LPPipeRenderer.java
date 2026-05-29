@@ -47,6 +47,24 @@ public class LPPipeRenderer implements BlockEntityRenderer<LogisticsPipeBlockEnt
     private static final ResourceLocation PIPE_TEX =
             ResourceLocation.fromNamespaceAndPath("morph", "textures/pipe/pipemodel.png");
 
+    /**
+     * Per-type face-plate <em>background</em> — the LP1 {@code new_texture/<type>.png}
+     * equivalent. Coloured per type (yellow request, green provider, etc.).
+     */
+    private static final Map<PipeType, ResourceLocation> PLATE_TEX = new EnumMap<>(Map.of(
+            PipeType.BASIC,    ResourceLocation.fromNamespaceAndPath("morph", "textures/block/pipe_basic.png"),
+            PipeType.PROVIDER, ResourceLocation.fromNamespaceAndPath("morph", "textures/block/pipe_provider.png"),
+            PipeType.REQUEST,  ResourceLocation.fromNamespaceAndPath("morph", "textures/block/pipe_request.png"),
+            PipeType.SUPPLIER, ResourceLocation.fromNamespaceAndPath("morph", "textures/block/pipe_supplier.png"),
+            PipeType.CHASSIS,  ResourceLocation.fromNamespaceAndPath("morph", "textures/block/chassis_mk1.png")
+    ));
+
+    /**
+     * Per-type face-plate <em>overlay</em> — the LP1 {@code overlay_gen/<type>/un-powered-pipe.png}.
+     * Transparent-background grid pattern with black/coloured lines that go ON TOP of
+     * {@link #PLATE_TEX}, giving the iconic LP1 framed-face look. Verified RGBA with
+     * alpha values {0, 255} so the plate colour shows through the transparent cells.
+     */
     private static final Map<PipeType, ResourceLocation> INDICATOR_TEX = new EnumMap<>(Map.of(
             PipeType.BASIC,    ResourceLocation.fromNamespaceAndPath("morph", "textures/pipe/indicator_basic.png"),
             PipeType.PROVIDER, ResourceLocation.fromNamespaceAndPath("morph", "textures/pipe/indicator_provider.png"),
@@ -159,13 +177,28 @@ public class LPPipeRenderer implements BlockEntityRenderer<LogisticsPipeBlockEnt
             }
         }
 
-        // --- Type indicator on unconnected faces ---
-        // LPUVScale(12/16, 12/16): center(uv) = 0.125 + uv * 0.75  (matches LP1)
-        ResourceLocation indTex = INDICATOR_TEX.getOrDefault(type, INDICATOR_TEX.get(PipeType.BASIC));
-        VertexConsumer ind = buffers.getBuffer(RenderType.entityCutoutNoCull(indTex));
+        // --- Type face-plate on unconnected faces (LP1's two-layer plate) ---
+        // LPUVScale(12/16, 12/16): center(uv) = 0.125 + uv * 0.75  (matches LP1).
+        //
+        // Vanilla's BufferSource keeps ONE active builder at a time — getBuffer(B)
+        // ends builder A. So all plates render with PLATE_TEX first, then we switch
+        // to INDICATOR_TEX for the overlay pass. Interleaving the two per-direction
+        // crashes with "Not building!" on the next addVertex.
+        ResourceLocation plateTex = PLATE_TEX.getOrDefault(type, PLATE_TEX.get(PipeType.BASIC));
+        ResourceLocation indTex   = INDICATOR_TEX.getOrDefault(type, INDICATOR_TEX.get(PipeType.BASIC));
+
+        // LAYER 1 — coloured plate (yellow request, green provider, …)
+        VertexConsumer plateBuf = buffers.getBuffer(RenderType.entityCutoutNoCull(plateTex));
         for (Direction dir : Direction.values()) {
             if (!conn[dir.ordinal()])
-                renderCentered(m.get("Texture_Plate_" + dirChar(dir)), ind, mat, entry, light, overlay);
+                renderCentered(m.get("Texture_Plate_" + dirChar(dir)), plateBuf, mat, entry, light, overlay);
+        }
+
+        // LAYER 2 — black grid lines on top (transparent cells let the plate show through)
+        VertexConsumer indBuf = buffers.getBuffer(RenderType.entityCutoutNoCull(indTex));
+        for (Direction dir : Direction.values()) {
+            if (!conn[dir.ordinal()])
+                renderCentered(m.get("Texture_Plate_" + dirChar(dir)), indBuf, mat, entry, light, overlay);
         }
     }
 
