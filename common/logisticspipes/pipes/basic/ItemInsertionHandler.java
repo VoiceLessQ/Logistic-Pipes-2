@@ -7,7 +7,7 @@ import javax.annotation.Nonnull;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Direction;
 
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import logisticspipes.interfaces.ILPItemAcceptor;
 

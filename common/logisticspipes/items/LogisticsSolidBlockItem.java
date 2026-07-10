@@ -32,14 +32,14 @@ public class LogisticsSolidBlockItem extends BlockItem implements ILogisticsItem
 	}
 
 	@Override
-	public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
+	public void initializeClient(java.util.function.Consumer<net.neoforged.neoforge.client.extensions.common.IClientItemExtensions> consumer) {
 		consumer.accept(ClientExtensionsHolder.EXTENSIONS);
 	}
 
 	/** Client-only BEWLR holder, loaded lazily so dedicated servers don't touch it. */
 	private static final class ClientExtensionsHolder {
-		static final net.minecraftforge.client.extensions.common.IClientItemExtensions EXTENSIONS =
-			new net.minecraftforge.client.extensions.common.IClientItemExtensions() {
+		static final net.neoforged.neoforge.client.extensions.common.IClientItemExtensions EXTENSIONS =
+			new net.neoforged.neoforge.client.extensions.common.IClientItemExtensions() {
 				@Override
 				public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
 					return logisticspipes.renderer.LogisticsSolidBlockItemRenderer.instance();

@@ -1,6 +1,6 @@
 package logisticspipes.proxy;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 import static logisticspipes.LPConstants.appliedenergisticsModID;
 

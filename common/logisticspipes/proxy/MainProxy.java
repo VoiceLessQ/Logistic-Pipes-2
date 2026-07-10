@@ -20,11 +20,11 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.server.ServerLifecycleHooks;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.neoforged.bus.api.SubscribeEvent;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
@@ -49,7 +49,7 @@ public class MainProxy {
 	 * Replaces 1.12.2 {@code @SidedProxy} annotation.
 	 */
 	// NeoForge 1.20.1: DistExecutor removed — use FMLEnvironment.dist check
-	public static IProxy proxy = net.minecraftforge.fml.loading.FMLEnvironment.dist.isClient()
+	public static IProxy proxy = net.neoforged.fml.loading.FMLEnvironment.dist.isClient()
 			? new logisticspipes.proxy.side.ClientProxy()
 			: new logisticspipes.proxy.side.ServerProxy();
 

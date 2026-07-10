@@ -40,7 +40,7 @@ package network.rs485.logisticspipes.proxy
 import logisticspipes.LPConstants
 import logisticspipes.LogisticsPipes
 import logisticspipes.proxy.SimpleServiceLocator
-import net.minecraftforge.fml.ModList
+import net.neoforged.fml.ModList
 
 object StorageDrawersProxy {
     private val impl: StorageDrawersProxyImpl? by lazy {

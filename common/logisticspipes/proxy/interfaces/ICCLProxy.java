@@ -8,8 +8,8 @@ import java.util.Map;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 // TODO: IModelState removed — rendering deferred
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import logisticspipes.proxy.object3d.interfaces.I3DOperation;
 import logisticspipes.proxy.object3d.interfaces.IModel3D;

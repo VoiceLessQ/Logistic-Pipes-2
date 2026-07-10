@@ -25,12 +25,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 
 // import dan200.computercraft.api.peripheral.IComputerAccess; // CC not ported to 1.20.1; @ModDependentField stubs
@@ -818,7 +818,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 
 	/** Used by RegisterCapabilitiesEvent wiring in LPRegistries. */
 	@javax.annotation.Nullable
-	public net.minecraftforge.items.IItemHandler getItemHandlerForSide(@javax.annotation.Nullable Direction side) {
+	public net.neoforged.neoforge.items.IItemHandler getItemHandlerForSide(@javax.annotation.Nullable Direction side) {
 		return itemInsertionHandlers != null ? itemInsertionHandlers.get(side) : null;
 	}
 

@@ -49,7 +49,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 import lombok.AllArgsConstructor;
 

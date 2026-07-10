@@ -8,10 +8,10 @@
 package network.rs485.logisticspipes.gui
 
 import net.minecraft.client.Minecraft
-import net.minecraftforge.client.event.RenderGuiOverlayEvent
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay
-import net.minecraftforge.eventbus.api.EventPriority
-import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.neoforged.neoforge.client.event.RenderGuiOverlayEvent
+import net.neoforged.neoforge.client.gui.overlay.VanillaGuiOverlay
+import net.neoforged.bus.api.EventPriority
+import net.neoforged.bus.api.SubscribeEvent
 
 /**
  * When a widget-based LP GUI (any subclass of [BaseGuiContainer]) is the active screen,

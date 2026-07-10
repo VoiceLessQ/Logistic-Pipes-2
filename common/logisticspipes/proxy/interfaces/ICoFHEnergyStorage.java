@@ -4,7 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 
 /**
  * Forge-energy storage abstraction. Historically wrapped CoFH's EnergyStorage; on 1.20.1 it is
- * implemented by {@link logisticspipes.proxy.PowerProxy} on top of net.minecraftforge.energy.EnergyStorage.
+ * implemented by {@link logisticspipes.proxy.PowerProxy} on top of net.neoforged.neoforge.energy.EnergyStorage.
  */
 public interface ICoFHEnergyStorage {
 

@@ -22,8 +22,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 
 
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 import logisticspipes.LPItems;
 import logisticspipes.LogisticsPipes;

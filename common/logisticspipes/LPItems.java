@@ -2,7 +2,7 @@ package logisticspipes;
 
 import net.minecraft.world.item.Item;
 
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.RegistryObject;
 
 import logisticspipes.items.ItemLogisticsPipe;
 

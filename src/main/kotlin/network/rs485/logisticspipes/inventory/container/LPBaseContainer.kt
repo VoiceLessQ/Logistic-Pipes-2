@@ -45,8 +45,8 @@ import logisticspipes.LogisticsPipes
 import logisticspipes.modules.LogisticsModule
 import logisticspipes.utils.gui.ModuleSlot
 import net.minecraft.world.Container
-import net.minecraftforge.api.distmarker.Dist
-import net.minecraftforge.api.distmarker.OnlyIn
+import net.neoforged.api.distmarker.Dist
+import net.neoforged.api.distmarker.OnlyIn
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.MenuType

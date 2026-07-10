@@ -22,7 +22,7 @@ public class OpenChatGui extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
+		if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
 			openChatScreen();
 		}
 	}
@@ -30,7 +30,7 @@ public class OpenChatGui extends ModernPacket {
 	// Client body kept out of processPacket's verified bytecode. The dedicated server links this
 	// packet (so it can SEND it) only when no client class appears in a non-@OnlyIn method; the
 	// RuntimeDistCleaner strips this @OnlyIn helper before verification on the server.
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
 	private void openChatScreen() {
 		net.minecraft.client.Minecraft.getInstance().setScreen(new ChatScreen(""));
 	}

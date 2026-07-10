@@ -31,8 +31,8 @@ public class PlayerListRequest extends ModernPacket {
 	@Override
 	public void processPacket(Player player) {
 		// NeoForge 1.20.1: DimensionManager.getWorlds() removed — get players from server's player list
-		Stream<?> allPlayers = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer() != null
-				? net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().stream()
+		Stream<?> allPlayers = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer() != null
+				? net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().stream()
 				: java.util.stream.Stream.empty();
 		Stream<Player> allPlayerEntities = allPlayers.filter(o -> o instanceof Player).map(o -> (Player) o);
 		MainProxy.sendPacketToPlayer(PacketHandler.getPacket(PlayerList.class)

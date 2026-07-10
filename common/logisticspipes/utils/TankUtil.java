@@ -3,8 +3,8 @@ package logisticspipes.utils;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import logisticspipes.interfaces.ITankUtil;
 

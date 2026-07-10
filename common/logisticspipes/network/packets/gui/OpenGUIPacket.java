@@ -48,14 +48,14 @@ public class OpenGUIPacket extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
+		if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
 			handleClient(player);
 		}
 	}
 
 	// See OpenChatGui: NewGuiHandler.openGui(OpenGUIPacket, ...) walks the client's open screens,
 	// so the call lives in this @OnlyIn helper, stripped before verification on the dedicated server.
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
 	private void handleClient(Player player) {
 		NewGuiHandler.openGui(this, player);
 	}

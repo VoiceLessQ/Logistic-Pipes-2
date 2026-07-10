@@ -16,8 +16,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import net.minecraftforge.common.crafting.AbstractIngredient;
-import net.minecraftforge.common.crafting.IIngredientSerializer;
+import net.neoforged.neoforge.common.crafting.AbstractIngredient;
+import net.neoforged.neoforge.common.crafting.IIngredientSerializer;
 
 public class NBTIngredient extends AbstractIngredient {
 

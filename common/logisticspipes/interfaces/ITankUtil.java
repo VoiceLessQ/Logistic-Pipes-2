@@ -2,7 +2,7 @@ package logisticspipes.interfaces;
 
 import java.util.stream.Stream;
 
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import logisticspipes.utils.FluidIdentifier;
 import logisticspipes.utils.FluidIdentifierStack;

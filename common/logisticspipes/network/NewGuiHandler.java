@@ -16,8 +16,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.network.abstractguis.GuiProvider;
@@ -128,7 +128,7 @@ public class NewGuiHandler {
 		}
 		player.containerMenu = container;
 		net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
-				new net.minecraftforge.event.entity.player.PlayerContainerEvent.Open(player, player.containerMenu));
+				new net.neoforged.neoforge.event.entity.player.PlayerContainerEvent.Open(player, player.containerMenu));
 
 		// Send OpenGUIPacket BEFORE initMenu so the client's containerMenu is
 		// established before the slot-sync packets (ClientboundContainerSetContent)

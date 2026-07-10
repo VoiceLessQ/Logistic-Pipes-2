@@ -295,7 +295,7 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 			return crp;
 		}
 		Level world = null;
-		var server = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer();
+		var server = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer();
 		if (server != null) {
 			world = server.getLevel(net.minecraft.resources.ResourceKey.create(
 					net.minecraft.core.registries.Registries.DIMENSION, _dimension));

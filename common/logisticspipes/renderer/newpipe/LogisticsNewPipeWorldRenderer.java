@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter; // was BlockGetter
 
-import net.minecraftforge.fml.client.registry.ISimpleBlockRenderingHandler;
+import net.neoforged.fml.client.registry.ISimpleBlockRenderingHandler;
 
 import logisticspipes.LPConstants;
 import logisticspipes.pipes.PipeBlockRequestTable;

@@ -5,8 +5,8 @@ import java.util.List;
 
 // import net.minecraft.client.renderer.GLAllocation; // removed — display lists not available
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 public class GLRenderListHandler {
 

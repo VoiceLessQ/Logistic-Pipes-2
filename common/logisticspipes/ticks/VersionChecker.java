@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
 
 import net.minecraft.nbt.CompoundTag;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 
 import com.google.gson.Gson;

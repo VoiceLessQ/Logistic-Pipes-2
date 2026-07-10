@@ -3,8 +3,8 @@ package logisticspipes.textures;
 import net.minecraft.client.renderer.texture.TextureAtlas; // was TextureAtlas
 import net.minecraft.resources.ResourceLocation;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.proxy.MainProxy;

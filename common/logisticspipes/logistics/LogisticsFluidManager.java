@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import logisticspipes.LPItems;
 import logisticspipes.interfaces.routing.IFluidSink;

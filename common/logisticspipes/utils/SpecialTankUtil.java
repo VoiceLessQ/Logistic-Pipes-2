@@ -2,7 +2,7 @@ package logisticspipes.utils;
 
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import logisticspipes.interfaces.ISpecialTankAccessHandler;
 import logisticspipes.interfaces.ISpecialTankUtil;

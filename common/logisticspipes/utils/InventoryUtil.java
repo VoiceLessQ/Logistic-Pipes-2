@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import logisticspipes.interfaces.IInventoryUtil;
 import logisticspipes.interfaces.ISpecialInsertion;

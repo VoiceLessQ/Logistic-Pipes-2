@@ -4,8 +4,8 @@ package logisticspipes.renderer.newpipe;
 // Removed: IModel, IModelState, ICustomModelLoader, ItemOverrideList, ItemCameraTransforms,
 //          VertexFormat (old), IResourceManager, javax.vecmath, ModelResourceLocation (old path)
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class LogisticsBlockModel {

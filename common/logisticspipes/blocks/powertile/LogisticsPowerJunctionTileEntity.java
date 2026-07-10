@@ -12,7 +12,7 @@ import net.minecraft.core.Direction;
 
 
 // CapabilityEnergy removed in NeoForge 1.20.1 — use ForgeCapabilities.EnergyStorage.BLOCK
-import net.minecraftforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 // import buildcraft.api.mj.IMjConnector;
 // import buildcraft.api.mj.IMjReceiver;
@@ -393,7 +393,7 @@ public class LogisticsPowerJunctionTileEntity extends LogisticsSolidTileEntity i
 	}
 
 	/** Used by RegisterCapabilitiesEvent wiring in LPRegistries. */
-	public net.minecraftforge.energy.IEnergyStorage getEnergyInterface() {
+	public net.neoforged.neoforge.energy.IEnergyStorage getEnergyInterface() {
 		return energyInterface;
 	}
 

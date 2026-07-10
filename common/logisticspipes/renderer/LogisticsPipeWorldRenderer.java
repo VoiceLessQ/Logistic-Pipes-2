@@ -21,7 +21,7 @@ import net.minecraft.world.level.BlockGetter; // was BlockGetter
 
 import net.minecraft.core.Direction;
 
-import net.minecraftforge.fml.client.registry.ISimpleBlockRenderingHandler;
+import net.neoforged.fml.client.registry.ISimpleBlockRenderingHandler;
 
 public class LogisticsPipeWorldRenderer implements ISimpleBlockRenderingHandler {
 

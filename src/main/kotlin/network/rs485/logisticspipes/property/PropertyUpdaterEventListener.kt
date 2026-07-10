@@ -39,8 +39,8 @@ package network.rs485.logisticspipes.property
 
 import network.rs485.logisticspipes.inventory.container.LPBaseContainer
 import logisticspipes.proxy.MainProxy
-import net.minecraftforge.event.entity.player.PlayerContainerEvent
-import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent
+import net.neoforged.bus.api.SubscribeEvent
 
 object PropertyUpdaterEventListener {
     private val propertyUpdaters: ArrayList<PropertyUpdater> = ArrayList()

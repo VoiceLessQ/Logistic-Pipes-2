@@ -6,11 +6,11 @@ import java.util.Set;
 
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.event.TickEvent.ClientTickEvent;
-import net.minecraftforge.event.TickEvent.LevelTickEvent;
-import net.minecraftforge.event.TickEvent.Phase;
-import net.minecraftforge.event.TickEvent.ServerTickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.TickEvent.ClientTickEvent;
+import net.neoforged.neoforge.event.TickEvent.LevelTickEvent;
+import net.neoforged.neoforge.event.TickEvent.Phase;
+import net.neoforged.neoforge.event.TickEvent.ServerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 import com.google.common.collect.MapMaker;
 import lombok.AccessLevel;
@@ -30,7 +30,7 @@ public class LPTickHandler {
 	public static int adjChecksDone = 0;
 
 	@SubscribeEvent
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
 	public void clientTick(ClientTickEvent event) {
 		if (event.phase == Phase.END) {
 			FluidIdentifier.initFromForge(true);
@@ -59,7 +59,7 @@ public class LPTickHandler {
 		if (event.phase != Phase.END) {
 			return;
 		}
-		if (event.side != net.minecraftforge.fml.LogicalSide.SERVER) {
+		if (event.side != net.neoforged.fml.LogicalSide.SERVER) {
 			return;
 		}
 		LPWorldInfo info = LPTickHandler.getWorldInfo(event.level);

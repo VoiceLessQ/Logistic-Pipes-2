@@ -64,7 +64,7 @@ public class InventoryUtilFactory {
 				return util;
 			}
 			// NeoForge 1.20.1 (47.1.x): old Capability<T> API via BlockEntity.getCapability
-			net.minecraftforge.items.IItemHandler handler = tile.getCapability(ForgeCapabilities.ITEM_HANDLER, direction).orElse(null);
+			net.neoforged.neoforge.items.IItemHandler handler = tile.getCapability(ForgeCapabilities.ITEM_HANDLER, direction).orElse(null);
 			if (handler != null) {
 				return new InventoryUtil(handler, mode);
 			}

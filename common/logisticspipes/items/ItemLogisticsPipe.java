@@ -26,8 +26,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import lombok.Getter;
 // import org.apache.logging.log4j.Level; // conflicts with net.minecraft.world.level.Level — use fully qualified
@@ -204,15 +204,15 @@ public class ItemLogisticsPipe extends LogisticsItem {
 	}
 
 	@Override
-	public void initializeClient(Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
+	public void initializeClient(Consumer<net.neoforged.neoforge.client.extensions.common.IClientItemExtensions> consumer) {
 		consumer.accept(ClientExtensionsHolder.EXTENSIONS);
 	}
 
 	/** Holds client-only references; loaded lazily so dedicated servers never touch
 	 *  client-only classes like BlockEntityWithoutLevelRenderer. */
 	private static final class ClientExtensionsHolder {
-		static final net.minecraftforge.client.extensions.common.IClientItemExtensions EXTENSIONS =
-			new net.minecraftforge.client.extensions.common.IClientItemExtensions() {
+		static final net.neoforged.neoforge.client.extensions.common.IClientItemExtensions EXTENSIONS =
+			new net.neoforged.neoforge.client.extensions.common.IClientItemExtensions() {
 				@Override
 				public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
 					return logisticspipes.renderer.LogisticsPipeItemRenderer.instance();

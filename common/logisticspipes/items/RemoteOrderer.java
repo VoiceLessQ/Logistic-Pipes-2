@@ -17,7 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.network.chat.Component;
 
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import logisticspipes.network.PacketHandler;
 import logisticspipes.network.packets.pipe.RequestPipeDimension;

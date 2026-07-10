@@ -1,6 +1,6 @@
 package logisticspipes.utils;
 
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import logisticspipes.utils.item.ItemIdentifierStack;
 

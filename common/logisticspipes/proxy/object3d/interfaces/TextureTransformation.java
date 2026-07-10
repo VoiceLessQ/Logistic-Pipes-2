@@ -2,8 +2,8 @@ package logisticspipes.proxy.object3d.interfaces;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 public interface TextureTransformation extends I3DOperation {
 

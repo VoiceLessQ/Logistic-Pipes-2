@@ -33,25 +33,25 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.InterModComms;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.event.AddPackFindersEvent;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.common.crafting.CraftingHelper;
+import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
@@ -204,7 +204,7 @@ public class LogisticsPipes {
 	// Dev-only: gates the + power-cheat button, the starter-pack bypass, security-station
 	// override, etc. Flipped off automatically in a shipped jar so players can't free-cheat
 	// infinite RF from the power junction.
-	private static final boolean DEBUG = !net.minecraftforge.fml.loading.FMLEnvironment.production;
+	private static final boolean DEBUG = !net.neoforged.fml.loading.FMLEnvironment.production;
 	private Consumer<ServerStartedEvent> minecraftTestStartMethod = null;
 
 	public static boolean isDEBUG() {
@@ -235,7 +235,7 @@ public class LogisticsPipes {
 		// `clientSetup` and `registerRenderers` are @OnlyIn(Dist.CLIENT); on a dedicated
 		// server FML's runtime-dist-cleaner strips them, and the `this::method` reference
 		// here would NoSuchMethodError before the constructor finishes.
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
+		if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
 			modEventBus.addListener(this::clientSetup);
 			modEventBus.addListener(this::registerRenderers);
 			modEventBus.register(logisticspipes.textures.TextureRegistrar.class);
@@ -366,7 +366,7 @@ public class LogisticsPipes {
 
 		// Client-side setup (runs on client only)
 		event.enqueueWork(() -> {
-			if (net.minecraftforge.fml.loading.FMLEnvironment.dist == Dist.CLIENT) {
+			if (net.neoforged.fml.loading.FMLEnvironment.dist == Dist.CLIENT) {
 				RenderTickHandler sub = new RenderTickHandler();
 				MinecraftForge.EVENT_BUS.register(sub);
 				MinecraftForge.EVENT_BUS.register(network.rs485.logisticspipes.gui.WidgetScreenHudSuppressor.INSTANCE);
@@ -459,7 +459,7 @@ public class LogisticsPipes {
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	private void registerRenderers(net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
+	private void registerRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
 		LogisticsPipes.log.debug("registerRenderers: BE_PIPE={}", LPRegistries.BE_PIPE.get());
 		event.registerBlockEntityRenderer(LPRegistries.BE_PIPE.get(), logisticspipes.renderer.LogisticsRenderPipe::new);
 		// LP solid blocks: shared BER draws the OBJ body + cover plates with the per-type sprite.
@@ -500,7 +500,7 @@ public class LogisticsPipes {
 		PipeItemsSatelliteLogistics.cleanup();
 		PipeFluidSatellite.cleanup();
 		ServerRouter.cleanup();
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == Dist.CLIENT) {
+		if (net.neoforged.fml.loading.FMLEnvironment.dist == Dist.CLIENT) {
 			LogisticsHUDRenderer.instance().clear();
 		}
 		ServerTickDispatcher.INSTANCE.cleanup();
@@ -508,7 +508,7 @@ public class LogisticsPipes {
 	}
 
 	@SubscribeEvent
-	public void registerCommands(net.minecraftforge.event.RegisterCommandsEvent event) {
+	public void registerCommands(net.neoforged.neoforge.event.RegisterCommandsEvent event) {
 		new logisticspipes.commands.LogisticsPipesCommand().register(event.getDispatcher());
 	}
 

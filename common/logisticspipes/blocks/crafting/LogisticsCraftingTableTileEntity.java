@@ -25,9 +25,9 @@ import net.minecraft.network.chat.Component;
 
 
 
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 import logisticspipes.LPBlocks;
 import logisticspipes.api.IRoutedPowerProvider;
@@ -394,7 +394,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 	}
 
 	/** Used by RegisterCapabilitiesEvent wiring in LPRegistries. */
-	public net.minecraftforge.items.IItemHandler getInvWrapper() {
+	public net.neoforged.neoforge.items.IItemHandler getInvWrapper() {
 		return invWrapper;
 	}
 
