@@ -1,5 +1,5 @@
 modLoader   = "kotlinforforge"
-loaderVersion = "[4,)"
+loaderVersion = "[5,)"
 license     = "MMPL-1.0.1"
 
 [[mods]]
@@ -7,7 +7,7 @@ license     = "MMPL-1.0.1"
     version     = "${version}"
     displayName = "Logistic Pipes 2"
     description = '''
-        Logistic Pipes 2 is a NeoForge 1.20.1 revival of the classic Logistics Pipes:
+        Logistic Pipes 2 is a NeoForge 1.21.1 revival of the classic Logistics Pipes:
         request-based item routing, automated crafting, and modular chassis pipes,
         brought back to modern Minecraft.
 
@@ -19,26 +19,25 @@ license     = "MMPL-1.0.1"
     issueTrackerURL  = "https://github.com/VoiceLessQ/Logistic-Pipes-2/issues"
 
 [[dependencies.logisticspipes]]
-    modId        = "forge"
+    modId        = "neoforge"
     mandatory    = true
-    versionRange = "[47,48)"
+    versionRange = "[21.1,)"
     ordering     = "NONE"
     side         = "BOTH"
 
 [[dependencies.logisticspipes]]
     modId        = "minecraft"
     mandatory    = true
-    # 1.20.1 ONLY: NeoForge changed namespace + runtime mappings at 1.20.2,
-    # so claiming a wider range just produces confusing crashes instead of
-    # a clean "wrong version" screen.
-    versionRange = "[1.20.1,1.20.2)"
+    # Pinned to 1.21.1 only: a single MC version avoids cross-version mapping
+    # crashes and gives a clean "wrong version" screen instead.
+    versionRange = "[1.21.1,1.21.2)"
     ordering     = "NONE"
     side         = "BOTH"
 
 [[dependencies.logisticspipes]]
     modId        = "kotlinforforge"
     mandatory    = true
-    versionRange = "[4,)"
+    versionRange = "[5,)"
     ordering     = "NONE"
     side         = "BOTH"
 

@@ -1,30 +1,13 @@
-// srgutils is needed in the build classpath for the reobf step: it chains Mojang's
-// ProGuard mappings with NeoForm's mergeMappings output to produce a Mojmap → SRG
-// mapping (emitted as tiny v2), which TinyRemapper then applies to the shipped jar.
-// NeoGradle 7.0.145 has no reobf hook for the `jar` task, so we do this ourselves.
-buildscript {
-    repositories {
-        mavenCentral()
-        maven { url = 'https://maven.neoforged.net/releases' }
-        maven { url = 'https://maven.minecraftforge.net/' }
-    }
-    dependencies {
-        classpath 'net.minecraftforge:srgutils:0.5.1'
-    }
-}
-
-import net.minecraftforge.srgutils.IMappingFile
-
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev'
+    id 'net.neoforged.moddev'
     id 'org.jetbrains.kotlin.jvm'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'org.jetbrains.kotlin.plugin.lombok'
     id 'io.freefair.lombok'
     id 'signing'
-    id 'com.github.johnrengelman.shadow'
+    id 'com.gradleup.shadow'
 }
 
 archivesBaseName = 'logisticspipes'
@@ -32,7 +15,8 @@ group = 'network.rs485'
 version = '0.0.2'
 ext.vendor = 'unknown'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+// MC 1.21.1 runs on Java 21.
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 def ENV = System.getenv()
 
@@ -63,8 +47,7 @@ ext.sharedManifest = manifest {
         'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"))
 }
 
-// ── Source sets ──────────────────────────────────────────────────────────────
-
+// Source sets
 sourceSets {
     api {
         java { srcDirs = ['src/api/java'] }
@@ -84,21 +67,54 @@ sourceSets {
 configurations {
     testCompileOnly.extendsFrom compileOnly
     ktlint
-    // Libraries needed at game runtime in dev (runClient/runServer) that NeoGradle
-    // doesn't automatically expose to the ModuleClassLoader from `implementation`.
-    gameRuntime
-    // TinyRemapper + its ASM/mapping-io deps, loaded into an isolated classloader for the
-    // reobf step (Mojmap -> SRG). See the reobfJar task below.
-    tinyRemapper
 }
 
-// ── Kotlin ───────────────────────────────────────────────────────────────────
+// NeoForge (ModDevGradle).
+// ModDevGradle replaces NeoGradle 7. NeoForge 1.20.2+ runs Mojmap-named at
+// runtime, so the old Mojmap to SRG reobf step (srgutils + TinyRemapper) is gone;
+// the shadowJar is the shippable artifact directly.
+neoForge {
+    version = project.neoforge_version
 
+    // The api source set is separate from main, so wire the MC/NeoForge classpath
+    // onto it too (MDG only adds it to main by default).
+    addModdingDependenciesTo sourceSets.api
+
+    accessTransformers {
+        from rootProject.file('resources/META-INF/lp_at.cfg')
+    }
+
+    mods {
+        logisticspipes {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.api
+        }
+    }
+
+    runs {
+        client {
+            client()
+            gameDirectory = project.file('run')
+            systemProperty 'forge.logging.markers',       'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'debug'
+            jvmArgument '-ea'
+        }
+        server {
+            server()
+            gameDirectory = project.file('run-server')
+            systemProperty 'forge.logging.markers',       'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'debug'
+            programArgument '--nogui'
+            jvmArgument '-ea'
+        }
+    }
+}
+
+// Kotlin
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-    kotlinOptions {
-        languageVersion = '1.9'
-        jvmTarget = '17'
-        freeCompilerArgs += '-Xjvm-default=all'
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        freeCompilerArgs.add('-Xjvm-default=all')
     }
 }
 
@@ -106,81 +122,34 @@ kotlinLombok {
     lombokConfigurationFile file('lombok.config')
 }
 
-// ── NeoForge ─────────────────────────────────────────────────────────────────
-
-// NeoForge 1.20.1 uses the old artifact ID: net.neoforged:forge:1.20.1-47.1.{patch}
-// NeoGradle 7's UserDevDependencyManager intercepts this dependency declaration
-// and replaces it with the full userdev runtime (deobf MC + NeoForge on classpath).
-// Declared on both `implementation` (main) and `apiImplementation` (api sourceSet).
-ext.neoforgeArtifact = "net.neoforged:forge:1.20.1-47.1.${(project.neoforge_version as String).split('\\.').last()}"
-
-accessTransformers {
-    file(rootProject.file('resources/META-INF/lp_at.cfg'))
-}
-
-runs {
-    client {
-        client()
-        workingDirectory.set(project.file('run'))
-        systemProperties.put('forge.logging.markers',       'SCAN,REGISTRIES,REGISTRYDUMP')
-        systemProperties.put('forge.logging.console.level', 'debug')
-        jvmArguments.add('-ea')
-        modSource(sourceSets.api)
-        modSource(sourceSets.main)
-        classpath.from(configurations.gameRuntime)
-    }
-    server {
-        server()
-        workingDirectory.set(project.file('run-server'))
-        systemProperties.put('forge.logging.markers',       'SCAN,REGISTRIES,REGISTRYDUMP')
-        systemProperties.put('forge.logging.console.level', 'debug')
-        programArguments.add('--nogui')
-        jvmArguments.add('-ea')
-        modSource(sourceSets.api)
-        modSource(sourceSets.main)
-        classpath.from(configurations.gameRuntime)
-    }
-}
-
-// ── Dependencies ─────────────────────────────────────────────────────────────
-
+// Dependencies
 repositories {
     mavenCentral()
     maven { url = 'https://maven.neoforged.net/releases' }
     maven { url = 'https://maven.removeco.de/' }
     maven { url = 'https://thedarkcolour.github.io/KotlinForForge/' }
     maven { url = 'https://maven.blamejared.com' }
-    maven { url = 'https://maven.fabricmc.net/' }   // tiny-remapper + mapping-io (reobf step)
 }
 
 dependencies {
-    // NeoForge — UserDevDependencyManager intercepts this and wires MC to compile classpath
-    implementation "${neoforgeArtifact}"
-    // Also wire MC onto the `api` source set's compile classpath
-    "apiImplementation"("${neoforgeArtifact}")
-
-    // Kotlin for Forge 1.20.1 — provides kotlin stdlib + coroutines + serialization as a proper Forge mod module,
-    // making them available on the ModLauncher module path at runtime (otherwise Kotlin classes fail to resolve
-    // during event-bus reflection on Kotlin types).
-    implementation "thedarkcolour:kotlinforforge:4.10.0"
+    // Kotlin for Forge (NeoForge 1.21.1) provides kotlin stdlib + coroutines +
+    // serialization as a mod module on the ModLauncher path at runtime and acts
+    // as the language provider (modLoader = "kotlinforforge").
+    implementation "thedarkcolour:kotlinforforge-neoforge:${kff_version}"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
     implementation "org.jetbrains:annotations:${kannotations_version}"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${kcoroutines_version}"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${kserialization_version}"
     implementation "com.charleskorn.kaml:kaml:${kaml_version}"
-    gameRuntime "com.charleskorn.kaml:kaml:${kaml_version}"
-    gameRuntime 'org.snakeyaml:snakeyaml-engine:2.3'
 
-    // JEI — Just Enough Items (1.20.1 Forge)
-    // runtimeOnly excluded: jei-1.20.1-forge-15.20.0.129 calls I18n.m_118938_ which is absent in
-    // NeoForge 47.1.88 — crashes the entire mod loading phase. Compile-only keeps LP's JEI plugin
-    // compilable; swap back to runtimeOnly once a compatible JEI build is available.
-    compileOnly "mezz.jei:jei-1.20.1-forge-api:15.20.0.129"
-    //runtimeOnly "mezz.jei:jei-1.20.1-forge:15.20.0.129"
+    // Bundled libs also need to be on the dev runtime classpath.
+    additionalRuntimeClasspath "com.charleskorn.kaml:kaml:${kaml_version}"
+    additionalRuntimeClasspath 'org.snakeyaml:snakeyaml-engine:2.3'
 
-    // Optional integrations (not yet ported to 1.20.1)
-    // compileOnly "mcjty.theoneprobe:theoneprobe:..."
+    // JEI. Coordinates for 1.21.1 pending; kept off until the 1.21.1 artifact is
+    // wired (see PORT-1.21.md).
+    // compileOnly "mezz.jei:jei-1.21.1-neoforge-api:<ver>"
 
     ktlint("com.pinterest:ktlint:0.50.0") {
         attributes {
@@ -188,40 +157,26 @@ dependencies {
         }
     }
 
-    // TinyRemapper for the reobf step (Mojmap → SRG); see reobfJar task below. ASM + mapping-io
-    // are TinyRemapper's runtime deps — pinned explicitly so the isolated classloader is complete.
-    tinyRemapper 'net.fabricmc:tiny-remapper:0.10.3'
-    tinyRemapper 'net.fabricmc:mapping-io:0.6.1'
-    tinyRemapper 'org.ow2.asm:asm:9.7'
-    tinyRemapper 'org.ow2.asm:asm-commons:9.7'
-    tinyRemapper 'org.ow2.asm:asm-tree:9.7'
-    tinyRemapper 'org.ow2.asm:asm-util:9.7'
-    tinyRemapper 'org.ow2.asm:asm-analysis:9.7'
-
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
 }
 
-// ── JAR / Shadow ─────────────────────────────────────────────────────────────
-
+// JAR / Shadow
 jar {
     from sourceSets.api.output
-    archiveClassifier.set('dev')          // dev/Mojmap jar; not the published artifact
+    archiveClassifier.set('dev')          // dev jar; not the published artifact
     duplicatesStrategy = DuplicatesStrategy.WARN
     manifest { from sharedManifest }
 }
 
-// Bundles main classes + api classes + kaml + snakeyaml. Still Mojmap-named at this point —
-// the `reobfJar` task below remaps it to SRG for the shipped artifact.
-//
-// Kotlin stdlib / coroutines / serialization / org.jetbrains.annotations are NOT bundled —
-// KFF (kotlinforforge) provides them as a Forge mod module and is declared mandatory in
-// mods.toml. Bundling them ourselves would create a duplicate Kotlin runtime under a
-// relocated namespace, which breaks @Metadata-based reflection across the KFF↔LP boundary.
+// Production artifact (no reobf on 1.21.1). Bundles main + api classes + kaml +
+// snakeyaml. Kotlin stdlib / coroutines / serialization are NOT bundled: KFF
+// provides them as a mod module; bundling would create a duplicate Kotlin runtime
+// under a relocated namespace and break @Metadata reflection across the KFF/LP seam.
 shadowJar {
     from sourceSets.api.output
-    archiveClassifier.set('shaded')       // intermediate Mojmap shaded jar; not published
+    archiveClassifier.set('')             // no classifier: this is the shippable jar
 
     dependencies {
         include(dependency("com.charleskorn.kaml:kaml:${kaml_version}"))
@@ -237,133 +192,7 @@ shadowJar {
     manifest { inheritFrom sharedManifest }
 }
 
-// ── Reobf (Mojmap → SRG) ─────────────────────────────────────────────────────
-//
-// NeoGradle 7.0.145 for NeoForge 1.20.1 does NOT auto-reobfuscate the `jar` task,
-// so a stock build ships a Mojmap-named jar. Production NeoForge 47.1.x and Forge
-// 47.x both use SRG names at runtime (the MC server jar shipped to end users is
-// named `server-1.20.1-20230612.114412-srg.jar` — confirmed empirically). Loading
-// our Mojmap jar there crashes with `NoSuchFieldError: BLOCK_ENTITY_TYPE` at
-// `LPRegistries.<clinit>:132` (issue #1).
-//
-// We chain Mojang's official ProGuard mappings (obf → Mojmap) with NeoForm's
-// mergeMappings output (obf → mojmap_class + srg_member) to produce Mojmap → SRG,
-// then feed that (as a tiny v2 file) to TinyRemapper to reobfuscate the shaded jar.
-//
-// Why TinyRemapper and not AutoRenamingTool: ART's EnhancedRemapper propagates a
-// renamed MC method across every class that shares its signature, leaking e.g.
-// `Container.isEmpty() -> m_7983_` up into `java.util.Deque.isEmpty()` and crashing
-// at runtime with `NoSuchMethodError: Deque.m_7983_()`. TinyRemapper instead resolves
-// each reference against the real class hierarchy (compileClasspath below) and treats
-// library/JDK classes as immutable, so it renames only genuine MC members. The
-// reobf'd jar (no classifier) is the production artifact.
-
-ext.mojangClientMappings = file("${gradle.gradleUserHomeDir}/caches/neoformruntime/artifacts/minecraft_${mcversion}_client_mappings.txt")
-// NeoForm's `mergeMappings` step output is the mapping needed for production: classes already
-// in Mojmap (matches runtime), fields/methods in SRG (also matches runtime). Both come from
-// `obf` on the LEFT in this file. We chain mojmap → obf → this to get mojmap → (mojmap_class +
-// srg_field + srg_method) — the exact remap target for NeoForge 1.20.1 production runtime.
-// (Note: the file has a `.jar` extension but is actually a TSRG2 text file.)
-ext.mergedMappings = file("${buildDir}/neoForm/neoFormJoined${mcversion}-20230612.114412/steps/mergeMappings/output.jar")
-ext.chainedMappings = file("${buildDir}/mappings/mojmap-to-srg.tsrg")    // kept for debugging
-ext.tinyMappings    = file("${buildDir}/mappings/mojmap-to-srg.tiny")    // consumed by reobfJar
-// tiny v2 namespaces written by srgutils: left = mojmap (source), right = srg (target).
-
-task generateReobfMappings {
-    // mergedMappings is produced by NeoGradle's `neoFormMergeMappings` task; we need to wait for it.
-    dependsOn 'neoFormMergeMappings'
-    inputs.file(mojangClientMappings).withPropertyName('mojangClientMappings')
-    inputs.file(mergedMappings).withPropertyName('mergedMappings')
-    outputs.file(chainedMappings).withPropertyName('chainedMappings')
-    outputs.file(tinyMappings).withPropertyName('tinyMappings')
-
-    doLast {
-        chainedMappings.parentFile.mkdirs()
-        // client_mappings.txt is ProGuard format. ProGuard layout `mojmap_name -> obf_name:`
-        // loads directly as LEFT=mojmap, RIGHT=obf — already the direction we want.
-        def mojmapToObf = IMappingFile.load(mojangClientMappings)
-        // mergeMappings/output.jar is TSRG2 (obf → mojmap_class + srg_field + srg_method).
-        def obfToRuntime = IMappingFile.load(mergedMappings)
-        // Chain: mojmap → obf → runtime, then emit both formats (tiny is what TinyRemapper reads).
-        def chained = mojmapToObf.chain(obfToRuntime)
-        chained.write(chainedMappings.toPath(), IMappingFile.Format.TSRG2, false)
-        chained.write(tinyMappings.toPath(),    IMappingFile.Format.TINY,  false)
-    }
-}
-
-task reobfJar {
-    dependsOn shadowJar, generateReobfMappings
-
-    def inputJar = shadowJar.archiveFile.get().asFile
-    def outputJar = file("${buildDir}/libs/${archivesBaseName}-${project.version}.jar")
-    inputs.file(inputJar).withPropertyName('inputJar')
-    inputs.file(tinyMappings).withPropertyName('tinyMappings')
-    outputs.file(outputJar).withPropertyName('outputJar')
-
-    // Run TinyRemapper in an isolated classloader (parent = platform loader) so its bundled
-    // ASM can't collide with Gradle's, exchanging only JDK types (Path, BiConsumer) across the
-    // boundary. TinyRemapper resolves every member reference against the real class hierarchy
-    // (compileClasspath = the Mojmap MC + NeoForge + Kotlin) and never renames library members,
-    // so the Mojmap → SRG rename applies to genuine MC members only (no JDK collection leak).
-    doLast {
-        def trCl = new URLClassLoader(
-                configurations.tinyRemapper.files.collect { it.toURI().toURL() } as URL[],
-                ClassLoader.systemClassLoader.parent
-        )
-        def TinyUtils        = trCl.loadClass('net.fabricmc.tinyremapper.TinyUtils')
-        def IMappingProvider = trCl.loadClass('net.fabricmc.tinyremapper.IMappingProvider')
-        def TinyRemapper     = trCl.loadClass('net.fabricmc.tinyremapper.TinyRemapper')
-        def Builder          = trCl.loadClass('net.fabricmc.tinyremapper.TinyRemapper$Builder')
-        def OCP              = trCl.loadClass('net.fabricmc.tinyremapper.OutputConsumerPath')
-        def OCPBuilder       = trCl.loadClass('net.fabricmc.tinyremapper.OutputConsumerPath$Builder')
-        def NonClassCopyMode = trCl.loadClass('net.fabricmc.tinyremapper.NonClassCopyMode')
-
-        def pathArrayClass = ([] as java.nio.file.Path[]).getClass()
-
-        // Mapping provider: tiny v2 written by generateReobfMappings, left=mojmap → right=srg.
-        def provider = TinyUtils.getMethod('createTinyMappingProvider', java.nio.file.Path, String, String)
-                .invoke(null, tinyMappings.toPath(), 'left', 'right')
-
-        def builder = TinyRemapper.getMethod('newRemapper').invoke(null)
-        Builder.getMethod('withMappings', IMappingProvider).invoke(builder, provider)
-        Builder.getMethod('ignoreFieldDesc',        boolean.class).invoke(builder, false)
-        Builder.getMethod('renameInvalidLocals',    boolean.class).invoke(builder, false)
-        Builder.getMethod('resolveMissing',         boolean.class).invoke(builder, true)
-        Builder.getMethod('rebuildSourceFilenames', boolean.class).invoke(builder, true)
-        Builder.getMethod('ignoreConflicts',        boolean.class).invoke(builder, false)
-        def remapper = Builder.getMethod('build').invoke(builder)
-
-        outputJar.parentFile.mkdirs()
-        outputJar.delete()
-        def consumer = OCPBuilder.getConstructor(java.nio.file.Path).newInstance(outputJar.toPath())
-        consumer = OCPBuilder.getMethod('build').invoke(consumer)
-        try {
-            def fixMetaInf = Enum.valueOf(NonClassCopyMode, 'FIX_META_INF')
-            OCP.getMethod('addNonClassFiles', java.nio.file.Path, NonClassCopyMode, TinyRemapper)
-                    .invoke(consumer, inputJar.toPath(), fixMetaInf, remapper)
-
-            def cp = configurations.compileClasspath.files
-                    .findAll { it.name.endsWith('.jar') && it.exists() }
-                    .collect { it.toPath() } as java.nio.file.Path[]
-            TinyRemapper.getMethod('readClassPath', pathArrayClass).invoke(remapper, [cp] as Object[])
-
-            def in0 = [inputJar.toPath()] as java.nio.file.Path[]
-            TinyRemapper.getMethod('readInputs', pathArrayClass).invoke(remapper, [in0] as Object[])
-
-            TinyRemapper.getMethod('apply', java.util.function.BiConsumer).invoke(remapper, consumer)
-        } finally {
-            TinyRemapper.getMethod('finish').invoke(remapper)
-            OCP.getMethod('close').invoke(consumer)
-        }
-        logger.lifecycle("reobfJar: wrote ${outputJar.name} (Mojmap → SRG via TinyRemapper)")
-    }
-}
-
-// Wire reobf into `assemble`/`build` so the production jar is always produced.
-tasks.named('assemble').configure { dependsOn reobfJar }
-
-// ── Additional artifacts ──────────────────────────────────────────────────────
-
+// Additional artifacts
 task sourceJar(type: Jar) {
     from sourceSets.api.allSource
     from sourceSets.main.allSource
@@ -392,26 +221,23 @@ artifacts {
     archives sourceJar
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
+// Tests
 tasks.withType(Test) {
     useJUnitPlatform()
     testLogging { events('passed', 'skipped', 'failed') }
 }
 
-// ── Resources ─────────────────────────────────────────────────────────────────
-
+// Resources
 processResources {
     inputs.property 'version', project.version
     duplicatesStrategy = DuplicatesStrategy.FAIL
-    // mods.toml version substitution
-    filesMatching('META-INF/mods.toml') {
+    // neoforge.mods.toml version substitution
+    filesMatching('META-INF/neoforge.mods.toml') {
         expand version: project.version, mcversion: mcversion
     }
 }
 
-// ── ktlint ────────────────────────────────────────────────────────────────────
-
+// ktlint
 task ktlint(type: JavaExec, group: 'verification') {
     description = 'Check Kotlin code style.'
     classpath = configurations.ktlint
@@ -420,8 +246,7 @@ task ktlint(type: JavaExec, group: 'verification') {
 }
 // check.dependsOn ktlint
 
-// ── Signing ───────────────────────────────────────────────────────────────────
-
+// Signing
 task enableSigningTasks {
     doFirst {
         tasks.withType(Sign) { enabled = true }
@@ -466,8 +291,7 @@ gradle.taskGraph.whenReady { taskGraph ->
     }
 }
 
-// ── Misc ─────────────────────────────────────────────────────────────────────
-
+// Misc
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
@@ -478,7 +302,7 @@ tasks.withType(AbstractArchiveTask) {
 }
 
 tasks.named('wrapper') {
-    gradleVersion    = '8.1.1'
+    gradleVersion    = '8.14.4'
     distributionType = Wrapper.DistributionType.ALL
 }
 

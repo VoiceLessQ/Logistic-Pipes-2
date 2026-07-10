@@ -20,18 +20,26 @@ untouched.
   Mojmap at runtime, so the hand-rolled TinyRemapper step gets deleted.
 - Local only for now. Nothing pushed, remote left alone.
 
-## Check versions before touching the build
+## Pinned versions (verified live 2026-07-10)
 
-Pin these against live sources, do not trust memory:
-- NeoForge 21.1.x patch, ModDevGradle version, Kotlin for Forge version for 1.21.1
+- Minecraft 1.21.1, NeoForge 21.1.235
+- ModDevGradle 2.0.141, Gradle 8.14.4, Java 21 toolchain
+- Kotlin 2.4.0, kotlinx coroutines 1.11.0, serialization 1.11.0 (match KFF's bundle)
+- Kotlin for Forge (neoforge) 5.12.0, modLoader "kotlinforforge" loaderVersion [5,)
+
+Still to verify against live API when the phases reach them:
 - capability handles (EnergyStorage / ItemHandler / FluidHandler, BLOCK variants)
 - FluidStack changes (moved to data components in 1.20.5+, not just a rename)
+- KFF 5.12.0 loads as language provider at runClient (KFF issue #154 territory)
+- kaml 0.55.0 vs serialization 1.11.0 (likely needs a bump; surfaces at Phase 1)
 
 ## Phases
 
-- [ ] 0. Branch and toolchain. gradle.properties versions, NeoGradle to
-      ModDevGradle, delete the reobf/TinyRemapper block in build.gradle, mods.toml
-      to neoforge.mods.toml.
+- [x] 0. Branch and toolchain. Done 2026-07-10: gradle.properties versions,
+      NeoGradle to ModDevGradle, reobf/TinyRemapper/srgutils block deleted, Java
+      17 to 21, Kotlin 2.4.0 compilerOptions, mods.toml to neoforge.mods.toml,
+      Gradle 8.7 to 8.14.4. Config resolves, NeoForge 21.1.235 downloads, api
+      source set compiles. Main still fails on the forge namespace (Phase 1).
 - [ ] 1. Namespace rename. `net.minecraftforge.*` to `net.neoforged.*`: 295
       imports across 118 Java and 10 Kotlin files. `@OnlyIn`/`Dist`: 110 sites.
       Mechanical, but not every subpackage maps 1:1.
@@ -74,3 +82,6 @@ JDK 21 only (Kotlin 1.9 dies on newer JDKs; 2.x still wants a sane JDK here):
 - One item capability outlier: `FluidIdentifier` reads FLUID_HANDLER_ITEM off an
   ItemStack, so it moves to the ItemCapability path, not the block path used
   everywhere else.
+- MDG only puts Minecraft on the main source set. The separate api source set
+  (src/api/kotlin, src/api/java) needs `addModdingDependenciesTo sourceSets.api`
+  in the neoForge block, or its Kotlin fails on unresolved vanilla MC classes.

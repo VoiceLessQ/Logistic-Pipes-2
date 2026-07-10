@@ -9,12 +9,12 @@ pluginManagement {
     file('gradle.properties').withInputStream { props.load(it) }
 
     plugins {
-        id 'net.neoforged.gradle.userdev'          version "${props.neogradle_version}"
-        id 'org.jetbrains.kotlin.jvm'              version "${props.kotlin_version}"
+        id 'net.neoforged.moddev'                      version "${props.moddev_version}"
+        id 'org.jetbrains.kotlin.jvm'                  version "${props.kotlin_version}"
         id 'org.jetbrains.kotlin.plugin.serialization' version "${props.kotlin_version}"
-        id 'org.jetbrains.kotlin.plugin.lombok'    version "${props.kotlin_version}"
-        id 'io.freefair.lombok'                    version "${props.lombok_plugin_version}"
-        id 'com.github.johnrengelman.shadow'       version "${props.shadow_version}"
+        id 'org.jetbrains.kotlin.plugin.lombok'        version "${props.kotlin_version}"
+        id 'io.freefair.lombok'                        version "${props.lombok_plugin_version}"
+        id 'com.gradleup.shadow'                       version "${props.shadow_version}"
     }
 }
 
