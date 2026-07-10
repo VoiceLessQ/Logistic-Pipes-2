@@ -40,9 +40,13 @@ Still to verify against live API when the phases reach them:
       17 to 21, Kotlin 2.4.0 compilerOptions, mods.toml to neoforge.mods.toml,
       Gradle 8.7 to 8.14.4. Config resolves, NeoForge 21.1.235 downloads, api
       source set compiles. Main still fails on the forge namespace (Phase 1).
-- [ ] 1. Namespace rename. `net.minecraftforge.*` to `net.neoforged.*`: 295
-      imports across 118 Java and 10 Kotlin files. `@OnlyIn`/`Dist`: 110 sites.
-      Mechanical, but not every subpackage maps 1:1.
+- [x] 1. Namespace rename. Done 2026-07-10 (commit 22c9d1b39, 129 files).
+      Verified target packages against the neoforge-21.1.235 jar. Safe 1:1 renames
+      applied (distmarker, eventbus->bus.api, forgespi->neoforgespi, fml, and
+      fluids/energy/items/server/client/event/registries/common.crafting ->
+      neoforge.*). Left as net.minecraftforge on purpose for their phases:
+      common.capabilities + common.util.LazyOptional (Phase 2), network.* (Phase 3),
+      common.MinecraftForge and event shapes (Phase 4). Build still red.
 - [ ] 2. Capabilities (the hard one). LazyOptional is gone. Remove the
       getCapability overrides on the pipe and the RF provider, write a
       RegisterCapabilitiesEvent handler (there is none today), rewrite PowerProxy
@@ -85,3 +89,6 @@ JDK 21 only (Kotlin 1.9 dies on newer JDKs; 2.x still wants a sane JDK here):
 - MDG only puts Minecraft on the main source set. The separate api source set
   (src/api/kotlin, src/api/java) needs `addModdingDependenciesTo sourceSets.api`
   in the neoForge block, or its Kotlin fails on unresolved vanilla MC classes.
+- Rename ordering trap: `net.minecraftforge.event` is a prefix of
+  `net.minecraftforge.eventbus`, so the eventbus->bus.api rule must run before
+  the event->neoforge.event rule or eventbus imports get mangled.
