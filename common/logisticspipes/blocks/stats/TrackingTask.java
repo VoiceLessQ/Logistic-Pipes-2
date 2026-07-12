@@ -49,7 +49,7 @@ public class TrackingTask {
 		nbt.putIntArray("amountRecorded_A", amountRecorded_A);
 		nbt.putIntArray("amountRecorded_B", amountRecorded_B);
 		nbt.putInt("arrayPos", arrayPos);
-		item.makeNormalStack(1).save(nbt);
+		item.makeNormalStack(1).save(logisticspipes.utils.RegistryAccessUtil.registries(), nbt);
 	}
 
 	public void writeToLPData(LPDataOutput output) {

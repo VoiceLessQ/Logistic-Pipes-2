@@ -137,8 +137,8 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 	}
 
 	@Override
-	public void load(CompoundTag par1nbtTagCompound) {
-		super.load(par1nbtTagCompound);
+	protected void loadAdditional(CompoundTag par1nbtTagCompound, net.minecraft.core.HolderLookup.Provider registries) {
+		super.loadAdditional(par1nbtTagCompound, registries);
 		if (par1nbtTagCompound.contains("UUID")) {
 			secId = UUID.fromString(par1nbtTagCompound.getString("UUID"));
 		}
@@ -164,8 +164,8 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag par1nbtTagCompound) {
-		super.saveAdditional(par1nbtTagCompound);
+	protected void saveAdditional(CompoundTag par1nbtTagCompound, net.minecraft.core.HolderLookup.Provider registries) {
+		super.saveAdditional(par1nbtTagCompound, registries);
 		par1nbtTagCompound.putString("UUID", getSecId().toString());
 		par1nbtTagCompound.putBoolean("allowCC", allowCC);
 		par1nbtTagCompound.putBoolean("allowAutoDestroy", allowAutoDestroy);
@@ -202,15 +202,15 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 				}
 				if (inv.getIDStackInSlot(0) == null) {
 					ItemStack stack = new ItemStack(LPItems.itemCard.get(), 1);
-					stack.setTag(new CompoundTag());
-					Objects.requireNonNull(stack.getTag()).putString("UUID", getSecId().toString());
+					logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
+					Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack)).putString("UUID", getSecId().toString());
 					inv.setItem(0, stack);
 				} else {
 					ItemStack slot = inv.getItem(0);
 					if (slot.getCount() < 64) {
 						slot.grow(1);
-						slot.setTag(new CompoundTag());
-						Objects.requireNonNull(slot.getTag()).putString("UUID", getSecId().toString());
+						logisticspipes.utils.item.StackTag.setTag(slot, new CompoundTag());
+						Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(slot)).putString("UUID", getSecId().toString());
 						inv.setItem(0, slot);
 					}
 				}
@@ -221,8 +221,8 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 					return;
 				}
 				ItemStack stack = new ItemStack(LPItems.itemCard.get(), 64);
-				stack.setTag(new CompoundTag());
-				Objects.requireNonNull(stack.getTag()).putString("UUID", getSecId().toString());
+				logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
+				Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack)).putString("UUID", getSecId().toString());
 				inv.setItem(0, stack);
 				break;
 		}

@@ -244,7 +244,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	 * is intentionally deferred — those methods belong to the 1.12.2 rendering system
 	 * and will be addressed when ItemLogisticsPipe is migrated to 1.20.1.</p>
 	 */
-	public static DeferredHolder<?, ItemLogisticsPipe> registerPipe(
+	public static DeferredHolder<Item, ItemLogisticsPipe> registerPipe(
 			DeferredRegister<Item> registry,
 			String name,
 			Function<Item, ? extends CoreUnroutedPipe> constructor) {
@@ -774,7 +774,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	// (nonexistent) item and the client logs "Picking on: [BLOCK] logisticspipes:pipe gave
 	// null item"; the pipe's actual item lives on the pipe object, not the block.
 	@Override
-	public ItemStack getCloneItemStack(BlockState state, HitResult target, net.minecraft.world.level.BlockGetter level, BlockPos pos, Player player) {
+	public ItemStack getCloneItemStack(BlockState state, HitResult target, net.minecraft.world.level.LevelReader level, BlockPos pos, Player player) {
 		BlockEntity tile = level.getBlockEntity(pos);
 		if (tile instanceof LogisticsTileGenericPipe
 				&& LogisticsBlockGenericPipe.isValid(((LogisticsTileGenericPipe) tile).pipe)
@@ -811,10 +811,18 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	}
 
 	@Override
-	public InteractionResult use(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hitResult) {
-		InteractionResult superResult = super.use(state, world, pos, player, hand, hitResult);
-		if (superResult != InteractionResult.PASS) return superResult;
+	protected InteractionResult useWithoutItem(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull BlockHitResult hitResult) {
+		return lpUse(state, world, pos, player, InteractionHand.MAIN_HAND, hitResult);
+	}
 
+	@Override
+	protected net.minecraft.world.ItemInteractionResult useItemOn(@Nonnull ItemStack stack, @Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hitResult) {
+		InteractionResult result = lpUse(state, world, pos, player, hand, hitResult);
+		if (result == InteractionResult.PASS) return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		return result.consumesAction() ? net.minecraft.world.ItemInteractionResult.SUCCESS : net.minecraft.world.ItemInteractionResult.FAIL;
+	}
+
+	private InteractionResult lpUse(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hitResult) {
 		ItemStack heldItem = player.getInventory().items.get(player.getInventory().selected);
 
 		CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(world, pos);

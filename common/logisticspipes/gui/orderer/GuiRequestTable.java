@@ -564,10 +564,10 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 		}
 		//if(isSearched(String.valueOf(BuiltInRegistries.ITEM.getId(item.item)), search.getContent())) return true;
 		//Enchantment? Enchantment!
-		Map<Enchantment, Integer> enchantIdLvlMap = EnchantmentHelper.getEnchantments(item.unsafeMakeNormalStack(1));
-		for (Entry<Enchantment, Integer> e : enchantIdLvlMap.entrySet()) {
+		net.minecraft.world.item.enchantment.ItemEnchantments enchantIdLvlMap = item.unsafeMakeNormalStack(1).getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+		for (var e : enchantIdLvlMap.entrySet()) {
 			if (e.getKey() != null) {
-				String enchantname = e.getKey().getDescriptionId();
+				String enchantname = e.getKey().value().description().getString();
 				if (enchantname != null) {
 					if (isSearched(enchantname.toLowerCase(Locale.US), search.getText().toLowerCase(Locale.US))) {
 						return true;
@@ -599,11 +599,11 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double lpScrollX, double delta) {
 		if (showRequest && itemDisplay != null) {
 			itemDisplay.handleMouse(delta);
 		}
-		return super.mouseScrolled(mouseX, mouseY, delta);
+		return super.mouseScrolled(mouseX, mouseY, lpScrollX, delta);
 	}
 
 	public void handleRequestAnswer(Collection<IResource> items, boolean error, ISubGuiControler control, Player player) {
@@ -629,7 +629,7 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 		if (search.isFocused()) {
 			if (!search.isEmpty() && search.handleKey(c, i))
 				return true;
-		} else if (Screen.hasAltDown() && SharedConstants.isAllowedChatCharacter(c)) {
+		} else if (Screen.hasAltDown() && net.minecraft.util.StringUtil.isAllowedChatCharacter(c)) {
 			itemDisplay.setFocused(false);
 			search.setFocused(true);
 			search.setText("");

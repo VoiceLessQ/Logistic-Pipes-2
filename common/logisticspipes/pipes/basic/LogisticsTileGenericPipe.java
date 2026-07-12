@@ -274,9 +274,9 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 
 	@Nonnull
 	@Override
-	public CompoundTag getUpdateTag() {
+	public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
 		sendInitPacket = true;
-		CompoundTag nbt = saveWithoutMetadata();
+		CompoundTag nbt = saveWithoutMetadata(registries);
 		try {
 			PacketHandler.addPacketToNBT(getLPDescriptionPacket(), nbt);
 		} catch (Exception e) {
@@ -287,9 +287,9 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void handleUpdateTag(@Nonnull CompoundTag tag) {
+	public void handleUpdateTag(@Nonnull CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
 		PacketHandler.queueAndRemovePacketFromNBT(tag);
-		super.handleUpdateTag(tag);
+		super.handleUpdateTag(tag, registries);
 	}
 
 	@Override
@@ -298,10 +298,10 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 	}
 
 	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
+	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, net.minecraft.core.HolderLookup.Provider registries) {
 		CompoundTag nbt = packet.getTag();
 		if (nbt != null) {
-			handleUpdateTag(nbt);
+			handleUpdateTag(nbt, registries);
 		}
 	}
 
@@ -340,8 +340,8 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 	/* IPipeInformationProvider */
 
 	@Override
-	public void saveAdditional(@Nonnull CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(@Nonnull CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
+		super.saveAdditional(nbt, registries);
 
 		if (pipe != null && pipe.item != null) {
 			net.minecraft.resources.ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(pipe.item);
@@ -363,7 +363,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 	}
 
 	@Override
-	public void load(@Nonnull CompoundTag nbt) {
+	protected void loadAdditional(@Nonnull CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
 		if (pipe != null) {
 			StackTraceElement[] trace = Thread.currentThread().getStackTrace();
 			if (trace.length > 2 && trace[2].getMethodName().equals("handle") && trace[2].getClassName()
@@ -372,14 +372,14 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 				return;
 			}
 		}
-		super.load(nbt);
+		super.loadAdditional(nbt, registries);
 
 		if (!nbt.contains(NBT_PIPE_ID)) return;
 
 		coreState.pipeIdName = nbt.getString(NBT_PIPE_ID);
 		net.minecraft.world.item.Item pipeItem = null;
 		if (coreState.pipeIdName != null && !coreState.pipeIdName.isEmpty()) {
-			pipeItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new net.minecraft.resources.ResourceLocation(coreState.pipeIdName));
+			pipeItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.parse(coreState.pipeIdName));
 		}
 		pipe = LogisticsBlockGenericPipe.createPipe(pipeItem);
 		// load() can run more than once on the client (initial chunk tag + later data packets).
@@ -729,7 +729,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 	public void afterStateUpdated() {
 		if (pipe == null && coreState.pipeIdName != null && !coreState.pipeIdName.isEmpty()) {
 			net.minecraft.world.item.Item pipeItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
-				new net.minecraft.resources.ResourceLocation(coreState.pipeIdName));
+				net.minecraft.resources.ResourceLocation.parse(coreState.pipeIdName));
 			initialize(LogisticsBlockGenericPipe.createPipe(pipeItem));
 		}
 
@@ -862,9 +862,9 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		return pipe;
 	}
 
+	// Not a BlockEntity override in 1.21 (render bounds moved to the BER); kept for LP render code.
 	@Nonnull
 	@OnlyIn(Dist.CLIENT)
-	@Override
 	public AABB getRenderBoundingBox() {
 		if (renderBox != null) {
 			return renderBox;

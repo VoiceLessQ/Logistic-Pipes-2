@@ -52,7 +52,7 @@ public abstract class CraftingPartRecipes implements IRecipeProvider {
 		ItemStack programmerStack = new ItemStack(LPItems.logisticsProgrammer.get());
 		final CompoundTag tag = new CompoundTag();
 		tag.putString(ItemLogisticsProgrammer.RECIPE_TARGET, recipeTarget);
-		programmerStack.setTag(tag);
+		logisticspipes.utils.item.StackTag.setTag(programmerStack, tag);
 		return NBTIngredient.fromStacks(programmerStack);
 	}
 

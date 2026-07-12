@@ -209,21 +209,21 @@ public final class LPModel3DImpl implements IModel3D {
 					finalV = ltt.mapV(uv[1]);
 				}
 				if (pose != null) {
-					buf.vertex(pose, q.x[i], q.y[i], q.z[i])
-						.color(r, g, b, a)
-						.uv(finalU, finalV)
-						.overlayCoords(overlay)
-						.uv2(light)
-						.normal(nrm, q.nx[i], q.ny[i], q.nz[i])
-						.endVertex();
+					buf.addVertex(pose, q.x[i], q.y[i], q.z[i])
+						.setColor(r, g, b, a)
+						.setUv(finalU, finalV)
+						.setOverlay(overlay)
+						.setLight(light)
+						.setNormal(q.nx[i], q.ny[i], q.nz[i])
+						;
 				} else {
-					buf.vertex(q.x[i], q.y[i], q.z[i])
-						.color(r, g, b, a)
-						.uv(finalU, finalV)
-						.overlayCoords(overlay)
-						.uv2(light)
-						.normal(q.nx[i], q.ny[i], q.nz[i])
-						.endVertex();
+					buf.addVertex(q.x[i], q.y[i], q.z[i])
+						.setColor(r, g, b, a)
+						.setUv(finalU, finalV)
+						.setOverlay(overlay)
+						.setLight(light)
+						.setNormal(q.nx[i], q.ny[i], q.nz[i])
+						;
 				}
 			}
 		}

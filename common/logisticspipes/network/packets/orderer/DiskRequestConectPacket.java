@@ -34,8 +34,8 @@ public class DiskRequestConectPacket extends CoordinatesPacket {
 		if (pipe.pipe instanceof PipeItemsRequestLogisticsMk2) {
 			if (((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk() != null) {
 				if (((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().getItem().equals(LPItems.disk.get())) {
-					if (!((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().hasTag()) {
-						((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().setTag(new CompoundTag());
+					if (!logisticspipes.utils.item.StackTag.hasTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk())) {
+						logisticspipes.utils.item.StackTag.setTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk(), new CompoundTag());
 					}
 				}
 			}
@@ -44,8 +44,8 @@ public class DiskRequestConectPacket extends CoordinatesPacket {
 		if (pipe.pipe instanceof PipeBlockRequestTable) {
 			if (((PipeBlockRequestTable) pipe.pipe).diskInv.getItem(0) != null) {
 				if (((PipeBlockRequestTable) pipe.pipe).diskInv.getItem(0).getItem().equals(LPItems.disk.get())) {
-					if (!((PipeBlockRequestTable) pipe.pipe).diskInv.getItem(0).hasTag()) {
-						((PipeBlockRequestTable) pipe.pipe).diskInv.getItem(0).setTag(new CompoundTag());
+					if (!logisticspipes.utils.item.StackTag.hasTag(((PipeBlockRequestTable) pipe.pipe).diskInv.getItem(0))) {
+						logisticspipes.utils.item.StackTag.setTag(((PipeBlockRequestTable) pipe.pipe).diskInv.getItem(0), new CompoundTag());
 					}
 				}
 			}

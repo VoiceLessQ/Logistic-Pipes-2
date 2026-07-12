@@ -34,8 +34,8 @@ public class GuiDiskPopup extends SubGuiScreen {
 		super(150, 200, 0, 0);
 		this.diskProvider = diskProvider;
 		name2 = "";
-		if (diskProvider.getDisk().hasTag()) {
-			name1 = diskProvider.getDisk().getTag().getString("name");
+		if (logisticspipes.utils.item.StackTag.hasTag(diskProvider.getDisk())) {
+			name1 = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk()).getString("name");
 		} else {
 			name1 = "Disk";
 		}
@@ -43,10 +43,10 @@ public class GuiDiskPopup extends SubGuiScreen {
 
 			@Override
 			public int getSize() {
-				CompoundTag nbt = diskProvider.getDisk().getTag();
+				CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk());
 				if (nbt == null) {
-					diskProvider.getDisk().setTag(new CompoundTag());
-					nbt = diskProvider.getDisk().getTag();
+					logisticspipes.utils.item.StackTag.setTag(diskProvider.getDisk(), new CompoundTag());
+					nbt = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk());
 				}
 
 				if (!nbt.contains("macroList")) {
@@ -59,10 +59,10 @@ public class GuiDiskPopup extends SubGuiScreen {
 
 			@Override
 			public String getTextAt(int index) {
-				CompoundTag nbt = diskProvider.getDisk().getTag();
+				CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk());
 				if (nbt == null) {
-					diskProvider.getDisk().setTag(new CompoundTag());
-					nbt = diskProvider.getDisk().getTag();
+					logisticspipes.utils.item.StackTag.setTag(diskProvider.getDisk(), new CompoundTag());
+					nbt = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk());
 				}
 
 				if (!nbt.contains("macroList")) {
@@ -103,11 +103,11 @@ public class GuiDiskPopup extends SubGuiScreen {
 		editName = false;
 		MainProxy.sendPacketToServer(PacketHandler.getPacket(DiskSetNamePacket.class).setString(name1 + name2).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
 		CompoundTag nbt = new CompoundTag();
-		if (diskProvider.getDisk().hasTag()) {
-			nbt = diskProvider.getDisk().getTag();
+		if (logisticspipes.utils.item.StackTag.hasTag(diskProvider.getDisk())) {
+			nbt = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk());
 		}
 		nbt.putString("name", name1 + name2);
-		diskProvider.getDisk().setTag(nbt);
+		logisticspipes.utils.item.StackTag.setTag(diskProvider.getDisk(), nbt);
 		MainProxy.sendPacketToServer(PacketHandler.getPacket(DiscContent.class).setStack(diskProvider.getDisk()).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
 	}
 
@@ -173,10 +173,10 @@ public class GuiDiskPopup extends SubGuiScreen {
 	}
 
 	private void handleDelete() {
-		CompoundTag nbt = diskProvider.getDisk().getTag();
+		CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk());
 		if (nbt == null) {
-			diskProvider.getDisk().setTag(new CompoundTag());
-			nbt = diskProvider.getDisk().getTag();
+			logisticspipes.utils.item.StackTag.setTag(diskProvider.getDisk(), new CompoundTag());
+			nbt = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk());
 		}
 
 		if (!nbt.contains("macroList")) {
@@ -199,7 +199,7 @@ public class GuiDiskPopup extends SubGuiScreen {
 
 	private void handleAddEdit() {
 		String macroName = "";
-		CompoundTag nbt = diskProvider.getDisk().getTag();
+		CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk());
 		if (nbt != null) {
 			if (nbt.contains("macroList")) {
 				ListTag list = nbt.getList("macroList", 10);

@@ -171,9 +171,9 @@ public class GuiAddTracking extends SubGuiScreen implements IItemSearch {
 		}
 		//if(isSearched(String.valueOf(BuiltInRegistries.ITEM.getId(item.item)), search.getContent())) return true;
 		//Enchantment? Enchantment!
-		Map<Enchantment, Integer> enchantIdLvlMap = EnchantmentHelper.getEnchantments(item.unsafeMakeNormalStack(1));
-		for (Entry<Enchantment, Integer> e : enchantIdLvlMap.entrySet()) {
-			String enchantName = e.getKey().getDescriptionId();
+		net.minecraft.world.item.enchantment.ItemEnchantments enchantIdLvlMap = item.unsafeMakeNormalStack(1).getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+		for (var e : enchantIdLvlMap.entrySet()) {
+			String enchantName = e.getKey().value().description().getString();
 			if (enchantName != null) {
 				if (isSearched(enchantName.toLowerCase(Locale.US), search.getText().toLowerCase(Locale.US))) {
 					return true;

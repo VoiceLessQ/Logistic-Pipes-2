@@ -253,7 +253,7 @@ public class DummyContainer extends AbstractContainerMenu {
 			return false;
 		}
 		from.onTake(player, out);
-		if (to.hasItem() && ItemStack.isSameItem(to.getItem(), out) && ItemStack.isSameItemSameTags(to.getItem(), from.getItem())) {
+		if (to.hasItem() && ItemStack.isSameItem(to.getItem(), out) && ItemStack.isSameItemSameComponents(to.getItem(), from.getItem())) {
 			int free = Math.min(to.getMaxStackSize(), to.getItem().getMaxStackSize()) - to.getItem().getCount();
 			if (free > 0) {
 				ItemStack toInsert = from.remove(free);

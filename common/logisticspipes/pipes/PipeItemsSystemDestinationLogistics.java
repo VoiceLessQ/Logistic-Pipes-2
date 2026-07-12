@@ -50,14 +50,14 @@ public class PipeItemsSystemDestinationLogistics extends CoreRoutedPipe {
 			return null;
 		}
 		final ItemStack stack = itemIdent.makeNormalStack();
-		if (!stack.hasTag()) {
+		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
 			return null;
 		}
-		if (!Objects.requireNonNull(stack.getTag()).contains("UUID")) {
+		if (!Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack)).contains("UUID")) {
 			return null;
 		}
 		spawnParticle(Particles.WhiteParticle, 2);
-		return UUID.fromString(stack.getTag().getString("UUID"));
+		return UUID.fromString(logisticspipes.utils.item.StackTag.getTag(stack).getString("UUID"));
 	}
 
 	@Override

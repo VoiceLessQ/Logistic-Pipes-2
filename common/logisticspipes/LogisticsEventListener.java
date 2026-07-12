@@ -83,10 +83,10 @@ public class LogisticsEventListener {
 			if (!stack.isEmpty() && stack.getItem() instanceof IItemAdvancedExistance && !((IItemAdvancedExistance) stack.getItem()).canExistInWorld(stack)) {
 				event.setCanceled(true);
 			}
-			if (stack.hasTag()) {
-				for (String key : Objects.requireNonNull(stack.getTag(), "nbt for stack must be non-null").getAllKeys()) {
+			if (logisticspipes.utils.item.StackTag.hasTag(stack)) {
+				for (String key : Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack), "nbt for stack must be non-null").getAllKeys()) {
 					if (key.startsWith("logisticspipes:routingdata")) {
-						ItemRoutingInformation info = ItemRoutingInformation.restoreFromNBT(stack.getTag().getCompound(key));
+						ItemRoutingInformation info = ItemRoutingInformation.restoreFromNBT(logisticspipes.utils.item.StackTag.getTag(stack).getCompound(key));
 						info.setItemTimedout();
 						((ItemEntity) event.getEntity()).setItem(info.getItem().getItem().makeNormalStack(stack.getCount()));
 						break;
@@ -318,10 +318,10 @@ public class LogisticsEventListener {
 	@SubscribeEvent
 	@OnlyIn(Dist.CLIENT)
 	public void onItemStackToolTip(ItemTooltipEvent event) {
-		if (event.getItemStack().hasTag()) {
-			for (String key : event.getItemStack().getTag().getAllKeys()) {
+		if (logisticspipes.utils.item.StackTag.hasTag(event.getItemStack())) {
+			for (String key : logisticspipes.utils.item.StackTag.getTag(event.getItemStack()).getAllKeys()) {
 				if (key.startsWith("logisticspipes:routingdata")) {
-					ItemRoutingInformation info = ItemRoutingInformation.restoreFromNBT(event.getItemStack().getTag().getCompound(key));
+					ItemRoutingInformation info = ItemRoutingInformation.restoreFromNBT(logisticspipes.utils.item.StackTag.getTag(event.getItemStack()).getCompound(key));
 					List<Component> list = event.getToolTip();
 					list.set(0, Component.literal(ChatColor.RED + "!!! " + ChatColor.WHITE)
 							.append(list.get(0))

@@ -34,7 +34,7 @@ public class CardManagementInventory implements Container {
 		}
 		ItemStack card = inv.getItem(3);
 		if (!card.isEmpty()) {
-			CompoundTag nbt = card.getTag();
+			CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(card);
 			if (nbt == null) {
 				nbt = new CompoundTag();
 			}
@@ -52,7 +52,7 @@ public class CardManagementInventory implements Container {
 			MinecraftColor color = MinecraftColor.values()[colorCode];
 
 			nbt.put("colors", colors);
-			card.setTag(nbt);
+			logisticspipes.utils.item.StackTag.setTag(card, nbt);
 			inv.setItem(3, card);
 
 			return color.getItemStack();
@@ -83,12 +83,12 @@ public class CardManagementInventory implements Container {
 	public void setItem(int i, @Nonnull ItemStack itemstack) {
 		if (i > -1 && i < 4) {
 			if (i == 0 && !itemstack.isEmpty() && !inv.getItem(1).isEmpty() && inv.getItem(2).isEmpty() && inv.getItem(1).getDamageValue() == itemstack.getDamageValue()) {
-				itemstack.setTag(inv.getItem(1).getTag());
+				logisticspipes.utils.item.StackTag.setTag(itemstack, logisticspipes.utils.item.StackTag.getTag(inv.getItem(1)));
 				inv.setItem(2, itemstack);
 				return;
 			}
 			if (i == 1 && !itemstack.isEmpty() && !inv.getItem(0).isEmpty() && inv.getItem(2).isEmpty() && inv.getItem(0).getDamageValue() == itemstack.getDamageValue()) {
-				itemstack.setTag(inv.getItem(0).getTag());
+				logisticspipes.utils.item.StackTag.setTag(itemstack, logisticspipes.utils.item.StackTag.getTag(inv.getItem(0)));
 				inv.setItem(2, itemstack);
 				return;
 			}
@@ -97,7 +97,7 @@ public class CardManagementInventory implements Container {
 		}
 		ItemStack card = inv.getItem(3);
 		if (!card.isEmpty()) {
-			CompoundTag nbt = card.getTag();
+			CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(card);
 			if (nbt == null) {
 				nbt = new CompoundTag();
 			}
@@ -105,7 +105,7 @@ public class CardManagementInventory implements Container {
 			int slot = i - 4;
 			colors.putInt("color:" + slot, MinecraftColor.getColor(itemstack).ordinal());
 			nbt.put("colors", colors);
-			card.setTag(nbt);
+			logisticspipes.utils.item.StackTag.setTag(card, nbt);
 			inv.setItem(3, card);
 		}
 	}

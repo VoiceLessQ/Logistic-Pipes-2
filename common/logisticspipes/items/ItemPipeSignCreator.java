@@ -40,11 +40,6 @@ public class ItemPipeSignCreator extends LogisticsItem {
 		return false;
 	}
 
-	@Override
-	public boolean canApplyAtEnchantingTable(@Nonnull ItemStack stack, Enchantment enchantment) {
-		return false;
-	}
-
 	@Nonnull
 	@Override
 	public InteractionResult useOn(net.minecraft.world.item.context.UseOnContext _ctx) {
@@ -56,7 +51,7 @@ public class ItemPipeSignCreator extends LogisticsItem {
 			return InteractionResult.FAIL;
 		}
 		ItemStack itemStack = player.getMainHandItem();
-		if (itemStack.isEmpty() || itemStack.getDamageValue() > this.getMaxDamage()) {
+		if (itemStack.isEmpty() || itemStack.getDamageValue() > itemStack.getMaxDamage()) {
 			return InteractionResult.FAIL;
 		}
 		BlockEntity tile = world.getBlockEntity(pos);
@@ -64,12 +59,11 @@ public class ItemPipeSignCreator extends LogisticsItem {
 			return InteractionResult.FAIL;
 		}
 
-		if (!itemStack.hasTag()) {
-			itemStack.setTag(new CompoundTag());
-		}
-		itemStack.getTag().putInt("PipeClicked", 0);
+		CompoundTag itemTag = logisticspipes.utils.item.StackTag.hasTag(itemStack) ? logisticspipes.utils.item.StackTag.getTag(itemStack) : new CompoundTag();
+		itemTag.putInt("PipeClicked", 0);
+		logisticspipes.utils.item.StackTag.setTag(itemStack, itemTag);
 
-		int mode = itemStack.getTag().getInt("CreatorMode");
+		int mode = itemTag.getInt("CreatorMode");
 
 		if (facing == null) {
 			return InteractionResult.FAIL;
@@ -92,7 +86,7 @@ public class ItemPipeSignCreator extends LogisticsItem {
 				try {
 					IPipeSign sign = signClass.newInstance();
 					if (sign.isAllowedFor(pipe)) {
-						itemStack.hurtAndBreak(1, player, p -> {});
+						itemStack.hurtAndBreak(1, player, net.minecraft.world.entity.EquipmentSlot.MAINHAND);
 						sign.addSignTo(pipe, facing, player);
 						return InteractionResult.SUCCESS;
 					} else {
@@ -107,7 +101,7 @@ public class ItemPipeSignCreator extends LogisticsItem {
 		} else {
 			if (pipe.hasPipeSign(facing)) {
 				pipe.removePipeSign(facing, player);
-				itemStack.hurtAndBreak(-1, player, p -> {});
+				itemStack.hurtAndBreak(-1, player, net.minecraft.world.entity.EquipmentSlot.MAINHAND);
 			}
 			return InteractionResult.SUCCESS;
 		}
@@ -115,8 +109,8 @@ public class ItemPipeSignCreator extends LogisticsItem {
 
 	// getMetadata removed in 1.20.1 — item variants handled differently
 	public int getMetadata(@Nonnull ItemStack stack) {
-		if (stack.isEmpty() || !stack.hasTag()) return 0;
-		int mode = Objects.requireNonNull(stack.getTag()).getInt("CreatorMode");
+		if (stack.isEmpty() || !logisticspipes.utils.item.StackTag.hasTag(stack)) return 0;
+		int mode = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack)).getInt("CreatorMode");
 		return Math.min(mode, ItemPipeSignCreator.signTypes.size() - 1);
 	}
 
@@ -133,20 +127,24 @@ public class ItemPipeSignCreator extends LogisticsItem {
 			return InteractionResultHolder.pass(stack);
 		}
 		if (player.isCrouching()) {
-			if (!stack.hasTag()) {
-				stack.setTag(new CompoundTag());
+			if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
+				logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
 			}
-			if (!stack.getTag().contains("PipeClicked")) {
-				int mode = stack.getTag().getInt("CreatorMode");
+			CompoundTag cycleTag = logisticspipes.utils.item.StackTag.getTag(stack);
+			if (cycleTag != null && !cycleTag.contains("PipeClicked")) {
+				int mode = cycleTag.getInt("CreatorMode");
 				mode++;
 				if (mode >= ItemPipeSignCreator.signTypes.size()) {
 					mode = 0;
 				}
-				stack.getTag().putInt("CreatorMode", mode);
+				cycleTag.putInt("CreatorMode", mode);
+				logisticspipes.utils.item.StackTag.setTag(stack, cycleTag);
 			}
 		}
-		if (stack.hasTag()) {
-			stack.getTag().remove("PipeClicked");
+		if (logisticspipes.utils.item.StackTag.hasTag(stack)) {
+			CompoundTag clickTag = logisticspipes.utils.item.StackTag.getTag(stack);
+			clickTag.remove("PipeClicked");
+			logisticspipes.utils.item.StackTag.setTag(stack, clickTag);
 		}
 		return InteractionResultHolder.success(stack);
 	}

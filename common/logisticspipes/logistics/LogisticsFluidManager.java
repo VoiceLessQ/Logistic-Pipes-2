@@ -60,9 +60,8 @@ public class LogisticsFluidManager implements ILogisticsFluidManager {
 	@Override
 	public ItemIdentifierStack getFluidContainer(FluidIdentifierStack stack) {
 		ItemStack item = new ItemStack(LPItems.fluidContainer.get(), 1);
-		CompoundTag nbt = new CompoundTag();
-		stack.makeFluidStack().writeToNBT(nbt);
-		item.setTag(nbt);
+		CompoundTag nbt = (CompoundTag) stack.makeFluidStack().save(logisticspipes.utils.RegistryAccessUtil.registries(), new CompoundTag());
+		logisticspipes.utils.item.StackTag.setTag(item, nbt);
 		return ItemIdentifierStack.getFromStack(item);
 	}
 
@@ -70,7 +69,7 @@ public class LogisticsFluidManager implements ILogisticsFluidManager {
 	public FluidIdentifierStack getFluidFromContainer(ItemIdentifierStack stack) {
 		ItemStack itemStack = stack.makeNormalStack();
 		if (itemStack.getItem() instanceof LogisticsFluidContainer && stack.getItem().tag != null) {
-			return FluidIdentifierStack.getFromStack(FluidStack.loadFluidStackFromNBT(stack.getItem().tag));
+			return FluidIdentifierStack.getFromStack(FluidStack.parseOptional(logisticspipes.utils.RegistryAccessUtil.registries(), stack.getItem().tag));
 		}
 		return null;
 	}

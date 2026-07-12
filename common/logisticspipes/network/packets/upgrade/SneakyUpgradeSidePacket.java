@@ -34,10 +34,10 @@ public class SneakyUpgradeSidePacket extends SlotPacket {
 		UpgradeSlot slot = getSlot(player, UpgradeSlot.class);
 		ItemStack stack = slot.getItem();
 		if (stack.isEmpty()) return;
-		if (!stack.hasTag()) {
-			stack.setTag(new CompoundTag());
+		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
+			logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
 		}
-		final CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 		tag.putString(SneakyUpgradeConfig.SIDE_KEY, SneakyUpgradeConfig.Sides.getNameForDirection(side));
 		slot.set(stack);
 	}

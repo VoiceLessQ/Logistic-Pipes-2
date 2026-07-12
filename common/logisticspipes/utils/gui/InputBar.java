@@ -55,12 +55,12 @@ public class InputBar extends EditBox implements LogisticsBaseGuiScreen.EventLis
 
 	@Override
 	public void onUpdateScreen() {
-		tick(); // was: updateCursorCounter() in 1.12.2
+		// EditBox.tick() removed in 1.20.2; cursor blink is time-based now.
 	}
 
 	@Override
 	public boolean onKeyboardInput() {
-		return (isFocused() || Screen.hasAltDown()) && SharedConstants.isAllowedChatCharacter(' ');
+		return (isFocused() || Screen.hasAltDown()) && net.minecraft.util.StringUtil.isAllowedChatCharacter(' ');
 	}
 
 	/**

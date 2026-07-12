@@ -24,7 +24,7 @@ public class PlayerCollectionList {
 			} else if (playerReference.get().isDeadOrDying()) {
 				remove = true;
 			} else if (playerReference.get() instanceof ServerPlayer) {
-				if (!((ServerPlayer) playerReference.get()).connection.connection.isConnected()) {
+				if (((ServerPlayer) playerReference.get()).hasDisconnected()) {
 					remove = true;
 				}
 			}

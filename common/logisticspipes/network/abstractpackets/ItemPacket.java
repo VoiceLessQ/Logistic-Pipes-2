@@ -33,7 +33,7 @@ public abstract class ItemPacket extends CoordinatesPacket {
 			output.writeInt(BuiltInRegistries.ITEM.getId(getStack().getItem()));
 			output.writeInt(getStack().getCount());
 			output.writeInt(getStack().getDamageValue());
-			output.writeCompoundTag(getStack().getTag());
+			output.writeCompoundTag(logisticspipes.utils.item.StackTag.getTag(getStack()));
 		}
 	}
 
@@ -50,7 +50,7 @@ public abstract class ItemPacket extends CoordinatesPacket {
 			ItemStack newStack = new ItemStack(BuiltInRegistries.ITEM.byId(itemID), stackSize);
 			newStack.setDamageValue(damage);
 			setStack(newStack);
-			getStack().setTag(input.readCompoundTag());
+			logisticspipes.utils.item.StackTag.setTag(getStack(), input.readCompoundTag());
 		}
 	}
 }

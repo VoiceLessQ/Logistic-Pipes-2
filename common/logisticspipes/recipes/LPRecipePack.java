@@ -27,9 +27,15 @@ public class LPRecipePack implements PackResources {
 	private static final String PACK_ID = "logisticspipes:virtual_recipes";
 	private static final String NAMESPACE = LPConstants.LP_MOD_ID;
 
+	public static final net.minecraft.server.packs.PackLocationInfo LOCATION = new net.minecraft.server.packs.PackLocationInfo(
+			PACK_ID,
+			Component.literal("LogisticsPipes virtual recipes"),
+			net.minecraft.server.packs.repository.PackSource.BUILT_IN,
+			java.util.Optional.empty());
+
 	@Override
-	public String packId() {
-		return PACK_ID;
+	public net.minecraft.server.packs.PackLocationInfo location() {
+		return LOCATION;
 	}
 
 	@Nullable
@@ -85,10 +91,11 @@ public class LPRecipePack implements PackResources {
 	@Override
 	public <T> T getMetadataSection(MetadataSectionSerializer<T> deserializer) {
 		if (deserializer == PackMetadataSection.TYPE) {
-			// Pack format 15 = 1.20.1 data packs
+			// Pack format 48 = 1.21.1 data packs
 			return (T) new PackMetadataSection(
 					Component.literal("LogisticsPipes virtual recipes"),
-					15);
+					48,
+					java.util.Optional.empty());
 		}
 		return null;
 	}

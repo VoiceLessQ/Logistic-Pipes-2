@@ -70,7 +70,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 		}
 		ListTag inventar = null;
 
-		ListTag list = diskProvider.getDisk().getTag().getList("macroList", 10);
+		ListTag list = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk()).getList("macroList", 10);
 		for (int i = 0; i < list.size(); i++) {
 			CompoundTag tag = list.getCompound(i);
 			String name = tag.getString("name");
@@ -132,7 +132,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 			}
 
 			boolean flag = false;
-			ListTag list = diskProvider.getDisk().getTag().getList("macroList", 10);
+			ListTag list = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk()).getList("macroList", 10);
 
 			for (int i = 0; i < list.size(); i++) {
 				CompoundTag tag = list.getCompound(i);
@@ -149,7 +149,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 				nbt.put("inventar", inventar);
 				list.add(nbt);
 			}
-			diskProvider.getDisk().getTag().put("macroList", list);
+			logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk()).put("macroList", list);
 			MainProxy.sendPacketToServer(PacketHandler.getPacket(DiscContent.class).setStack(diskProvider.getDisk()).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
 			exitGui();
 		} else if (macroItems.size() != 0) {
@@ -562,7 +562,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double lpScrollX, double delta) {
 		if (delta > 0) {
 			wheelUp = (int) Math.max(1, delta);
 			wheelDown = 0;

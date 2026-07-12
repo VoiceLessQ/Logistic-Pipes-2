@@ -123,7 +123,7 @@ public class LogisticsSolidBlock extends Block implements EntityBlock {
 	}
 
 	@Override
-	public InteractionResult use(@Nonnull BlockState state, @Nonnull Level worldIn, @Nonnull BlockPos pos, @Nonnull Player playerIn, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hit) {
+	protected InteractionResult useWithoutItem(@Nonnull BlockState state, @Nonnull Level worldIn, @Nonnull BlockPos pos, @Nonnull Player playerIn, @Nonnull BlockHitResult hit) {
 		if (!playerIn.isCrouching()) {
 			BlockEntity tile = worldIn.getBlockEntity(pos);
 			if (tile instanceof IGuiTileEntity) {

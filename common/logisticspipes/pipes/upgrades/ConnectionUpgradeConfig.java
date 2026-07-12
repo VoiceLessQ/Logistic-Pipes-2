@@ -80,10 +80,10 @@ public class ConnectionUpgradeConfig implements IConfigPipeUpgrade {
 	@Nonnull
 	public Stream<Direction> getSides(@Nonnull ItemStack stack) {
 		if (stack.isEmpty()) return Stream.empty();
-		if (!stack.hasTag()) {
-			stack.setTag(new CompoundTag());
+		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
+			logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
 		}
-		final CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 		return Arrays.stream(Sides.values()).filter(side -> tag.getBoolean(side.getLpName())).map(Sides::getDir);
 	}
 }

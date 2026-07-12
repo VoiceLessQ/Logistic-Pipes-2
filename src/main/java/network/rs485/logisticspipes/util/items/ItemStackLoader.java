@@ -9,7 +9,6 @@ public class ItemStackLoader {
 
 	@Nonnull
 	public static ItemStack loadAndFixItemStackFromNBT(CompoundTag nbt) {
-		// In 1.20, ItemStack.of(CompoundTag) handles data-fixer upgrades internally via Util.getFixerUpper().
-		return ItemStack.of(nbt);
+		return ItemStack.parseOptional(logisticspipes.utils.RegistryAccessUtil.registries(), nbt);
 	}
 }

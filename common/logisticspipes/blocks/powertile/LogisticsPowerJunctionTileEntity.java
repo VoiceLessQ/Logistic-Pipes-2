@@ -188,8 +188,8 @@ public class LogisticsPowerJunctionTileEntity extends LogisticsSolidTileEntity i
 	}
 
 	@Override
-	public void load(CompoundTag par1nbtTagCompound) {
-		super.load(par1nbtTagCompound);
+	protected void loadAdditional(CompoundTag par1nbtTagCompound, net.minecraft.core.HolderLookup.Provider registries) {
+		super.loadAdditional(par1nbtTagCompound, registries);
 		internalStorage = par1nbtTagCompound.getInt("powerLevel");
 		if (par1nbtTagCompound.contains("needMorePowerTriggerCheck")) {
 			needMorePowerTriggerCheck = par1nbtTagCompound.getBoolean("needMorePowerTriggerCheck");
@@ -197,8 +197,8 @@ public class LogisticsPowerJunctionTileEntity extends LogisticsSolidTileEntity i
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag par1nbtTagCompound) {
-		super.saveAdditional(par1nbtTagCompound);
+	protected void saveAdditional(CompoundTag par1nbtTagCompound, net.minecraft.core.HolderLookup.Provider registries) {
+		super.saveAdditional(par1nbtTagCompound, registries);
 		par1nbtTagCompound.putInt("powerLevel", internalStorage);
 		par1nbtTagCompound.putBoolean("needMorePowerTriggerCheck", needMorePowerTriggerCheck);
 	}

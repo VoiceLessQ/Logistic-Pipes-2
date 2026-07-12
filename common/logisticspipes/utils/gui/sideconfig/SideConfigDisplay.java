@@ -255,13 +255,12 @@ public abstract class SideConfigDisplay {
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 
 		Tesselator tes = Tesselator.getInstance();
-		BufferBuilder buf = tes.getBuilder();
-		buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+		BufferBuilder buf = tes.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 		for (Vertex v : corners) {
-			buf.vertex((float) (v.x() - origin.x), (float) (v.y() - origin.y), (float) (v.z() - origin.z))
-				.uv(v.u(), v.v()).endVertex();
+			buf.addVertex((float) (v.x() - origin.x), (float) (v.y() - origin.y), (float) (v.z() - origin.z))
+				.setUv(v.u(), v.v());
 		}
-		BufferUploader.drawWithShader(buf.end());
+		BufferUploader.drawWithShader(buf.buildOrThrow());
 
 		RenderSystem.disableBlend();
 		RenderSystem.enableDepthTest();
@@ -269,8 +268,8 @@ public abstract class SideConfigDisplay {
 
 	private void renderOverlay(int mx, int my) {
 		// Restore modelview stack pushed in applyCamera
-		PoseStack modelViewStack = RenderSystem.getModelViewStack();
-		modelViewStack.popPose();
+		org.joml.Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
+		modelViewStack.popMatrix();
 		RenderSystem.applyModelViewMatrix();
 		// Restore projection matrix backed up in applyCamera
 		RenderSystem.restoreProjectionMatrix();
@@ -350,9 +349,9 @@ public abstract class SideConfigDisplay {
 		RenderSystem.backupProjectionMatrix();
 		RenderSystem.setProjectionMatrix(toJoml(camera.getProjectionMatrix()), VertexSorting.DISTANCE_TO_ORIGIN);
 		// Load view matrix into the modelview stack
-		PoseStack modelViewStack = RenderSystem.getModelViewStack();
-		modelViewStack.pushPose();
-		modelViewStack.last().pose().set(toJoml(camera.getViewMatrix()));
+		org.joml.Matrix4fStack modelViewStack = RenderSystem.getModelViewStack();
+		modelViewStack.pushMatrix();
+		modelViewStack.set(toJoml(camera.getViewMatrix()));
 		RenderSystem.applyModelViewMatrix();
 	}
 

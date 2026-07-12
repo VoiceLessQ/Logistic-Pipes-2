@@ -38,10 +38,10 @@ public class DiskMacroRequestPacket extends IntegerCoordinatesPacket {
 			if (!((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().getItem().equals(LPItems.disk.get())) {
 				return;
 			}
-			if (!((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().hasTag()) {
+			if (!logisticspipes.utils.item.StackTag.hasTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk())) {
 				return;
 			}
-			CompoundTag nbt = ((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().getTag();
+			CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk());
 			if (!nbt.contains("macroList")) {
 				ListTag list = new ListTag();
 				nbt.put("macroList", list);
@@ -62,10 +62,10 @@ public class DiskMacroRequestPacket extends IntegerCoordinatesPacket {
 			if (!((PipeBlockRequestTable) pipe.pipe).getDisk().getItem().equals(LPItems.disk.get())) {
 				return;
 			}
-			if (!((PipeBlockRequestTable) pipe.pipe).getDisk().hasTag()) {
+			if (!logisticspipes.utils.item.StackTag.hasTag(((PipeBlockRequestTable) pipe.pipe).getDisk())) {
 				return;
 			}
-			CompoundTag nbt = ((PipeBlockRequestTable) pipe.pipe).getDisk().getTag();
+			CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(((PipeBlockRequestTable) pipe.pipe).getDisk());
 			if (!nbt.contains("macroList")) {
 				ListTag list = new ListTag();
 				nbt.put("macroList", list);

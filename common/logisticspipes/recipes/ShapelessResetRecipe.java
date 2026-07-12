@@ -1,14 +1,15 @@
 package logisticspipes.recipes;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -24,37 +25,39 @@ public class ShapelessResetRecipe extends CustomRecipe {
 
 	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "reset");
 
+	public static final MapCodec<ShapelessResetRecipe> CODEC = net.minecraft.core.registries.BuiltInRegistries.ITEM
+			.byNameCodec().fieldOf("item")
+			.xmap(item -> new ShapelessResetRecipe(CraftingBookCategory.MISC, item), recipe -> recipe.targetItem);
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, ShapelessResetRecipe> STREAM_CODEC =
+			net.minecraft.network.codec.ByteBufCodecs.registry(net.minecraft.core.registries.Registries.ITEM)
+					.map(item -> new ShapelessResetRecipe(CraftingBookCategory.MISC, item),
+							recipe -> recipe.targetItem);
+
 	public static final RecipeSerializer<ShapelessResetRecipe> SERIALIZER = new RecipeSerializer<>() {
 
 		@Override
-		public ShapelessResetRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-			Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ResourceLocation.parse(json.get("item").getAsString()));
-			return new ShapelessResetRecipe(recipeId, CraftingBookCategory.MISC, item);
+		public MapCodec<ShapelessResetRecipe> codec() {
+			return CODEC;
 		}
 
 		@Override
-		public ShapelessResetRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buf) {
-			Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(buf.readResourceLocation());
-			return new ShapelessResetRecipe(recipeId, CraftingBookCategory.MISC, item);
-		}
-
-		@Override
-		public void toNetwork(FriendlyByteBuf buf, ShapelessResetRecipe recipe) {
-			buf.writeResourceLocation(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(recipe.targetItem));
+		public StreamCodec<RegistryFriendlyByteBuf, ShapelessResetRecipe> streamCodec() {
+			return STREAM_CODEC;
 		}
 	};
 
 	private final Item targetItem;
 
-	public ShapelessResetRecipe(ResourceLocation id, CraftingBookCategory category, Item targetItem) {
-		super(id, category);
+	public ShapelessResetRecipe(CraftingBookCategory category, Item targetItem) {
+		super(category);
 		this.targetItem = targetItem;
 	}
 
 	@Override
-	public boolean matches(CraftingContainer input, Level level) {
+	public boolean matches(CraftingInput input, Level level) {
 		boolean found = false;
-		for (int i = 0; i < input.getContainerSize(); i++) {
+		for (int i = 0; i < input.size(); i++) {
 			ItemStack stack = input.getItem(i);
 			if (!stack.isEmpty()) {
 				if (stack.getItem() == targetItem) {
@@ -69,7 +72,7 @@ public class ShapelessResetRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer input, RegistryAccess registry) {
+	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
 		return new ItemStack(targetItem);
 	}
 

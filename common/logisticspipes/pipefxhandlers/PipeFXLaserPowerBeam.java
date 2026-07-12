@@ -82,19 +82,18 @@ public class PipeFXLaserPowerBeam extends Particle {
 		int ai = 200;
 
 		Tesselator tes = Tesselator.getInstance();
-		BufferBuilder bb = tes.getBuilder();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.depthMask(false);
 
-		bb.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		BufferBuilder bb = tes.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
 		// Two crossed quads along the beam axis for a 3D beam look
 		beamQuad(bb, px, py, pz, ax, ay, az, length, p1x, p1y, p1z, ri, gi, bi, ai);
 		beamQuad(bb, px, py, pz, ax, ay, az, length, p2x, p2y, p2z, ri, gi, bi, ai);
 
-		BufferUploader.drawWithShader(bb.end());
+		BufferUploader.drawWithShader(bb.buildOrThrow());
 
 		RenderSystem.depthMask(true);
 		RenderSystem.disableBlend();
@@ -112,10 +111,10 @@ public class PipeFXLaserPowerBeam extends Particle {
 		float fy = (float) oy + ay * len;
 		float fz = (float) oz + az * len;
 
-		bb.vertex((float) ox + px, (float) oy + py, (float) oz + pz).color(r, g, b, a).endVertex();
-		bb.vertex((float) ox - px, (float) oy - py, (float) oz - pz).color(r, g, b, a).endVertex();
+		bb.addVertex((float) ox + px, (float) oy + py, (float) oz + pz).setColor(r, g, b, a);
+		bb.addVertex((float) ox - px, (float) oy - py, (float) oz - pz).setColor(r, g, b, a);
 
-		bb.vertex(fx - px, fy - py, fz - pz).color(r, g, b, a).endVertex();
-		bb.vertex(fx + px, fy + py, fz + pz).color(r, g, b, a).endVertex();
+		bb.addVertex(fx - px, fy - py, fz - pz).setColor(r, g, b, a);
+		bb.addVertex(fx + px, fy + py, fz + pz).setColor(r, g, b, a);
 	}
 }

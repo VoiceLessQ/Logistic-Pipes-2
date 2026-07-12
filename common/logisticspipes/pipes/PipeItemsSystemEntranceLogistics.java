@@ -32,14 +32,14 @@ public class PipeItemsSystemEntranceLogistics extends CoreRoutedPipe {
 		if (inv.getItem(0) == null) {
 			return null;
 		}
-		if (!inv.getItem(0).hasTag()) {
+		if (!logisticspipes.utils.item.StackTag.hasTag(inv.getItem(0))) {
 			return null;
 		}
-		if (!inv.getItem(0).getTag().contains("UUID")) {
+		if (!logisticspipes.utils.item.StackTag.getTag(inv.getItem(0)).contains("UUID")) {
 			return null;
 		}
 		spawnParticle(Particles.WhiteParticle, 2);
-		return UUID.fromString(inv.getItem(0).getTag().getString("UUID"));
+		return UUID.fromString(logisticspipes.utils.item.StackTag.getTag(inv.getItem(0)).getString("UUID"));
 	}
 
 	@Override

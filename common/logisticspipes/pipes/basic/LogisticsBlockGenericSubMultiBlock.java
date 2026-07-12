@@ -71,7 +71,7 @@ public class LogisticsBlockGenericSubMultiBlock extends Block implements EntityB
 
 	@Override
 	@Nonnull
-	public ItemStack getCloneItemStack(@Nonnull BlockState state, HitResult target, @Nonnull BlockGetter level, @Nonnull BlockPos pos, Player player) {
+	public ItemStack getCloneItemStack(@Nonnull BlockState state, HitResult target, @Nonnull net.minecraft.world.level.LevelReader level, @Nonnull BlockPos pos, Player player) {
 		BlockEntity tile = level.getBlockEntity(pos);
 		if (tile instanceof LogisticsTileGenericSubMultiBlock) {
 			for (LogisticsTileGenericPipe mainPipe : ((LogisticsTileGenericSubMultiBlock) tile).getConnectedMainPipes()) {

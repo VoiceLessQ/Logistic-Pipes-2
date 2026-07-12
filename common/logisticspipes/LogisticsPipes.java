@@ -216,14 +216,10 @@ public class LogisticsPipes {
 	@Getter
 	private static String TARGET = UNKNOWN;
 
-	public LogisticsPipes() {
-		this(thedarkcolour.kotlinforforge.forge.ForgeKt.getMOD_BUS());
-	}
-
-	public LogisticsPipes(IEventBus modEventBus) {
+	public LogisticsPipes(IEventBus modEventBus, net.neoforged.fml.ModContainer modContainer) {
 		instance = this;
 		loadManifestValues(LogisticsPipes.class.getClassLoader());
-		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Configs.SPEC);
+		modContainer.registerConfig(ModConfig.Type.COMMON, Configs.SPEC);
 		LPRegistries.register(modEventBus);
 		modEventBus.addListener(LPCapabilities::register);
 
@@ -539,13 +535,20 @@ public class LogisticsPipes {
 		if (event.getPackType() != PackType.SERVER_DATA) return;
 		event.addRepositorySource(consumer -> {
 			Pack pack = Pack.readMetaAndCreate(
-					"logisticspipes:virtual_recipes",
-					Component.literal("LogisticsPipes virtual recipes"),
-					true,
-					id -> new LPRecipePack(),
+					LPRecipePack.LOCATION,
+					new Pack.ResourcesSupplier() {
+						@Override
+						public net.minecraft.server.packs.PackResources openPrimary(net.minecraft.server.packs.PackLocationInfo location) {
+							return new LPRecipePack();
+						}
+
+						@Override
+						public net.minecraft.server.packs.PackResources openFull(net.minecraft.server.packs.PackLocationInfo location, Pack.Metadata metadata) {
+							return new LPRecipePack();
+						}
+					},
 					PackType.SERVER_DATA,
-					Pack.Position.TOP,
-					PackSource.BUILT_IN);
+					new net.minecraft.server.packs.PackSelectionConfig(true, Pack.Position.TOP, false));
 			if (pack != null) consumer.accept(pack);
 		});
 	}

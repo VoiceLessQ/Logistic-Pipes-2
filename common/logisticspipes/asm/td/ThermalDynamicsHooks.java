@@ -34,10 +34,9 @@ public class ThermalDynamicsHooks {
 		// TODO: ThermalDynamics TravelingItem.stack field access deferred — TD not on classpath for 1.20.1
 		if (((ILPTravelingItemInfo) item).getLPRoutingInfoAddition() != null) {
 			stack = stack.copy();
-			if (!stack.hasTag()) {
-				stack.setTag(new CompoundTag());
-			}
-			stack.getTag().putString("LogsitcsPipes_ITEM_ON_TRANSPORTATION", "YES");
+			CompoundTag transportTag = logisticspipes.utils.item.StackTag.hasTag(stack) ? logisticspipes.utils.item.StackTag.getTag(stack) : new CompoundTag();
+			transportTag.putString("LogsitcsPipes_ITEM_ON_TRANSPORTATION", "YES");
+			logisticspipes.utils.item.StackTag.setTag(stack, transportTag);
 		}
 		return stack;
 	}

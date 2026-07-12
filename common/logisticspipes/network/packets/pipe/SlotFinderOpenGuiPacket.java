@@ -91,7 +91,7 @@ public class SlotFinderOpenGuiPacket extends ModuleCoordinatesPacket {
 							net.minecraft.world.phys.BlockHitResult blockHit = new net.minecraft.world.phys.BlockHitResult(
 									new net.minecraft.world.phys.Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5),
 									Direction.UP, blockPos, false);
-							if (block.use(blockState, player.level(), blockPos, player, InteractionHand.MAIN_HAND, blockHit) != net.minecraft.world.InteractionResult.PASS) {
+							if (blockState.useWithoutItem(player.level(), player, blockHit) != net.minecraft.world.InteractionResult.PASS) {
 								MainProxy.sendPacketToPlayer(PacketHandler.getPacket(SlotFinderActivatePacket.class)
 										.setTargetPosX(xCoord)
 										.setTargetPosY(yCoord)

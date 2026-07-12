@@ -83,7 +83,7 @@ public class SlotFinderNumberPacket extends ModuleCoordinatesPacket {
 			ItemStack dummyStack = new ItemStack(Blocks.DIRT, 1);
 			CompoundTag nbt = new CompoundTag();
 			nbt.putBoolean("LPStackFinderBoolean", true); //Make it unique
-			dummyStack.setTag(nbt); // dummyStack: yay, I am unique
+			logisticspipes.utils.item.StackTag.setTag(dummyStack, nbt); // dummyStack: yay, I am unique
 			result.set(dummyStack);
 			for (int i = 0; i < util.getContainerSize(); i++) {
 				if (dummyStack == util.getItem(i)) {

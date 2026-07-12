@@ -120,8 +120,8 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
+	protected void loadAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
+		super.loadAdditional(nbt, registries);
 		if (nbt.contains("MainPipePos_xPos")) {
 			mainPipePos.clear();
 			DoubleCoordinates pos = DoubleCoordinates.readFromNBT("MainPipePos_", nbt);
@@ -153,8 +153,8 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
+		super.saveAdditional(nbt, registries);
 		ListTag nbtList = new ListTag();
 		for (DoubleCoordinates pos : mainPipePos) {
 			CompoundTag compound = new CompoundTag();
@@ -172,8 +172,8 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 
 	@Nonnull
 	@Override
-	public CompoundTag getUpdateTag() {
-		CompoundTag nbt = super.getUpdateTag();
+	public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+		CompoundTag nbt = super.getUpdateTag(registries);
 		try {
 			PacketHandler.addPacketToNBT(getLPDescriptionPacket(), nbt);
 		} catch (Exception e) {
@@ -184,9 +184,9 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void handleUpdateTag(@Nonnull CompoundTag tag) {
+	public void handleUpdateTag(@Nonnull CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
 		PacketHandler.queueAndRemovePacketFromNBT(tag);
-		super.handleUpdateTag(tag);
+		super.handleUpdateTag(tag, registries);
 	}
 
 	@Override
@@ -195,7 +195,7 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 	}
 
 	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
+	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, net.minecraft.core.HolderLookup.Provider registries) {
 		if (packet.getTag() != null) PacketHandler.queueAndRemovePacketFromNBT(packet.getTag());
 	}
 

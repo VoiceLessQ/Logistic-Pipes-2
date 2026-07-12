@@ -85,13 +85,13 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 		}
 		List<Recipe> list = new ArrayList<>();
 		for (Recipe r : CraftingUtil.getRecipeList()) {
-			if (r.matches(craftInv, getWorld())) {
+			if (r.matches(craftInv.asCraftInput(), getWorld())) {
 				list.add(r);
 			}
 		}
 		if (list.size() == 1) {
 			cache = list.get(0);
-			resultInv.setItem(0, cache.assemble(craftInv, getWorld().registryAccess()));
+			resultInv.setItem(0, cache.assemble(craftInv.asCraftInput(), getWorld().registryAccess()));
 			targetType = null;
 		} else if (list.size() > 1) {
 			if (targetType != null) {
@@ -100,7 +100,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 					for (int i = 0; i < 9; i++) {
 						craftInv.setItem(i, matrix.getItem(i));
 					}
-					ItemStack result = recipe.assemble(craftInv, getWorld().registryAccess());
+					ItemStack result = recipe.assemble(craftInv.asCraftInput(), getWorld().registryAccess());
 					if (!result.isEmpty() && targetType.equals(ItemIdentifier.get(result))) {
 						resultInv.setItem(0, result);
 						cache = recipe;
@@ -110,7 +110,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 			}
 			if (cache == null) {
 				for (Recipe r : list) {
-					ItemStack result = r.assemble(craftInv, getWorld().registryAccess());
+					ItemStack result = r.assemble(craftInv.asCraftInput(), getWorld().registryAccess());
 					if (!result.isEmpty()) {
 						cache = r;
 						resultInv.setItem(0, result);
@@ -143,7 +143,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 
 		List<Recipe> list = new ArrayList<>();
 		for (Recipe r : CraftingUtil.getRecipeList()) {
-			if (r.matches(craftInv, getWorld())) {
+			if (r.matches(craftInv.asCraftInput(), getWorld())) {
 				list.add(r);
 			}
 		}
@@ -160,7 +160,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 				for (int i = 0; i < 9; i++) {
 					craftInv.setItem(i, matrix.getItem(i));
 				}
-				if (targetType != null && targetType.equals(ItemIdentifier.get(recipe.assemble(craftInv, getWorld().registryAccess())))) {
+				if (targetType != null && targetType.equals(ItemIdentifier.get(recipe.assemble(craftInv.asCraftInput(), getWorld().registryAccess())))) {
 					if (down) {
 						found = true;
 					} else {
@@ -184,7 +184,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 				craftInv.setItem(i, matrix.getItem(i));
 			}
 
-			targetType = ItemIdentifier.get(cache.assemble(craftInv, getWorld().registryAccess()));
+			targetType = ItemIdentifier.get(cache.assemble(craftInv.asCraftInput(), getWorld().registryAccess()));
 		}
 
 		if (!guiWatcher.isEmpty() && MainProxy.isServer(getWorld())) {
@@ -254,12 +254,12 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 		}
 		Recipe recipe = cache;
 		final ItemIdentifierStack outStack = Objects.requireNonNull(resultInv.getIDStackInSlot(0));
-		if (!recipe.matches(crafter, getWorld())) {
+		if (!recipe.matches(crafter.asCraftInput(), getWorld())) {
 			if (isFuzzy && outputFuzzy().nextSetBit(0) != -1) {
 				recipe = null;
 				for (Recipe r : CraftingUtil.getRecipeList()) {
 
-					if (r.matches(crafter, getWorld()) && FuzzyUtil.INSTANCE
+					if (r.matches(crafter.asCraftInput(), getWorld()) && FuzzyUtil.INSTANCE
 							.fuzzyMatches(FuzzyUtil.INSTANCE.getter(outputFuzzy()), outStack.getItem(),
 									ItemIdentifier.get(r.getResultItem(getWorld().registryAccess())))) {
 						recipe = r;
@@ -273,7 +273,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 				return ItemStack.EMPTY; //Fix MystCraft
 			}
 		}
-		ItemStack result = recipe.assemble(crafter, getWorld().registryAccess());
+		ItemStack result = recipe.assemble(crafter.asCraftInput(), getWorld().registryAccess());
 		if (result.isEmpty()) {
 			return ItemStack.EMPTY;
 		}
@@ -304,7 +304,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 				crafter.setItem(i, inv.removeItem(j, 1));
 			}
 		}
-		result = recipe.assemble(crafter, getWorld().registryAccess());
+		result = recipe.assemble(crafter.asCraftInput(), getWorld().registryAccess());
 		if (fake == null) {
 			fake = MainProxy.getFakePlayer(getWorld());
 		}
@@ -355,8 +355,8 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 	}
 
 	@Override
-	public void load(CompoundTag par1nbtTagCompound) {
-		super.load(par1nbtTagCompound);
+	protected void loadAdditional(CompoundTag par1nbtTagCompound, net.minecraft.core.HolderLookup.Provider registries) {
+		super.loadAdditional(par1nbtTagCompound, registries);
 		inv.readFromNBT(par1nbtTagCompound, "inv");
 		matrix.readFromNBT(par1nbtTagCompound, "matrix");
 		if (par1nbtTagCompound.contains("placedBy")) {
@@ -374,8 +374,8 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag par1nbtTagCompound) {
-		super.saveAdditional(par1nbtTagCompound);
+	protected void saveAdditional(CompoundTag par1nbtTagCompound, net.minecraft.core.HolderLookup.Provider registries) {
+		super.saveAdditional(par1nbtTagCompound, registries);
 		inv.writeToNBT(par1nbtTagCompound, "inv");
 		matrix.writeToNBT(par1nbtTagCompound, "matrix");
 		if (placedBy != null) {
@@ -384,7 +384,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 		fuzzyFlags.writeToNBT(par1nbtTagCompound);
 		if (targetType != null) {
 			CompoundTag type = new CompoundTag();
-			targetType.makeNormalStack(1).save(type);
+			targetType.makeNormalStack(1).save(logisticspipes.utils.RegistryAccessUtil.registries(), type);
 			par1nbtTagCompound.put("targetType", type);
 		} else {
 			par1nbtTagCompound.remove("targetType");

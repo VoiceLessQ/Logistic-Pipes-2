@@ -109,11 +109,11 @@ public abstract class SubGuiScreen extends Screen implements ISubGuiControler, I
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
 		if (subGui != null) {
-			return subGui.mouseScrolled(mouseX, mouseY, delta);
+			return subGui.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 		}
-		return super.mouseScrolled(mouseX, mouseY, delta);
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 	}
 
 	@Override
@@ -122,7 +122,7 @@ public abstract class SubGuiScreen extends Screen implements ISubGuiControler, I
 	}
 
 	@Override
-	public void renderBackground(net.minecraft.client.gui.GuiGraphics guiGraphics) {
+	public void renderBackground(net.minecraft.client.gui.GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		// Background is drawn by renderGuiBackground() — suppress Screen's renderMenuBackground overlay
 	}
 
@@ -138,7 +138,7 @@ public abstract class SubGuiScreen extends Screen implements ISubGuiControler, I
 		RenderSystem.enableDepthTest();
 		if (subGui != null) {
 			if (!subGui.hasSubGui()) {
-				super.renderBackground(guiGraphics);
+				super.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 			}
 			subGui.render(guiGraphics, mouseX, mouseY, partialTicks);
 		}

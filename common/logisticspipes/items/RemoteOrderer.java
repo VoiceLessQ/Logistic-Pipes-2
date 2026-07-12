@@ -44,10 +44,10 @@ public class RemoteOrderer extends LogisticsItem {
 	}
 
 	@Override
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<Component> tooltip, TooltipFlag flagIn) {
+	public void appendHoverText(@Nonnull ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldIn, java.util.List<Component> tooltip, TooltipFlag flagIn) {
 		super.appendHoverText(stack, worldIn, tooltip, flagIn);
 
-		if (stack.hasTag() && Objects.requireNonNull(stack.getTag()).contains("connectedPipe-x")) {
+		if (logisticspipes.utils.item.StackTag.hasTag(stack) && Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack)).contains("connectedPipe-x")) {
 			tooltip.add(Component.literal("\u00a77Has Remote Pipe"));
 		}
 	}
@@ -56,7 +56,7 @@ public class RemoteOrderer extends LogisticsItem {
 	@Override
 	public InteractionResultHolder<ItemStack> use(Level world, Player player, @Nonnull InteractionHand handIn) {
 		ItemStack par1ItemStack = player.getMainHandItem();
-		if (par1ItemStack.isEmpty() || !par1ItemStack.hasTag()) {
+		if (par1ItemStack.isEmpty() || !logisticspipes.utils.item.StackTag.hasTag(par1ItemStack)) {
 			return InteractionResultHolder.fail(par1ItemStack);
 		}
 		PipeItemsRemoteOrdererLogistics pipe = RemoteOrderer.getPipe(par1ItemStack);
@@ -82,8 +82,8 @@ public class RemoteOrderer extends LogisticsItem {
 	}
 
 	public static void connectToPipe(@Nonnull ItemStack stack, PipeItemsRemoteOrdererLogistics pipe) {
-		stack.setTag(new CompoundTag());
-		final CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
+		final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 		tag.putInt("connectedPipe-x", pipe.getX());
 		tag.putInt("connectedPipe-y", pipe.getY());
 		tag.putInt("connectedPipe-z", pipe.getZ());
@@ -95,10 +95,10 @@ public class RemoteOrderer extends LogisticsItem {
 	}
 
 	public static PipeItemsRemoteOrdererLogistics getPipe(@Nonnull ItemStack stack) {
-		if (stack.isEmpty() || !stack.hasTag()) {
+		if (stack.isEmpty() || !logisticspipes.utils.item.StackTag.hasTag(stack)) {
 			return null;
 		}
-		final CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 		if (!tag.contains("connectedPipe-x") || !tag.contains("connectedPipe-y") || !tag.contains("connectedPipe-z")) {
 			return null;
 		}
@@ -111,7 +111,7 @@ public class RemoteOrderer extends LogisticsItem {
 		Level world = null;
 		if (tag.contains("connectedPipe-world-dim-key")) {
 			try {
-				net.minecraft.resources.ResourceLocation rl = new net.minecraft.resources.ResourceLocation(tag.getString("connectedPipe-world-dim-key"));
+				net.minecraft.resources.ResourceLocation rl = net.minecraft.resources.ResourceLocation.parse(tag.getString("connectedPipe-world-dim-key"));
 				net.minecraft.resources.ResourceKey<Level> key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, rl);
 				world = server.getLevel(key);
 			} catch (Exception ignored) {}

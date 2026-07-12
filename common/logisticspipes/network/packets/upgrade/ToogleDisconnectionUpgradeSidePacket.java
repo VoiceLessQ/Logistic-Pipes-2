@@ -35,15 +35,15 @@ public class ToogleDisconnectionUpgradeSidePacket extends SlotPacket {
 		ItemStack stack = slot.getItem();
 		if (stack.isEmpty()) return;
 
-		if (!stack.hasTag()) {
-			stack.setTag(new CompoundTag());
+		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
+			logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
 		}
 
-		CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 		String sideName = ConnectionUpgradeConfig.Sides.getNameForDirection(side);
 		tag.putBoolean(sideName, !tag.getBoolean(sideName));
 
-		stack.setTag(tag);
+		logisticspipes.utils.item.StackTag.setTag(stack, tag);
 
 		slot.set(stack);
 	}

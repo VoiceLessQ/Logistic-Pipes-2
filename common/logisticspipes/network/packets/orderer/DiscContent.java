@@ -33,7 +33,7 @@ public class DiscContent extends ItemPacket {
 			if (MainProxy.isServer(tile.getLevel())) {
 				if (!((PipeItemsRequestLogisticsMk2) tile.pipe).getDisk().isEmpty() && ((PipeItemsRequestLogisticsMk2) tile.pipe).getDisk().getItem().equals(LPItems.disk.get())) {
 					if (!getStack().isEmpty() && getStack().getItem().equals(LPItems.disk.get())) {
-						((PipeItemsRequestLogisticsMk2) tile.pipe).getDisk().setTag(getStack().getTag());
+						logisticspipes.utils.item.StackTag.setTag(((PipeItemsRequestLogisticsMk2) tile.pipe).getDisk(), logisticspipes.utils.item.StackTag.getTag(getStack()));
 					}
 				}
 			} else {
@@ -44,7 +44,7 @@ public class DiscContent extends ItemPacket {
 			if (MainProxy.isServer(tile.getLevel())) {
 				if (!((PipeBlockRequestTable) tile.pipe).diskInv.getItem(0).isEmpty() && ((PipeBlockRequestTable) tile.pipe).diskInv.getItem(0).getItem().equals(LPItems.disk.get())) {
 					if (!getStack().isEmpty() && getStack().getItem().equals(LPItems.disk.get())) {
-						((PipeBlockRequestTable) tile.pipe).diskInv.getItem(0).setTag(getStack().getTag());
+						logisticspipes.utils.item.StackTag.setTag(((PipeBlockRequestTable) tile.pipe).diskInv.getItem(0), logisticspipes.utils.item.StackTag.getTag(getStack()));
 					}
 				}
 			} else {

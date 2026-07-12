@@ -33,8 +33,8 @@ public class DiskDropPacket extends CoordinatesPacket {
 		if (pipe.pipe instanceof PipeItemsRequestLogisticsMk2) {
 			if (((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk() != null) {
 				if (((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().getItem().equals(LPItems.disk.get())) {
-					if (!((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().hasTag()) {
-						((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().setTag(new CompoundTag());
+					if (!logisticspipes.utils.item.StackTag.hasTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk())) {
+						logisticspipes.utils.item.StackTag.setTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk(), new CompoundTag());
 					}
 				}
 			}

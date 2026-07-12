@@ -47,8 +47,8 @@ public class LogisticsStatisticsTileEntity extends LogisticsSolidTileEntity impl
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
+	protected void loadAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
+		super.loadAdditional(nbt, registries);
 		int size = nbt.getInt("taskSize");
 		for (int i = 0; i < size; i++) {
 			CompoundTag tag = (CompoundTag) nbt.get("Task_" + i);
@@ -59,8 +59,8 @@ public class LogisticsStatisticsTileEntity extends LogisticsSolidTileEntity impl
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
+		super.saveAdditional(nbt, registries);
 		nbt.putInt("taskSize", tasks.size());
 		int count = 0;
 		for (TrackingTask task : tasks) {

@@ -94,12 +94,12 @@ public class DisconnectionConfigurationPopup extends SubGuiScreen {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double lpScrollX, double delta) {
 		if (bounds != null && bounds.contains((int) mouseX, (int) mouseY)) {
 			configDisplay.onMouseScrolled(delta);
 			return true;
 		}
-		return super.mouseScrolled(mouseX, mouseY, delta);
+		return super.mouseScrolled(mouseX, mouseY, lpScrollX, delta);
 	}
 
 	@Override

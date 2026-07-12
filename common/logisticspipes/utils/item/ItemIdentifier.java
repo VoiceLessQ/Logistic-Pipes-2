@@ -278,7 +278,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		//again no locking, we can end up removing or overwriting ItemIdentifiers concurrently added by another thread, but that doesn't affect anything.
 		IDamagedIdentifierHolder damages = ItemIdentifier.damageIdentifiers.get(item);
 		if (damages == null) {
-			if (item.getMaxDamage() < 32767) {
+			if (item.getDefaultInstance().getMaxDamage() < 32767) {
 				damages = new ArrayDamagedItentifierHolder(damage);
 			} else {
 				damages = new MapDamagedItentifierHolder();
@@ -366,15 +366,15 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 	public static ItemIdentifier get(@Nonnull ItemStack itemStack) {
 		ItemIdentifier proposal = null;
 		IAddInfoProvider prov = null;
-		if (((Object) itemStack) instanceof IAddInfoProvider && !itemStack.hasTag()) {
+		if (((Object) itemStack) instanceof IAddInfoProvider && !logisticspipes.utils.item.StackTag.hasTag(itemStack)) {
 			prov = (IAddInfoProvider) (Object) itemStack;
 			ItemStackAddInfo info = prov.getLogisticsPipesAddInfo(ItemStackAddInfo.class);
 			if (info != null) {
 				proposal = info.ident;
 			}
 		}
-		ItemIdentifier ident = ItemIdentifier.get(itemStack.getItem(), itemStack.getDamageValue(), itemStack.getTag(), proposal);
-		if (ident != proposal && prov != null && !itemStack.hasTag()) {
+		ItemIdentifier ident = ItemIdentifier.get(itemStack.getItem(), itemStack.getDamageValue(), logisticspipes.utils.item.StackTag.getTag(itemStack), proposal);
+		if (ident != proposal && prov != null && !logisticspipes.utils.item.StackTag.hasTag(itemStack)) {
 			prov.setLogisticsPipesAddInfo(new ItemStackAddInfo(ident));
 		}
 		return ident;
@@ -535,7 +535,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 	public ItemStack unsafeMakeNormalStack(int stackSize) {
 		ItemStack stack = new ItemStack(item, stackSize);
 		if (itemDamage != 0) stack.setDamageValue(itemDamage);
-		stack.setTag(tag);
+		logisticspipes.utils.item.StackTag.setTag(stack, tag);
 		return stack;
 	}
 
@@ -544,7 +544,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		ItemStack stack = new ItemStack(item, stackSize);
 		if (itemDamage != 0) stack.setDamageValue(itemDamage);
 		if (tag != null) {
-			stack.setTag(tag.copy());
+			logisticspipes.utils.item.StackTag.setTag(stack, tag.copy());
 		}
 		return stack;
 	}

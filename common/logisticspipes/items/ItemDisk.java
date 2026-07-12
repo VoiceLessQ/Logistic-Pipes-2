@@ -18,9 +18,9 @@ public class ItemDisk extends LogisticsItem {
 	}
 
 	@Override
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
-		if (!stack.isEmpty() && stack.hasTag()) {
-			final CompoundTag tag = Objects.requireNonNull(stack.getTag());
+	public void appendHoverText(@Nonnull ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldIn, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
+		if (!stack.isEmpty() && logisticspipes.utils.item.StackTag.hasTag(stack)) {
+			final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 			if (tag.contains("name")) {
 				String name = "\u00a78" + tag.getString("name");
 				tooltip.add(net.minecraft.network.chat.Component.literal(name));

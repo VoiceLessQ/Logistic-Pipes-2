@@ -157,9 +157,9 @@ public abstract class LogisticsBaseGuiScreen extends AbstractContainerScreen imp
 	}
 
 	@Override
-	public void renderBackground(GuiGraphics guiGraphics) {
+	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		if (subGui == null) {
-			super.renderBackground(guiGraphics);
+			super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 		}
 	}
 
@@ -174,11 +174,11 @@ public abstract class LogisticsBaseGuiScreen extends AbstractContainerScreen imp
 			// In 1.20.1, Mouse hack removed — subGui renders directly
 			super.render(guiGraphics, 0, 0, partialTicks);
 			if (!subGui.hasSubGui()) {
-				super.renderBackground(guiGraphics);
+				super.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 			}
 			subGui.render(guiGraphics, mouseX, mouseY, partialTicks);
 		} else {
-			renderBackground(guiGraphics);
+			renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
 			super.render(guiGraphics, mouseX, mouseY, partialTicks);
 			for (IRenderSlot slot : slots) {
 				int localMouseX = mouseX - leftPos;
@@ -410,11 +410,11 @@ public abstract class LogisticsBaseGuiScreen extends AbstractContainerScreen imp
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
 		if (subGui != null) {
-			return subGui.mouseScrolled(mouseX, mouseY, delta);
+			return subGui.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 		}
-		return super.mouseScrolled(mouseX, mouseY, delta);
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 	}
 
 	@Override

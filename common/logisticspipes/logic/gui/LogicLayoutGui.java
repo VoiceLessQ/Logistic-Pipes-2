@@ -98,13 +98,13 @@ public class LogicLayoutGui extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double lpScrollX, double delta) {
 		if (delta < 0) {
 			zoom = zoom.next();
 		} else if (delta > 0) {
 			zoom = zoom.prev();
 		}
-		return super.mouseScrolled(mouseX, mouseY, delta);
+		return super.mouseScrolled(mouseX, mouseY, lpScrollX, delta);
 	}
 
 	@Override

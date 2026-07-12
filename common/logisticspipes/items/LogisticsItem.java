@@ -76,8 +76,8 @@ public class LogisticsItem extends Item implements ILogisticsItem {
 	 */
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
-		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+	public void appendHoverText(@Nonnull ItemStack stack, @Nonnull Item.TooltipContext context, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
+		super.appendHoverText(stack, context, tooltip, flagIn);
 		if (addShiftInfo()) {
 			TextUtil.addTooltipInformation(stack, tooltip, Screen.hasShiftDown());
 		}

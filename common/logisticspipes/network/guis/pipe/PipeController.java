@@ -87,7 +87,7 @@ public class PipeController extends CoordinatesGuiProvider {
 			if (itemStack.getDamageValue() != LogisticsItemCard.SEC_CARD) {
 				return false;
 			}
-			final CompoundTag tag = Objects.requireNonNull(itemStack.getTag());
+			final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(itemStack));
 			return SimpleServiceLocator.securityStationManager.isAuthorized(UUID.fromString(tag.getString("UUID")));
 		}, 1);
 		dummy.addRestrictedSlot(0, tile.logicController.diskInv, 14, 36, LPItems.disk.get());

@@ -104,8 +104,9 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 
 	private Ingredient getIngredientForProgrammer(Item targetPipe) {
 		ItemStack programmerStack = new ItemStack(LPItems.logisticsProgrammer.get());
-		programmerStack.setTag(new CompoundTag());
-		programmerStack.getTag().putString(ItemLogisticsProgrammer.RECIPE_TARGET, BuiltInRegistries.ITEM.getKey(targetPipe).toString());
+		CompoundTag programmerTag = new CompoundTag();
+		programmerTag.putString(ItemLogisticsProgrammer.RECIPE_TARGET, BuiltInRegistries.ITEM.getKey(targetPipe).toString());
+		logisticspipes.utils.item.StackTag.setTag(programmerStack, programmerTag);
 		return NBTIngredient.fromStacks(programmerStack);
 	}
 

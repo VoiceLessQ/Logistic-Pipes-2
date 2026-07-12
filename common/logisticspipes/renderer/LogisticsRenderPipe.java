@@ -99,8 +99,7 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 
 	private void drawPlaceholderCube(LogisticsTileGenericPipe tileentity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 		com.mojang.blaze3d.vertex.VertexConsumer vc = bufferSource.getBuffer(net.minecraft.client.renderer.RenderType.solid());
-		org.joml.Matrix4f m = poseStack.last().pose();
-		org.joml.Matrix3f n = poseStack.last().normal();
+		com.mojang.blaze3d.vertex.PoseStack.Pose pose = poseStack.last();
 
 		// Core cube 6/16..10/16 — visual placeholder centered in the block.
 		float a = 0.375f, b = 0.625f;
@@ -108,7 +107,7 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 		int r = 64 + ((pipeHash >>> 16) & 0x7F);
 		int g = 64 + ((pipeHash >>> 8) & 0x7F);
 		int bl = 64 + (pipeHash & 0x7F);
-		emitBox(vc, m, n, a, a, a, b, b, b, r, g, bl, packedLight, packedOverlay);
+		emitBox(vc, pose, a, a, a, b, b, b, r, g, bl, packedLight, packedOverlay);
 
 		// Connection stubs on each connected side.
 		if (tileentity.renderState != null && tileentity.renderState.pipeConnectionMatrix != null) {
@@ -123,36 +122,36 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 					case WEST:  x0 = 0f; x1 = a; break;
 					case EAST:  x0 = b; x1 = 1f; break;
 				}
-				emitBox(vc, m, n, x0, y0, z0, x1, y1, z1, r, g, bl, packedLight, packedOverlay);
+				emitBox(vc, pose, x0, y0, z0, x1, y1, z1, r, g, bl, packedLight, packedOverlay);
 			}
 		}
 	}
 
-	private static void emitBox(com.mojang.blaze3d.vertex.VertexConsumer vc, org.joml.Matrix4f m, org.joml.Matrix3f n,
+	private static void emitBox(com.mojang.blaze3d.vertex.VertexConsumer vc, com.mojang.blaze3d.vertex.PoseStack.Pose pose,
 			float x0, float y0, float z0, float x1, float y1, float z1,
 			int r, int g, int b, int packedLight, int packedOverlay) {
 		// -Y
-		quad(vc, m, n, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, 0, -1, 0, r, g, b, packedLight, packedOverlay);
+		quad(vc, pose, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, 0, -1, 0, r, g, b, packedLight, packedOverlay);
 		// +Y
-		quad(vc, m, n, x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0, 0, 1, 0, r, g, b, packedLight, packedOverlay);
+		quad(vc, pose, x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0, 0, 1, 0, r, g, b, packedLight, packedOverlay);
 		// -Z
-		quad(vc, m, n, x1, y0, z0, x0, y0, z0, x0, y1, z0, x1, y1, z0, 0, 0, -1, r, g, b, packedLight, packedOverlay);
+		quad(vc, pose, x1, y0, z0, x0, y0, z0, x0, y1, z0, x1, y1, z0, 0, 0, -1, r, g, b, packedLight, packedOverlay);
 		// +Z
-		quad(vc, m, n, x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, 0, 0, 1, r, g, b, packedLight, packedOverlay);
+		quad(vc, pose, x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, 0, 0, 1, r, g, b, packedLight, packedOverlay);
 		// -X
-		quad(vc, m, n, x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, -1, 0, 0, r, g, b, packedLight, packedOverlay);
+		quad(vc, pose, x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, -1, 0, 0, r, g, b, packedLight, packedOverlay);
 		// +X
-		quad(vc, m, n, x1, y0, z1, x1, y0, z0, x1, y1, z0, x1, y1, z1, 1, 0, 0, r, g, b, packedLight, packedOverlay);
+		quad(vc, pose, x1, y0, z1, x1, y0, z0, x1, y1, z0, x1, y1, z1, 1, 0, 0, r, g, b, packedLight, packedOverlay);
 	}
 
-	private static void quad(com.mojang.blaze3d.vertex.VertexConsumer vc, org.joml.Matrix4f m, org.joml.Matrix3f n,
+	private static void quad(com.mojang.blaze3d.vertex.VertexConsumer vc, com.mojang.blaze3d.vertex.PoseStack.Pose pose,
 			float x1, float y1, float z1, float x2, float y2, float z2,
 			float x3, float y3, float z3, float x4, float y4, float z4,
 			float nx, float ny, float nz, int r, int g, int b, int packedLight, int packedOverlay) {
-		vc.vertex(m, x1, y1, z1).color(r, g, b, 255).uv(0, 0).overlayCoords(packedOverlay).uv2(packedLight).normal(n, nx, ny, nz).endVertex();
-		vc.vertex(m, x2, y2, z2).color(r, g, b, 255).uv(1, 0).overlayCoords(packedOverlay).uv2(packedLight).normal(n, nx, ny, nz).endVertex();
-		vc.vertex(m, x3, y3, z3).color(r, g, b, 255).uv(1, 1).overlayCoords(packedOverlay).uv2(packedLight).normal(n, nx, ny, nz).endVertex();
-		vc.vertex(m, x4, y4, z4).color(r, g, b, 255).uv(0, 1).overlayCoords(packedOverlay).uv2(packedLight).normal(n, nx, ny, nz).endVertex();
+		vc.addVertex(pose.pose(), x1, y1, z1).setColor(r, g, b, 255).setUv(0, 0).setOverlay(packedOverlay).setLight(packedLight).setNormal(pose, nx, ny, nz);
+		vc.addVertex(pose.pose(), x2, y2, z2).setColor(r, g, b, 255).setUv(1, 0).setOverlay(packedOverlay).setLight(packedLight).setNormal(pose, nx, ny, nz);
+		vc.addVertex(pose.pose(), x3, y3, z3).setColor(r, g, b, 255).setUv(1, 1).setOverlay(packedOverlay).setLight(packedLight).setNormal(pose, nx, ny, nz);
+		vc.addVertex(pose.pose(), x4, y4, z4).setColor(r, g, b, 255).setUv(0, 1).setOverlay(packedOverlay).setLight(packedLight).setNormal(pose, nx, ny, nz);
 	}
 
 	private static logisticspipes.proxy.object3d.interfaces.TextureTransformation requestTableIcon = null;

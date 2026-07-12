@@ -102,13 +102,13 @@ public class RequestMonitorPopup extends SubGuiScreen {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mx, double my, double delta) {
+	public boolean mouseScrolled(double mx, double my, double lpScrollX, double delta) {
 		if (delta < 0) {
 			zoom = zoom.next();
 		} else if (delta > 0) {
 			zoom = zoom.prev();
 		}
-		return super.mouseScrolled(mx, my, delta);
+		return super.mouseScrolled(mx, my, lpScrollX, delta);
 	}
 
 	@Override
@@ -212,16 +212,16 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		int oldGuiLeft = guiLeft, oldGuiTop = guiTop, oldXSize = xSize, oldYSize = ySize;
 		GuiGraphics oldStored = getGuiGraphics();
 		com.mojang.blaze3d.pipeline.TextureTarget target = new com.mojang.blaze3d.pipeline.TextureTarget(imgWidth, imgHeight, true, Minecraft.ON_OSX);
-		com.mojang.blaze3d.vertex.PoseStack modelView = RenderSystem.getModelViewStack();
+		org.joml.Matrix4fStack modelView = RenderSystem.getModelViewStack();
 		try {
 			target.setClearColor(0.15F, 0.15F, 0.15F, 1.0F);
 			target.clear(Minecraft.ON_OSX);
 			target.bindWrite(true);
 			RenderSystem.setProjectionMatrix(new org.joml.Matrix4f().setOrtho(0.0F, imgWidth, imgHeight, 0.0F, 1000.0F, 21000.0F),
 					com.mojang.blaze3d.vertex.VertexSorting.ORTHOGRAPHIC_Z);
-			modelView.pushPose();
-			modelView.setIdentity();
-			modelView.translate(0.0D, 0.0D, -11000.0D);
+			modelView.pushMatrix();
+			modelView.identity();
+			modelView.translate(0.0F, 0.0F, -11000.0F);
 			RenderSystem.applyModelViewMatrix();
 
 			GuiGraphics gg = new GuiGraphics(minecraft, minecraft.renderBuffers().bufferSource());
@@ -259,7 +259,7 @@ public class RequestMonitorPopup extends SubGuiScreen {
 			ySize = oldYSize;
 			storedGuiGraphics = oldStored;
 			SimpleGraphics.guiGraphics = oldStored;
-			modelView.popPose();
+			modelView.popMatrix();
 			RenderSystem.applyModelViewMatrix();
 			target.destroyBuffers();
 			Minecraft.getInstance().getMainRenderTarget().bindWrite(true);

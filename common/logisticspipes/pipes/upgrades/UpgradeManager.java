@@ -251,13 +251,13 @@ public class UpgradeManager implements ISimpleInventoryEventHandler, ISlotUpgrad
 		if (stack.getItem() != LPItems.itemCard.get() || stack.getDamageValue() != LogisticsItemCard.SEC_CARD) {
 			return;
 		}
-		if (!stack.hasTag()) {
+		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
 			return;
 		}
-		if (!stack.getTag().contains("UUID")) {
+		if (!logisticspipes.utils.item.StackTag.getTag(stack).contains("UUID")) {
 			return;
 		}
-		uuid = UUID.fromString(stack.getTag().getString("UUID"));
+		uuid = UUID.fromString(logisticspipes.utils.item.StackTag.getTag(stack).getString("UUID"));
 		uuidS = uuid.toString();
 	}
 
@@ -384,8 +384,8 @@ public class UpgradeManager implements ISimpleInventoryEventHandler, ISlotUpgrad
 
 	public void insetSecurityID(UUID id) {
 		ItemStack stack = new ItemStack(LPItems.itemCard.get(), 1);
-		stack.setTag(new CompoundTag());
-		final CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
+		final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 		tag.putString("UUID", id.toString());
 		secInv.setItem(0, stack);
 		InventoryChanged(secInv);

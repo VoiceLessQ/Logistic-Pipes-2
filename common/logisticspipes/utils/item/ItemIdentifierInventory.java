@@ -259,7 +259,7 @@ public class ItemIdentifierInventory
 				CompoundTag nbttagcompound2 = new CompoundTag();
 				nbttaglist.add(nbttagcompound2);
 				nbttagcompound2.putInt("index", j);
-				_contents[j].unsafeMakeNormalStack().save(nbttagcompound2);
+				_contents[j].unsafeMakeNormalStack().save(logisticspipes.utils.RegistryAccessUtil.registries(), nbttagcompound2);
 			}
 		}
 		nbttagcompound.put(prefix + "items", nbttaglist);

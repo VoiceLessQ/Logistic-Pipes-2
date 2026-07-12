@@ -342,7 +342,6 @@ public class LogisticsHUDRenderer {
 		if (!lasers.isEmpty()) {
 			RenderSystem.setShader(GameRenderer::getPositionColorShader);
 			Tesselator tes = Tesselator.getInstance();
-			BufferBuilder bb = tes.getBuilder();
 			// The pose origin is the interpolated camera, not the player's feet as in 1.12.
 			net.minecraft.world.phys.Vec3 cam = mc.gameRenderer.getMainCamera().getPosition();
 			for (LaserData data : lasers) {
@@ -362,48 +361,48 @@ public class LogisticsHUDRenderer {
 				poseStack.scale(0.01F, 0.01F, 0.01F);
 				org.joml.Matrix4f mat = poseStack.last().pose();
 
-				bb.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+				BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 				for (float i = 0; i < 6 * data.getLength(); i += 1.0f) {
 					int[] c = getLaserColor(i, data.getConnectionType());
 					float shift = 100f * i / 6f;
 					float s = (data.isStartPipe() && i == 0) ? -6.0f : 0.0f;
 					// Top
-					bb.vertex(mat, 19.7f+shift, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat, 19.7f+shift, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
+					bb.addVertex(mat, 19.7f+shift, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,  3.0f+shift+s, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,  3.0f+shift+s, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat, 19.7f+shift, 3, 3).setColor(c[0],c[1],c[2],c[3]);
 					// Bottom
-					bb.vertex(mat, 19.7f+shift,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat, 19.7f+shift,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
+					bb.addVertex(mat, 19.7f+shift,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,  3.0f+shift+s,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,  3.0f+shift+s,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat, 19.7f+shift,-3,-3).setColor(c[0],c[1],c[2],c[3]);
 					// +Z side
-					bb.vertex(mat, 19.7f+shift, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat, 19.7f+shift,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
+					bb.addVertex(mat, 19.7f+shift, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,  3.0f+shift+s, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,  3.0f+shift+s,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat, 19.7f+shift,-3, 3).setColor(c[0],c[1],c[2],c[3]);
 					// -Z side
-					bb.vertex(mat, 19.7f+shift,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat, 19.7f+shift, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
+					bb.addVertex(mat, 19.7f+shift,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,  3.0f+shift+s,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,  3.0f+shift+s, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat, 19.7f+shift, 3,-3).setColor(c[0],c[1],c[2],c[3]);
 				}
 				if (data.isStartPipe()) {
 					int[] c = getLaserColor(0, data.getConnectionType());
-					bb.vertex(mat,-3, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,-3, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,-3,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,-3,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
+					bb.addVertex(mat,-3, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,-3, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,-3,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,-3,-3, 3).setColor(c[0],c[1],c[2],c[3]);
 				}
 				if (data.isFinalPipe()) {
 					int[] c = getLaserColor(6 * (float) data.getLength() - 1, data.getConnectionType());
 					float ex = 100.0f * data.getLength() + 3f;
-					bb.vertex(mat,ex, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,ex, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,ex,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,ex,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
+					bb.addVertex(mat,ex, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,ex, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,ex,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+					bb.addVertex(mat,ex,-3,-3).setColor(c[0],c[1],c[2],c[3]);
 				}
-				BufferUploader.drawWithShader(bb.end());
+				BufferUploader.drawWithShader(bb.buildOrThrow());
 				poseStack.popPose();
 			}
 		}
@@ -448,7 +447,7 @@ public class LogisticsHUDRenderer {
 			com.mojang.blaze3d.vertex.PoseStack ggPose = gg.pose();
 			ggPose.pushPose();
 			// Compose the camera orientation from the level renderer; gg.pose() starts at identity.
-			ggPose.mulPoseMatrix(poseStack.last().pose());
+			ggPose.mulPose(poseStack.last().pose());
 			ggPose.translate((float) x, (float) y, (float) z);
 			ggPose.mulPose(new Quaternionf().rotationX((float) Math.toRadians(90.0F)));
 			ggPose.mulPose(new Quaternionf().rotationZ((float) Math.toRadians(getAngle(z, x) + 90)));

@@ -75,13 +75,13 @@ public class SetCurrentPagePacket extends ModernPacket {
 		ItemStack book = player.getItemBySlot(equipmentSlot);
 		if (book.isEmpty() || !(book.getItem() instanceof ItemGuideBook)) return;
 		CompoundTag compound;
-		if (book.hasTag()) {
-			compound = Objects.requireNonNull(book.getTag());
+		if (logisticspipes.utils.item.StackTag.hasTag(book)) {
+			compound = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(book));
 		} else {
 			compound = new CompoundTag();
 		}
 		final CompoundTag nbt = LPItems.getItemGuideBook().updateNBT(compound, currentPage, bookmarks);
-		book.setTag(nbt);
+		logisticspipes.utils.item.StackTag.setTag(book, nbt);
 	}
 
 	@Override

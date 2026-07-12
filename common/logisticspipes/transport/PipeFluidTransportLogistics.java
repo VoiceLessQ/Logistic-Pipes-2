@@ -137,11 +137,11 @@ public class PipeFluidTransportLogistics extends PipeTransportLogistics {
 
 		for (Direction direction : Direction.values()) {
 			if (nbttagcompound.contains("tank[" + direction.ordinal() + "]")) {
-				sideTanks[direction.ordinal()].readFromNBT(nbttagcompound.getCompound("tank[" + direction.ordinal() + "]"));
+				sideTanks[direction.ordinal()].readFromNBT(logisticspipes.utils.RegistryAccessUtil.registries(), nbttagcompound.getCompound("tank[" + direction.ordinal() + "]"));
 			}
 		}
 		if (nbttagcompound.contains("tank[middle]")) {
-			internalTank.readFromNBT(nbttagcompound.getCompound("tank[middle]"));
+			internalTank.readFromNBT(logisticspipes.utils.RegistryAccessUtil.registries(), nbttagcompound.getCompound("tank[middle]"));
 		}
 	}
 
@@ -151,11 +151,11 @@ public class PipeFluidTransportLogistics extends PipeTransportLogistics {
 
 		for (Direction direction : Direction.values()) {
 			CompoundTag subTag = new CompoundTag();
-			sideTanks[direction.ordinal()].writeToNBT(subTag);
+			sideTanks[direction.ordinal()].writeToNBT(logisticspipes.utils.RegistryAccessUtil.registries(), subTag);
 			nbttagcompound.put("tank[" + direction.ordinal() + "]", subTag);
 		}
 		CompoundTag subTag = new CompoundTag();
-		internalTank.writeToNBT(subTag);
+		internalTank.writeToNBT(logisticspipes.utils.RegistryAccessUtil.registries(), subTag);
 		nbttagcompound.put("tank[middle]", subTag);
 	}
 

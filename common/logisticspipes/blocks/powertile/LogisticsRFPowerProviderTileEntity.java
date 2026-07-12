@@ -126,14 +126,14 @@ public class LogisticsRFPowerProviderTileEntity extends LogisticsPowerProviderTi
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
+	protected void loadAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
+		super.loadAdditional(nbt, registries);
 		storage.readFromNBT(nbt);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
+		super.saveAdditional(nbt, registries);
 		storage.writeToNBT(nbt);
 	}
 

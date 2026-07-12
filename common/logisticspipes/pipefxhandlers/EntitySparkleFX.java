@@ -53,19 +53,12 @@ public class EntitySparkleFX extends Particle {
 	// into the VertexConsumer it receives without touching the Tessellator itself.
 	private static final ParticleRenderType SPARKLE_RENDER_TYPE = new ParticleRenderType() {
 		@Override
-		public void begin(BufferBuilder bb, TextureManager textureManager) {
+		public BufferBuilder begin(Tesselator tesselator, TextureManager textureManager) {
 			RenderSystem.enableBlend();
 			RenderSystem.defaultBlendFunc();
 			RenderSystem.depthMask(false);
 			RenderSystem.setShader(GameRenderer::getPositionColorShader);
-			bb.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-		}
-
-		@Override
-		public void end(Tesselator tesselator) {
-			BufferUploader.drawWithShader(tesselator.getBuilder().end());
-			RenderSystem.depthMask(true);
-			RenderSystem.disableBlend();
+			return tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 		}
 
 		@Override
@@ -110,10 +103,10 @@ public class EntitySparkleFX extends Particle {
 	private static void billboardVertex(VertexConsumer buf, double cx, double cy, double cz,
 			org.joml.Vector3f right, org.joml.Vector3f up, float rs, float us,
 			int r, int g, int b, int a) {
-		buf.vertex((float) (cx + right.x * rs + up.x * us),
+		buf.addVertex((float) (cx + right.x * rs + up.x * us),
 		           (float) (cy + right.y * rs + up.y * us),
 		           (float) (cz + right.z * rs + up.z * us))
-		   .color(r, g, b, a).endVertex();
+		   .setColor(r, g, b, a);
 	}
 
 	/**

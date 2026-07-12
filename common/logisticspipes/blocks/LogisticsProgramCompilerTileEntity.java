@@ -84,10 +84,10 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 	}
 
 	public ListTag getListTagForKey(String key) {
-		CompoundTag nbt = this.getInventory().getItem(0).getTag();
+		CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(this.getInventory().getItem(0));
 		if (nbt == null) {
-			this.getInventory().getItem(0).setTag(new CompoundTag());
-			nbt = this.getInventory().getItem(0).getTag();
+			logisticspipes.utils.item.StackTag.setTag(this.getInventory().getItem(0), new CompoundTag());
+			nbt = logisticspipes.utils.item.StackTag.getTag(this.getInventory().getItem(0));
 		}
 
 		if (!nbt.contains(key)) {
@@ -178,11 +178,11 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 						case "flash":
 							if (!getInventory().getItem(1).isEmpty()) {
 								ItemStack programmer = getInventory().getItem(1);
-								if (!programmer.hasTag()) {
-									programmer.setTag(new CompoundTag());
+								if (!logisticspipes.utils.item.StackTag.hasTag(programmer)) {
+									logisticspipes.utils.item.StackTag.setTag(programmer, new CompoundTag());
 								}
-								assert programmer.getTag() != null;
-								programmer.getTag()
+								assert logisticspipes.utils.item.StackTag.getTag(programmer) != null;
+								logisticspipes.utils.item.StackTag.getTag(programmer)
 										.putString(ItemLogisticsProgrammer.RECIPE_TARGET, currentTask.toString());
 							}
 							break;
@@ -218,14 +218,14 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
+	protected void loadAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
 		inventory.readFromNBT(nbt, "programcompilerinv");
-		super.load(nbt);
+		super.loadAdditional(nbt, registries);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
+	protected void saveAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
 		inventory.writeToNBT(nbt, "programcompilerinv");
-		super.saveAdditional(nbt);
+		super.saveAdditional(nbt, registries);
 	}
 }

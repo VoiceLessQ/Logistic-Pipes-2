@@ -10,10 +10,11 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 public class CraftingUtil {
 
-    @SuppressWarnings("unchecked")
     public static Collection<Recipe<?>> getRecipeList() {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return Collections.emptyList();
-        return (Collection<Recipe<?>>) (Collection<?>) server.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING);
+        return server.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
+                .map(holder -> (Recipe<?>) holder.value())
+                .collect(java.util.stream.Collectors.toList());
     }
 }

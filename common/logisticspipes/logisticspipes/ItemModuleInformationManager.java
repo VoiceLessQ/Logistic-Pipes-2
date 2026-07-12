@@ -31,18 +31,18 @@ public class ItemModuleInformationManager {
 			String info2 = "to see the information.";
 			list.add(net.minecraft.nbt.StringTag.valueOf(info1));
 			list.add(net.minecraft.nbt.StringTag.valueOf(info2));
-			if (!stack.hasTag()) {
-				stack.setTag(new CompoundTag());
+			if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
+				logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
 			}
-			CompoundTag tag = Objects.requireNonNull(stack.getTag());
+			CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 			tag.put("informationList", list);
 			tag.putDouble("Random-Stack-Prevent", new Random().nextDouble());
 			return;
 		}
-		if (!stack.hasTag()) {
-			stack.setTag(new CompoundTag());
+		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
+			logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
 		}
-		CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 		tag.put("moduleInformation", nbt);
 		if (module instanceof IClientInformationProvider) {
 			List<String> information = ((IClientInformationProvider) module).getClientInformation();
@@ -61,8 +61,8 @@ public class ItemModuleInformationManager {
 		if (module == null) {
 			return;
 		}
-		if (stack.hasTag()) {
-			CompoundTag nbt = Objects.requireNonNull(stack.getTag());
+		if (logisticspipes.utils.item.StackTag.hasTag(stack)) {
+			CompoundTag nbt = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 			if (nbt.contains("moduleInformation")) {
 				CompoundTag moduleInformation = nbt.getCompound("moduleInformation");
 				module.readFromNBT(moduleInformation);

@@ -187,7 +187,7 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 							return false;
 						}
 						return SimpleServiceLocator.securityStationManager
-								.isAuthorized(UUID.fromString(itemStack.getTag().getString("UUID")));
+								.isAuthorized(UUID.fromString(logisticspipes.utils.item.StackTag.getTag(itemStack).getString("UUID")));
 					}, 1));
 		}
 
@@ -206,7 +206,7 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "security"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
 			ItemStack itemStack = pipe.getOriginalUpgradeManager().secInv.getItem(0);
 			if (!itemStack.isEmpty()) {
-				UUID id = UUID.fromString(itemStack.getTag().getString("UUID"));
+				UUID id = UUID.fromString(logisticspipes.utils.item.StackTag.getTag(itemStack).getString("UUID"));
 				guiGraphics.drawString(font, "Id: ", 10, 68, Color.getValue(Color.DARKER_GREY), false);
 				guiGraphics.drawString(font, ChatColor.BLUE.toString() + id.toString(), 10, 80, Color.getValue(Color.DARKER_GREY), false);
 				guiGraphics.drawString(font, "Authorization: " + (SimpleServiceLocator.securityStationManager.isAuthorized(id) ? ChatColor.GREEN + "Authorized" : ChatColor.RED + "Unauthorized"), 10, 94, Color.getValue(Color.DARKER_GREY), false);

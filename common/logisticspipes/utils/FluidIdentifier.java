@@ -184,20 +184,8 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 		if (stack == null) {
 			return null;
 		}
-		FluidIdentifier proposal = null;
-		IAddInfoProvider prov = null;
-		if (stack instanceof IAddInfoProvider) {
-			prov = (IAddInfoProvider) stack;
-			FluidStackAddInfo info = prov.getLogisticsPipesAddInfo(FluidStackAddInfo.class);
-			if (info != null) {
-				proposal = info.fluid;
-			}
-		}
-		FluidIdentifier ident = FluidIdentifier.get(stack.getFluid(), stack.getTag(), proposal);
-		if (proposal != ident && stack.getTag() == null && prov != null) {
-			prov.setLogisticsPipesAddInfo(new FluidStackAddInfo(ident));
-		}
-		return ident;
+		// FluidStack is final on NeoForge 1.21; the ASM add-info cache path is gone.
+		return FluidIdentifier.get(stack.getFluid(), logisticspipes.utils.item.StackTag.getTag(stack), null);
 	}
 
 	public static FluidIdentifier get(ItemIdentifier stack) {
@@ -259,7 +247,7 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 	public FluidStack makeFluidStack(int amount) {
 		// In 1.20, FluidStack(Fluid, int, CompoundTag) was removed — use setTag()
 		FluidStack fs = new FluidStack(getFluid(), amount);
-		if (tag != null) fs.setTag(tag.copy());
+		if (tag != null) logisticspipes.utils.item.StackTag.setTag(fs, tag.copy());
 		return fs;
 	}
 

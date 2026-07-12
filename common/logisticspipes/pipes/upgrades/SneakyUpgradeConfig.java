@@ -88,10 +88,10 @@ public class SneakyUpgradeConfig implements IConfigPipeUpgrade {
 	@Nullable
 	public Direction getSide(@Nonnull ItemStack stack) {
 		if (stack.isEmpty()) return null;
-		if (!stack.hasTag()) {
-			stack.setTag(new CompoundTag());
+		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
+			logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
 		}
-		CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 		String sideString = tag.getString(SIDE_KEY);
 		return Arrays.stream(Sides.values())
 				.filter(side -> side.getLpName().equals(sideString))

@@ -82,7 +82,7 @@ public class ItemRoutingInformation {
 		nbttagcompound.putInt("transportMode", _transportMode.ordinal());
 
 		CompoundTag nbttagcompound2 = new CompoundTag();
-		getItem().makeNormalStack().save(nbttagcompound2);
+		getItem().makeNormalStack().save(logisticspipes.utils.RegistryAccessUtil.registries(), nbttagcompound2);
 		nbttagcompound.put("Item", nbttagcompound2);
 	}
 

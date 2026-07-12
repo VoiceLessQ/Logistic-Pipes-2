@@ -340,7 +340,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 			writeInt(net.minecraft.core.registries.BuiltInRegistries.ITEM.getId(itemstack.getItem()));
 			writeInt(itemstack.getCount());
 			writeInt(itemstack.getDamageValue());
-			writeCompoundTag(itemstack.getTag());
+			writeCompoundTag(logisticspipes.utils.item.StackTag.getTag(itemstack));
 		}
 	}
 
@@ -492,7 +492,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 	@Override
 	public ResourceLocation readResourceLocation() {
 		if (readBoolean()) {
-			return new ResourceLocation(Objects.requireNonNull(readUTF()));
+			return ResourceLocation.parse(Objects.requireNonNull(readUTF()));
 		}
 		return null;
 	}
@@ -533,7 +533,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 		}
 
 		try {
-			return NbtIo.readCompressed(new ByteArrayInputStream(Objects.requireNonNull(readByteArray())));
+			return NbtIo.readCompressed(new ByteArrayInputStream(Objects.requireNonNull(readByteArray())), net.minecraft.nbt.NbtAccounter.unlimitedHeap());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -637,7 +637,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 		int damage = readInt();
 		ItemStack stack = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.byId(itemId), stackSize);
 		// may be null, see code
-		stack.setTag(readCompoundTag());
+		logisticspipes.utils.item.StackTag.setTag(stack, readCompoundTag());
 		return stack;
 	}
 

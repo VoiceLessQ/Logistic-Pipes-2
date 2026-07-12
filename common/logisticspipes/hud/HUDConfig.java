@@ -12,8 +12,8 @@ public class HUDConfig implements IHUDConfig {
 	private CompoundTag configTag;
 
 	public HUDConfig(@Nonnull ItemStack stack) {
-		this(stack.getTag());
-		stack.setTag(configTag);
+		this(logisticspipes.utils.item.StackTag.getTag(stack));
+		logisticspipes.utils.item.StackTag.setTag(stack, configTag);
 	}
 
 	public HUDConfig(CompoundTag tag) {

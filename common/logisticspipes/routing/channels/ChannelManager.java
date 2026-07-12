@@ -33,7 +33,7 @@ public class ChannelManager implements IChannelManager {
 	public ChannelManager(@Nonnull Level world) {
 		if (world instanceof ServerLevel) {
 			savedData = ((ServerLevel) world).getDataStorage().computeIfAbsent(
-					ChannelSavedData::load, ChannelSavedData::new, DATA_NAME
+					new net.minecraft.world.level.saveddata.SavedData.Factory<>(ChannelSavedData::new, ChannelSavedData::load), DATA_NAME
 			);
 		} else {
 			savedData = new ChannelSavedData();
@@ -119,7 +119,7 @@ public class ChannelManager implements IChannelManager {
 
 		public ChannelSavedData() {}
 
-		public static ChannelSavedData load(CompoundTag nbt) {
+		public static ChannelSavedData load(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
 			ChannelSavedData data = new ChannelSavedData();
 			data.channels = new ArrayList<>();
 			for (int i = 0; i < nbt.getInt("dataSize"); i++) {
@@ -130,7 +130,7 @@ public class ChannelManager implements IChannelManager {
 
 		@Nonnull
 		@Override
-		public CompoundTag save(CompoundTag compound) {
+		public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 			compound.putInt("dataSize", channels.size());
 			for (int i = 0; i < channels.size(); i++) {
 				ChannelInformation channel = channels.get(i);

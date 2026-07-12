@@ -28,16 +28,16 @@ public class ItemLogisticsProgrammer extends LogisticsItem {
 	@Override
 	public ItemStack getCraftingRemainingItem(@Nonnull ItemStack itemStack) {
 		ItemStack items = super.getCraftingRemainingItem(itemStack);
-		items.setTag(itemStack.getTag());
+		logisticspipes.utils.item.StackTag.setTag(items, logisticspipes.utils.item.StackTag.getTag(itemStack));
 		return items;
 	}
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
+	public void appendHoverText(@Nonnull ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldIn, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
 		if (!stack.isEmpty()) {
-			if (stack.hasTag()) {
-				CompoundTag nbt = stack.getTag();
+			if (logisticspipes.utils.item.StackTag.hasTag(stack)) {
+				CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(stack);
 				String target = nbt.getString(RECIPE_TARGET);
 				if (!target.isEmpty()) {
 					Item targetItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ResourceLocation.parse(target));

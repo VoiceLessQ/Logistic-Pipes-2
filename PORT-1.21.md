@@ -57,15 +57,28 @@ Still to verify against live API when the phases reach them:
       FluidIdentifier moved to Capabilities.FluidHandler.ITEM. Also added a
       creative_power_source testing block (CreativePowerSourceBlock/-TileEntity,
       bottomless FE, pushes 1M FE/t to all neighbors; redstone block texture).
-- [ ] 3. Networking bridge. SimpleChannel to RegisterPayloadsEvent /
-      PayloadRegistrar, LPPacketPayload to CustomPacketPayload plus StreamCodec.
-      Keep the index-based packet IDs and the copy/release framing exactly. The
-      174 packet classes do not change.
-- [ ] 4. Events and fluids. Event bus split, TickEvent reshape,
-      MissingMappingsEvent has no equivalent (drop it, there is no 1.12 upgrade
-      path anyway). Fluids package rename plus the FluidStack component changes.
-- [ ] 5. Verify. compileJava and compileKotlin on JDK 21, runClient, cold-load
-      rejoin test, dedicated server launch.
+- [x] 3. Networking bridge. Done 2026-07-12. LPPacketPayload implements
+      CustomPacketPayload (Type + StreamCodec); PayloadRegistrar
+      playBidirectional on RegisterPayloadHandlersEvent; static
+      PacketDistributor sends; framing and index IDs unchanged.
+- [x] 4. Events, fluids, and the wider 1.20.5/1.21 churn. Done 2026-07-12.
+      Tick events to Pre/Post, RenderFrameEvent, RenderGuiLayerEvent,
+      TextureAtlasStitchedEvent, EventBusSubscriber; RegistryObject to
+      DeferredHolder; ForgeConfigSpec to ModConfigSpec (ModContainer
+      registration); ItemStack NBT to CUSTOM_DATA via StackTag shim (~150
+      sites; getTag returns a COPY, mutate-then-setTag); ItemStack/FluidStack
+      save/parse with HolderLookup.Provider (RegistryAccessUtil, dist-safe);
+      BlockEntity load/save/updateTag family with Provider; Block.use split
+      into useWithoutItem/useItemOn; recipes to CraftingInput/RecipeHolder,
+      ShapelessResetRecipe on MapCodec/StreamCodec, NBTIngredient as
+      ICustomIngredient; SavedData Factory; ServerPlayer AT for LP's
+      MenuType-less container flow; renderers to addVertex/setColor and
+      Matrix4fStack; blitRepeating/blitNineSliced replaced with local tilers;
+      pack finder on PackLocationInfo (format 48); JEI 19.21.1.312 API wired.
+      compileJava + compileKotlin GREEN on JDK 21.
+- [ ] 5. Verify. runClient, cold-load rejoin test, dedicated server launch.
+      Then in-game: creative_power_source next to an RF power provider for
+      power testing.
 
 ## Build
 

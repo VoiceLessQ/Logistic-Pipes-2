@@ -60,19 +60,18 @@ public class PipeFXLaserPowerBall extends Particle {
 		float s = this.bbWidth * 0.5f;
 
 		Tesselator tes = Tesselator.getInstance();
-		BufferBuilder bb = tes.getBuilder();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.depthMask(false);
 
 		// Two crossed billboard quads for a glowing ball look
-		bb.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+		BufferBuilder bb = tes.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 		billboardVertex(bb, px, py, pz, right, up,  s,  s, ri, gi, bi, ai);
 		billboardVertex(bb, px, py, pz, right, up, -s,  s, ri, gi, bi, ai);
 		billboardVertex(bb, px, py, pz, right, up, -s, -s, ri, gi, bi, ai);
 		billboardVertex(bb, px, py, pz, right, up,  s, -s, ri, gi, bi, ai);
-		BufferUploader.drawWithShader(bb.end());
+		BufferUploader.drawWithShader(bb.buildOrThrow());
 
 		RenderSystem.depthMask(true);
 		RenderSystem.disableBlend();
@@ -81,9 +80,9 @@ public class PipeFXLaserPowerBall extends Particle {
 	private static void billboardVertex(BufferBuilder bb, double cx, double cy, double cz,
 			org.joml.Vector3f right, org.joml.Vector3f up, float rs, float us,
 			int r, int g, int b, int a) {
-		bb.vertex((float) (cx + right.x * rs + up.x * us),
+		bb.addVertex((float) (cx + right.x * rs + up.x * us),
 				  (float) (cy + right.y * rs + up.y * us),
 				  (float) (cz + right.z * rs + up.z * us))
-		  .color(r, g, b, a).endVertex();
+		  .setColor(r, g, b, a);
 	}
 }

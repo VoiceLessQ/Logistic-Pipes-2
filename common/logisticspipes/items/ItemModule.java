@@ -185,10 +185,10 @@ public class ItemModule extends LogisticsItem {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<Component> tooltip,
+	public void appendHoverText(@Nonnull ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldIn, java.util.List<Component> tooltip,
 			TooltipFlag flagIn) {
-		if (stack.hasTag()) {
-			CompoundTag nbt = stack.getTag();
+		if (logisticspipes.utils.item.StackTag.hasTag(stack)) {
+			CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(stack);
 			assert nbt != null;
 
 			if (nbt.contains("informationList")) {

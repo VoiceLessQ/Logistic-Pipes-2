@@ -229,8 +229,8 @@ public abstract class LogisticsPowerProviderTileEntity extends LogisticsSolidTil
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
+	protected void loadAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
+		super.loadAdditional(nbt, registries);
 		if (nbt.get("internalStorage") instanceof FloatTag) { // support for old float
 			internalStorage = nbt.getFloat("internalStorage");
 		} else {
@@ -241,8 +241,8 @@ public abstract class LogisticsPowerProviderTileEntity extends LogisticsSolidTil
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
+		super.saveAdditional(nbt, registries);
 		nbt.putDouble("internalStorageDouble", internalStorage);
 		nbt.putInt("maxMode", maxMode);
 	}

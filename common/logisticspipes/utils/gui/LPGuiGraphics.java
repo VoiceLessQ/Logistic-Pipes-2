@@ -106,7 +106,7 @@ public final class LPGuiGraphics {
 		int x = (Integer) tooltip[0] - (forceAdd ? 0 : guiLeft) + 12;
 		int y = (Integer) tooltip[1] - (forceAdd ? 0 : guiTop) - 12;
 		// NEI render hook removed (former dummy always returned false) — always draw our own tooltip.
-		LPGuiGraphics.drawToolTip(x, y, tooltipLines, stack.getRarity().color);
+		LPGuiGraphics.drawToolTip(x, y, tooltipLines, stack.getRarity().color());
 
 		LPGuiGraphics.zLevel = 0;
 	}
@@ -304,17 +304,29 @@ public final class LPGuiGraphics {
 
 		// Edges (tiled)
 		if (innerW > 0) {
-			if (displayTop)    gg.blitRepeating(BACKGROUND_TEXTURE, innerX, guiTop,        innerW, BORDER, BORDER, 0,      BORDER, BORDER, TEX, TEX);
-			if (displayBottom) gg.blitRepeating(BACKGROUND_TEXTURE, innerX, bottom-BORDER, innerW, BORDER, BORDER, 30,     BORDER, BORDER, TEX, TEX);
+			if (displayTop)    blitTiled(gg, BACKGROUND_TEXTURE, innerX, guiTop,        innerW, BORDER, BORDER, 0,      BORDER, BORDER);
+			if (displayBottom) blitTiled(gg, BACKGROUND_TEXTURE, innerX, bottom-BORDER, innerW, BORDER, BORDER, 30,     BORDER, BORDER);
 		}
 		if (innerH > 0) {
-			if (displayLeft)   gg.blitRepeating(BACKGROUND_TEXTURE, guiLeft,        innerY, BORDER, innerH, 0,  BORDER, BORDER, BORDER, TEX, TEX);
-			if (displayRight)  gg.blitRepeating(BACKGROUND_TEXTURE, right - BORDER, innerY, BORDER, innerH, 30, BORDER, BORDER, BORDER, TEX, TEX);
+			if (displayLeft)   blitTiled(gg, BACKGROUND_TEXTURE, guiLeft,        innerY, BORDER, innerH, 0,  BORDER, BORDER, BORDER);
+			if (displayRight)  blitTiled(gg, BACKGROUND_TEXTURE, right - BORDER, innerY, BORDER, innerH, 30, BORDER, BORDER, BORDER);
 		}
 
 		// Center (always drawn)
 		if (innerW > 0 && innerH > 0) {
-			gg.blitRepeating(BACKGROUND_TEXTURE, innerX, innerY, innerW, innerH, BORDER, BORDER, BORDER, BORDER, TEX, TEX);
+			blitTiled(gg, BACKGROUND_TEXTURE, innerX, innerY, innerW, innerH, BORDER, BORDER, BORDER, BORDER);
+		}
+	}
+
+	/** GuiGraphics.blitRepeating was removed in 1.21; tile the (u,v,tileW,tileH) region over the area. */
+	private static void blitTiled(net.minecraft.client.gui.GuiGraphics gg, net.minecraft.resources.ResourceLocation texture,
+			int x, int y, int w, int h, int u, int v, int tileW, int tileH) {
+		for (int dx = 0; dx < w; dx += tileW) {
+			int cw = Math.min(tileW, w - dx);
+			for (int dy = 0; dy < h; dy += tileH) {
+				int ch = Math.min(tileH, h - dy);
+				gg.blit(texture, x + dx, y + dy, (float) u, (float) v, cw, ch, 45, 45); // BACKGROUND_TEXTURE is 45x45
+			}
 		}
 	}
 }

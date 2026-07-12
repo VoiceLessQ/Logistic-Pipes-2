@@ -35,10 +35,10 @@ public class DiskSetNamePacket extends StringCoordinatesPacket {
 			if (!((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().getItem().equals(LPItems.disk.get())) {
 				return;
 			}
-			if (!((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().hasTag()) {
-				((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().setTag(new CompoundTag());
+			if (!logisticspipes.utils.item.StackTag.hasTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk())) {
+				logisticspipes.utils.item.StackTag.setTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk(), new CompoundTag());
 			}
-			CompoundTag nbt = ((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().getTag();
+			CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk());
 			nbt.putString("name", getString());
 		}
 	}

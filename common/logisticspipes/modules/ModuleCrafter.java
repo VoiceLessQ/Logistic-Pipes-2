@@ -816,8 +816,7 @@ public class ModuleCrafter extends LogisticsModule
 					.anyMatch(provider -> provider.canOpenGui(neighbor.getTileEntity()))) {
 				final BlockPos pos = neighbor.getTileEntity().getBlockPos();
 				BlockState blockState = worldProvider.getWorld().getBlockState(pos);
-				return !blockState.isAir() && blockState.getBlock()
-						.use(blockState, worldProvider.getWorld(), pos, player, InteractionHand.MAIN_HAND,
+				return !blockState.isAir() && blockState.useWithoutItem(worldProvider.getWorld(), player,
 								new net.minecraft.world.phys.BlockHitResult(
 										net.minecraft.world.phys.Vec3.atCenterOf(pos),
 										net.minecraft.core.Direction.UP, pos, false))
@@ -1128,7 +1127,7 @@ public class ModuleCrafter extends LogisticsModule
 				if (!ItemStack.isSameItem(retStack, stack)) {
 					break;
 				}
-				if (!ItemStack.isSameItemSameTags(retStack, stack)) {
+				if (!ItemStack.isSameItemSameComponents(retStack, stack)) {
 					break;
 				}
 			}
