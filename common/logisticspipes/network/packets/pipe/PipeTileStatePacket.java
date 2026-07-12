@@ -72,7 +72,9 @@ public class PipeTileStatePacket extends CoordinatesPacket {
 		IClientState[] clientStates = new IClientState[] { renderState, coreState, pipe };
 		byte[][] clientStateBuffers = new byte[][] { bytesRenderState, bytesCoreState, bytesPipe };
 		for (int i = 0; i < clientStates.length; i++) {
-			clientStateBuffers[i] = LPDataIOWrapper.collectData(clientStates[i]::writeData);
+			// pipe may be null for a BE whose pipe item failed to load (readData tolerates empty)
+			IClientState state = clientStates[i];
+			clientStateBuffers[i] = state == null ? new byte[0] : LPDataIOWrapper.collectData(state::writeData);
 			output.writeByteArray(clientStateBuffers[i]);
 		}
 

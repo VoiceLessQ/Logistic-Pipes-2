@@ -88,7 +88,9 @@ public class EntitySparkleFX extends Particle {
 		rot.transform(right);
 		rot.transform(up);
 
-		float s = this.bbWidth * 0.5f;
+		// LP1: half-extent = 0.1 * particleScale * lifeFade (always shrinking).
+		// bbWidth = 0.2 * scalemult here, so 0.1 * bbWidth ~ LP1's 0.02 * scalemult.
+		float s = 0.1f * this.bbWidth * ((float) (lifetime - age + 1) / (float) lifetime);
 		int r = (int) (rCol * 255);
 		int g = (int) (gCol * 255);
 		int b = (int) (bCol * 255);

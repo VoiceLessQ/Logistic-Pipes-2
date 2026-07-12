@@ -178,12 +178,10 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 						case "flash":
 							if (!getInventory().getItem(1).isEmpty()) {
 								ItemStack programmer = getInventory().getItem(1);
-								if (!logisticspipes.utils.item.StackTag.hasTag(programmer)) {
-									logisticspipes.utils.item.StackTag.setTag(programmer, new CompoundTag());
-								}
-								assert logisticspipes.utils.item.StackTag.getTag(programmer) != null;
-								logisticspipes.utils.item.StackTag.getTag(programmer)
-										.putString(ItemLogisticsProgrammer.RECIPE_TARGET, currentTask.toString());
+								CompoundTag programmerTag = logisticspipes.utils.item.StackTag.getTag(programmer);
+								if (programmerTag == null) programmerTag = new CompoundTag();
+								programmerTag.putString(ItemLogisticsProgrammer.RECIPE_TARGET, currentTask.toString());
+								logisticspipes.utils.item.StackTag.setTag(programmer, programmerTag);
 							}
 							break;
 						default:

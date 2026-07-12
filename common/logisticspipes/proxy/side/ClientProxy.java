@@ -108,6 +108,14 @@ public class ClientProxy implements IProxy {
 
 	@Override
 	public LogisticsTileGenericPipe getPipeInDimensionAt(ResourceLocation dimension, int x, int y, int z, Player player) {
+		// Server-side packet handlers run through this proxy in single-player; resolve
+		// against the server level for a ServerPlayer or the wrong-side pipe (ClientRouter)
+		// is returned.
+		if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+			Level serverLevel = serverPlayer.server.getLevel(
+					net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION, dimension));
+			return getPipe(serverLevel, x, y, z);
+		}
 		Level level = Minecraft.getInstance().level;
 		if (level == null) return null;
 		if (!level.dimension().location().equals(dimension)) return null;

@@ -136,15 +136,36 @@ dependencies {
     // serialization as a mod module on the ModLauncher path at runtime and acts
     // as the language provider (modLoader = "kotlinforforge").
     implementation "thedarkcolour:kotlinforforge-neoforge:${kff_version}"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
-    implementation "org.jetbrains:annotations:${kannotations_version}"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${kcoroutines_version}"
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${kserialization_version}"
-    implementation "com.charleskorn.kaml:kaml:${kaml_version}"
+    // compileOnly: KFF supplies kotlin stdlib/coroutines/serialization at runtime;
+    // having them on the runtime module path too breaks module resolution
+    // ("reads more than one module named kotlin.stdlib.jdk8").
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    compileOnly "org.jetbrains:annotations:${kannotations_version}"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:${kcoroutines_version}"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-serialization-json:${kserialization_version}"
+    apiCompileOnly "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
+    apiCompileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    apiCompileOnly "org.jetbrains:annotations:${kannotations_version}"
+    // Tests run without KFF, so they need the Kotlin runtime directly.
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:${kcoroutines_version}"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-serialization-json:${kserialization_version}"
+    implementation("com.charleskorn.kaml:kaml:${kaml_version}") {
+        // KFF provides the Kotlin runtime as a module; a transitive copy on the
+        // classpath breaks module resolution (duplicate kotlin.stdlib).
+        transitive = false
+    }
+    compileOnly "com.charleskorn.kaml:kaml-jvm:${kaml_version}"
+
 
     // Bundled libs also need to be on the dev runtime classpath.
-    additionalRuntimeClasspath "com.charleskorn.kaml:kaml:${kaml_version}"
+    additionalRuntimeClasspath("com.charleskorn.kaml:kaml:${kaml_version}") {
+        transitive = false
+    }
+    additionalRuntimeClasspath("com.charleskorn.kaml:kaml-jvm:${kaml_version}") {
+        transitive = false
+    }
     additionalRuntimeClasspath 'org.snakeyaml:snakeyaml-engine:2.3'
 
     // JEI API for compile; runtime JEI is optional.

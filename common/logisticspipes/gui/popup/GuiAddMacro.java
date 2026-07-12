@@ -132,7 +132,9 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 			}
 
 			boolean flag = false;
-			ListTag list = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk()).getList("macroList", 10);
+			CompoundTag diskTag = logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk());
+			if (diskTag == null) diskTag = new CompoundTag();
+			ListTag list = diskTag.getList("macroList", 10);
 
 			for (int i = 0; i < list.size(); i++) {
 				CompoundTag tag = list.getCompound(i);
@@ -149,7 +151,8 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 				nbt.put("inventar", inventar);
 				list.add(nbt);
 			}
-			logisticspipes.utils.item.StackTag.getTag(diskProvider.getDisk()).put("macroList", list);
+			diskTag.put("macroList", list);
+			logisticspipes.utils.item.StackTag.setTag(diskProvider.getDisk(), diskTag);
 			MainProxy.sendPacketToServer(PacketHandler.getPacket(DiscContent.class).setStack(diskProvider.getDisk()).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
 			exitGui();
 		} else if (macroItems.size() != 0) {

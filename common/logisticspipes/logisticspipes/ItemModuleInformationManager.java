@@ -31,18 +31,15 @@ public class ItemModuleInformationManager {
 			String info2 = "to see the information.";
 			list.add(net.minecraft.nbt.StringTag.valueOf(info1));
 			list.add(net.minecraft.nbt.StringTag.valueOf(info2));
-			if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
-				logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
-			}
-			CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
+			CompoundTag tag = logisticspipes.utils.item.StackTag.getTag(stack);
+			if (tag == null) tag = new CompoundTag();
 			tag.put("informationList", list);
 			tag.putDouble("Random-Stack-Prevent", new Random().nextDouble());
+			logisticspipes.utils.item.StackTag.setTag(stack, tag);
 			return;
 		}
-		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
-			logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
-		}
-		CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
+		CompoundTag tag = logisticspipes.utils.item.StackTag.getTag(stack);
+		if (tag == null) tag = new CompoundTag();
 		tag.put("moduleInformation", nbt);
 		if (module instanceof IClientInformationProvider) {
 			List<String> information = ((IClientInformationProvider) module).getClientInformation();
@@ -55,6 +52,7 @@ public class ItemModuleInformationManager {
 			}
 		}
 		tag.putDouble("Random-Stack-Prevent", new Random().nextDouble());
+		logisticspipes.utils.item.StackTag.setTag(stack, tag);
 	}
 
 	public static void readInformation(@Nonnull ItemStack stack, LogisticsModule module) {

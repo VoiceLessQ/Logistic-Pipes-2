@@ -113,7 +113,9 @@ object GuiDrawer {
         // TODO: texture-atlas sprite blit — no widget GUI calls this yet; port alongside guide book work.
     }
 
-    private val VANILLA_WIDGETS = ResourceLocation.withDefaultNamespace("textures/gui/widgets.png")
+    private val BUTTON_SPRITE = ResourceLocation.withDefaultNamespace("widget/button")
+    private val BUTTON_SPRITE_HOVER = ResourceLocation.withDefaultNamespace("widget/button_highlighted")
+    private val BUTTON_SPRITE_DISABLED = ResourceLocation.withDefaultNamespace("widget/button_disabled")
 
     fun drawBorderedTile(
         rect: IRectangle,
@@ -123,38 +125,14 @@ object GuiDrawer {
         thickerBottomBorder: Boolean,
     ) {
         val gg = SimpleGraphics.guiGraphics ?: return
-        val textureY = 46 + when {
-            !enabled -> 0
-            hovered -> 2
-            else -> 1
-        } * 20
-        // Nine-slice of the 200x20 vanilla button texture: 20px horizontal and 4px vertical
-        // borders, middle stretched (blitNineSliced was removed in 1.20.2+).
-        val x = rect.roundedLeft
-        val y = rect.roundedTop
-        val w = rect.roundedWidth
-        val h = rect.roundedHeight
-        val bw = minOf(20, w / 2)
-        val bh = minOf(4, h / 2)
-        val v = textureY.toFloat()
-        // corners
-        gg.blit(VANILLA_WIDGETS, x, y, bw, bh, 0f, v, bw, bh, 256, 256)
-        gg.blit(VANILLA_WIDGETS, x + w - bw, y, bw, bh, (200 - bw).toFloat(), v, bw, bh, 256, 256)
-        gg.blit(VANILLA_WIDGETS, x, y + h - bh, bw, bh, 0f, v + 20 - bh, bw, bh, 256, 256)
-        gg.blit(VANILLA_WIDGETS, x + w - bw, y + h - bh, bw, bh, (200 - bw).toFloat(), v + 20 - bh, bw, bh, 256, 256)
-        // edges
-        if (w > 2 * bw) {
-            gg.blit(VANILLA_WIDGETS, x + bw, y, w - 2 * bw, bh, bw.toFloat(), v, 200 - 2 * bw, bh, 256, 256)
-            gg.blit(VANILLA_WIDGETS, x + bw, y + h - bh, w - 2 * bw, bh, bw.toFloat(), v + 20 - bh, 200 - 2 * bw, bh, 256, 256)
+        // widgets.png was split into GUI sprites in 1.20.2; blitSprite nine-slices
+        // via the sprite's mcmeta, replacing the old manual 200x20 slicing.
+        val sprite = when {
+            !enabled -> BUTTON_SPRITE_DISABLED
+            hovered -> BUTTON_SPRITE_HOVER
+            else -> BUTTON_SPRITE
         }
-        if (h > 2 * bh) {
-            gg.blit(VANILLA_WIDGETS, x, y + bh, bw, h - 2 * bh, 0f, v + bh, bw, 20 - 2 * bh, 256, 256)
-            gg.blit(VANILLA_WIDGETS, x + w - bw, y + bh, bw, h - 2 * bh, (200 - bw).toFloat(), v + bh, bw, 20 - 2 * bh, 256, 256)
-        }
-        // center
-        if (w > 2 * bw && h > 2 * bh) {
-            gg.blit(VANILLA_WIDGETS, x + bw, y + bh, w - 2 * bw, h - 2 * bh, bw.toFloat(), v + bh, 200 - 2 * bw, 20 - 2 * bh, 256, 256)
-        }
+        gg.blitSprite(sprite, rect.roundedLeft, rect.roundedTop, rect.roundedWidth, rect.roundedHeight)
     }
 
     fun drawGuideBookFrame(rect: IRectangle, slider: IRectangle) {

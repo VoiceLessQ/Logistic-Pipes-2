@@ -27,7 +27,9 @@ public final class StackTag {
 	}
 
 	public static void setTag(ItemStack stack, @Nullable CompoundTag tag) {
-		if (tag == null || tag.isEmpty()) {
+		// Only null removes; an EMPTY tag stays present, matching vanilla setTag semantics
+		// (callers do setTag(new CompoundTag()) then expect hasTag()/getTag() != null).
+		if (tag == null) {
 			stack.remove(DataComponents.CUSTOM_DATA);
 		} else {
 			stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
