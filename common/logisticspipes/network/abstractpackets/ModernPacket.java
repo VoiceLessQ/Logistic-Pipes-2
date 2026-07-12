@@ -35,7 +35,7 @@ public abstract class ModernPacket {
 	@Setter
 	private int debugId = 0;
 	@Getter
-	private ResourceLocation dimension = new ResourceLocation("minecraft", "overworld");
+	private ResourceLocation dimension = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
 
 	public List<IPacketContent<?>> content = Collections.emptyList();
 
@@ -55,7 +55,7 @@ public abstract class ModernPacket {
 
 	public void readData(LPDataInput input) {
 		ResourceLocation rl = input.readResourceLocation();
-		dimension = rl != null ? rl : new ResourceLocation("minecraft", "overworld");
+		dimension = rl != null ? rl : ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
 		content.forEach(it -> it.readData(input));
 	}
 

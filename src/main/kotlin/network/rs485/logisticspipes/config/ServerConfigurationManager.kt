@@ -56,7 +56,7 @@ class ServerConfigurationManager {
     private val internalRepresentation: ServerConfiguration
 
     init {
-        configFile = ServerLifecycleHooks.getCurrentServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).resolve(fileName).toFile()
+        configFile = ServerLifecycleHooks.getCurrentServer()!!.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).resolve(fileName).toFile()
         internalRepresentation = try {
             configFile.bufferedReader(Charsets.UTF_8).use {
                 gson.fromJson(gson.newJsonReader(it), ServerConfiguration::class.java)

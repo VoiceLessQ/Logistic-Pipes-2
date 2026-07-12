@@ -102,7 +102,7 @@ abstract class BaseGuiContainer(
     override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
         SimpleGraphics.guiGraphics = guiGraphics
         lastPartialTick = partialTick
-        renderBackground(guiGraphics)
+        renderBackground(guiGraphics, mouseX, mouseY, partialTick)
         super.render(guiGraphics, mouseX, mouseY, partialTick)
     }
 

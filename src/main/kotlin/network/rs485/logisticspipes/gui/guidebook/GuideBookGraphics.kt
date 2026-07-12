@@ -56,8 +56,8 @@ import net.minecraft.resources.ResourceLocation
 internal object GuideBookGraphics {
 
     const val ATLAS_SIZE = 256
-    val GUI_ATLAS = ResourceLocation(LPConstants.LP_MOD_ID, "textures/gui/gui.png")
-    val GUI_DARK_PATTERN = ResourceLocation(LPConstants.LP_MOD_ID, "textures/gui/dark.png")
+    val GUI_ATLAS = ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "textures/gui/gui.png")
+    val GUI_DARK_PATTERN = ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "textures/gui/dark.png")
 
     /**
      * Blits a region of the guide book atlas. The destination rectangle is screen-space; the texture
@@ -101,16 +101,9 @@ internal object GuideBookGraphics {
         RenderSystem.enableBlend()
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f)
         // Frame: source region (0,0)-(64,64) with a 24px border on each edge.
-        guiGraphics.blitNineSliced(
-            GUI_ATLAS,
-            frame.roundedLeft,
-            frame.roundedTop,
-            frame.roundedWidth,
-            frame.roundedHeight,
-            24, 24,
-            64, 64,
-            0, 0,
-        )
+        // blitNineSliced was removed in 1.20.2+; nine-slice by hand (corners fixed,
+        // edges/center stretched).
+        blitNineSlice(guiGraphics, frame.roundedLeft, frame.roundedTop, frame.roundedWidth, frame.roundedHeight, 24, 64, 64, 0, 0)
         // Slider rail/separator: source region (96,64)-(112,80) with 1px top/bottom caps and the
         // middle STRETCHED, like LP1's BorderedRectangle(slider, 1, 0, 1, 0). blitNineSliced is
         // wrong here: it TILES the edges/center (blitRepeating), and the 18px-wide destination from
@@ -151,6 +144,35 @@ internal object GuideBookGraphics {
                 y += tile
             }
             x += tile
+        }
+    }
+
+    /** Manual nine-slice: fixed [border]px corners, stretched edges and center. */
+    fun blitNineSlice(g: GuiGraphics, x: Int, y: Int, w: Int, h: Int, border: Int, srcW: Int, srcH: Int, u: Int, v: Int) {
+        val b = border
+        val cw = w - 2 * b // destination center width
+        val ch = h - 2 * b // destination center height
+        val scw = srcW - 2 * b
+        val sch = srcH - 2 * b
+        val uf = u.toFloat()
+        val vf = v.toFloat()
+        // corners
+        g.blit(GUI_ATLAS, x, y, b, b, uf, vf, b, b, ATLAS_SIZE, ATLAS_SIZE)
+        g.blit(GUI_ATLAS, x + w - b, y, b, b, uf + srcW - b, vf, b, b, ATLAS_SIZE, ATLAS_SIZE)
+        g.blit(GUI_ATLAS, x, y + h - b, b, b, uf, vf + srcH - b, b, b, ATLAS_SIZE, ATLAS_SIZE)
+        g.blit(GUI_ATLAS, x + w - b, y + h - b, b, b, uf + srcW - b, vf + srcH - b, b, b, ATLAS_SIZE, ATLAS_SIZE)
+        if (cw > 0) {
+            // top and bottom edges
+            g.blit(GUI_ATLAS, x + b, y, cw, b, uf + b, vf, scw, b, ATLAS_SIZE, ATLAS_SIZE)
+            g.blit(GUI_ATLAS, x + b, y + h - b, cw, b, uf + b, vf + srcH - b, scw, b, ATLAS_SIZE, ATLAS_SIZE)
+        }
+        if (ch > 0) {
+            // left and right edges
+            g.blit(GUI_ATLAS, x, y + b, b, ch, uf, vf + b, b, sch, ATLAS_SIZE, ATLAS_SIZE)
+            g.blit(GUI_ATLAS, x + w - b, y + b, b, ch, uf + srcW - b, vf + b, b, sch, ATLAS_SIZE, ATLAS_SIZE)
+        }
+        if (cw > 0 && ch > 0) {
+            g.blit(GUI_ATLAS, x + b, y + b, cw, ch, uf + b, vf + b, scw, sch, ATLAS_SIZE, ATLAS_SIZE)
         }
     }
 

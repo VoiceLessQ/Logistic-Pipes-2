@@ -1,7 +1,5 @@
 package logisticspipes.blocks.crafting;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;

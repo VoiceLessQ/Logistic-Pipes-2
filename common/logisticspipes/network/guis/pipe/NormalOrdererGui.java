@@ -15,7 +15,7 @@ import network.rs485.logisticspipes.util.LPDataOutput;
 @StaticResolve
 public class NormalOrdererGui extends CoordinatesGuiProvider {
 
-	private ResourceLocation dim = new ResourceLocation("minecraft", "overworld");
+	private ResourceLocation dim = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
 
 	public NormalOrdererGui(int id) {
 		super(id);

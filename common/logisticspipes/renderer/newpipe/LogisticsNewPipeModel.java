@@ -23,7 +23,7 @@ import logisticspipes.proxy.object3d.interfaces.TextureTransformation;
 @OnlyIn(Dist.CLIENT)
 public class LogisticsNewPipeModel {
 
-	private static final ResourceLocation BASE_TEXTURE = new ResourceLocation("logisticspipes", "blocks/blank_pipe");
+	private static final ResourceLocation BASE_TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "blocks/blank_pipe");
 	public static TextureAtlasSprite BASE_TEXTURE_SPRITE;
 	public static TextureTransformation BASE_TEXTURE_TRANSFORM;
 

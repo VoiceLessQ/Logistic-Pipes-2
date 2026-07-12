@@ -33,7 +33,7 @@ public class GuiPowerProvider extends LogisticsBaseGuiScreen {
 	}
 
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/power_junction.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/power_junction.png");
 
 	@Override
 	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float var1, int var2, int var3) {

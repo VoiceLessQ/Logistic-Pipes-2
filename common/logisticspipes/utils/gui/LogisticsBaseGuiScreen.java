@@ -58,7 +58,7 @@ public abstract class LogisticsBaseGuiScreen extends AbstractContainerScreen imp
 		// INEIGuiHandler — added at runtime by @ModDependentInterface ASM when NEI is present
 		IGuiAccess {
 
-	protected static final ResourceLocation ITEMSINK = new ResourceLocation("logisticspipes", "textures/gui/itemsink.png");
+	protected static final ResourceLocation ITEMSINK = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/itemsink.png");
 
 	@Getter
 	protected int right;

@@ -48,7 +48,7 @@ public class SCurveTubeRenderer implements ISpecialPipeRenderer, IHighlightPlace
 	//Tube global Access
 	public static Map<TurnSDirection, IModel3D> tubeSCurve = new HashMap<>();
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/blocks/pipes/hs-tube.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/blocks/pipes/hs-tube.png");
 
 	public static void loadModels() {
 		try {

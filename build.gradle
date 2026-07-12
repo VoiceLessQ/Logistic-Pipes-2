@@ -147,9 +147,9 @@ dependencies {
     additionalRuntimeClasspath "com.charleskorn.kaml:kaml:${kaml_version}"
     additionalRuntimeClasspath 'org.snakeyaml:snakeyaml-engine:2.3'
 
-    // JEI. Coordinates for 1.21.1 pending; kept off until the 1.21.1 artifact is
-    // wired (see PORT-1.21.md).
-    // compileOnly "mezz.jei:jei-1.21.1-neoforge-api:<ver>"
+    // JEI API for compile; runtime JEI is optional.
+    compileOnly "mezz.jei:jei-1.21.1-common-api:19.21.1.312"
+    compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.21.1.312"
 
     ktlint("com.pinterest:ktlint:0.50.0") {
         attributes {

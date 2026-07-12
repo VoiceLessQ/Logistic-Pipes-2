@@ -5,8 +5,7 @@ import java.util.LinkedList;
 import java.util.concurrent.Callable;
 
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.TickEvent.Phase;
-import net.neoforged.neoforge.event.TickEvent.ServerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 import logisticspipes.proxy.MainProxy;
 import logisticspipes.transport.LPTravelingItem;
@@ -31,10 +30,7 @@ public class QueuedTasks {
 
 	@SuppressWarnings({ "rawtypes" })
 	@SubscribeEvent
-	public void tickEnd(ServerTickEvent event) {
-		if (event.phase != Phase.END) {
-			return;
-		}
+	public void tickEnd(ServerTickEvent.Post event) {
 		Callable call;
 		while (!QueuedTasks.queue.isEmpty()) {
 			synchronized (QueuedTasks.queue) {

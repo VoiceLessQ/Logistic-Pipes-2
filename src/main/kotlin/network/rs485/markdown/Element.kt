@@ -70,7 +70,7 @@ class ItemLink(translationKey: String) : Link() {
     init {
         stack = if (translationKey.isNotEmpty() && translationKey.contains(":")) {
             val resourceLocation = translationKey.split(":").let { it ->
-                ResourceLocation(
+                ResourceLocation.fromNamespaceAndPath(
                         it.getOrElse(0) { "logisticspipes" },
                         it.getOrElse(1) { "broken_item" }
                 )

@@ -48,7 +48,7 @@ public class GainTubeRenderer implements ISpecialPipeRenderer, IHighlightPlaceme
 	//Tube global Access
 	public static Map<TubeGainRenderOrientation, IModel3D> tubeGain = new HashMap<>();
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/blocks/pipes/hs-tube.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/blocks/pipes/hs-tube.png");
 
 	public static void loadModels() {
 		try {

@@ -46,7 +46,7 @@ public class GuiFluidSupplier extends ModuleBaseGui {
 		guiGraphics.drawString(minecraft.font, "Inventory", 8, imageHeight - 92, 0x404040, false);
 	}
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/itemsink.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/itemsink.png");
 
 	@Override
 	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int x, int y) {

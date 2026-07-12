@@ -10,7 +10,7 @@ import logisticspipes.proxy.object3d.interfaces.IModel3D;
 @Data
 public class RenderEntry {
 
-	private static final ResourceLocation BLOCKS = new ResourceLocation("textures/atlas/blocks.png");
+	private static final ResourceLocation BLOCKS = ResourceLocation.parse("textures/atlas/blocks.png");
 
 	public RenderEntry(IModel3D model, I3DOperation[] operations, ResourceLocation texture) {
 		this.model = model;

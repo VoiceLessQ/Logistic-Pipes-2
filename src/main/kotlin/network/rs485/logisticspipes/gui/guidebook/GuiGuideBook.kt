@@ -256,7 +256,7 @@ class GuiGuideBook(private val state: ItemGuideBook.GuideBookState) : Screen(Com
         SimpleGraphics.guiGraphics = guiGraphics
         try {
             // Darken the world behind the book (equivalent of LP1's drawDefaultBackground).
-            renderBackground(guiGraphics)
+            renderBackground(guiGraphics, mouseX, mouseY, partialTick)
 
             // Background panel (equivalent of LP1's GuiDrawer.drawGuideBookBackground): a tiled dark
             // pattern inset 16px from the outer rectangle, so it sits behind the 24px frame border.
@@ -334,11 +334,11 @@ class GuiGuideBook(private val state: ItemGuideBook.GuideBookState) : Screen(Com
         return false
     }
 
-    override fun mouseScrolled(mouseX: Double, mouseY: Double, delta: Double): Boolean {
+    override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, scrollY: Double): Boolean {
         if (state.currentPage.getExtraHeight(visibleArea) > 0 && this::slider.isInitialized) {
-            slider.changeProgress((delta * -GuiDrawer.lpFontRenderer.getFontHeight(1.0f)).toInt())
+            slider.changeProgress((scrollY * -GuiDrawer.lpFontRenderer.getFontHeight(1.0f)).toInt())
         }
-        return super.mouseScrolled(mouseX, mouseY, delta)
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)
     }
 
     private fun addBookmark() = state.currentPage.takeIf { isTabAbsent(it) && tabButtons.size < maxTabs }

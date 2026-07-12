@@ -16,7 +16,6 @@ import net.neoforged.neoforge.event.level.ChunkDataEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.neoforged.neoforge.registries.MissingMappingsEvent;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -159,44 +158,6 @@ public class MissingMappingHandler {
 	private List<String> ignoreItems = Arrays.asList(
 			"solid_block", "tile.logisticssolidblock"
 	);
-
-	@SubscribeEvent
-	public void onMissingMappings(MissingMappingsEvent event) {
-		for (MissingMappingsEvent.Mapping<Item> mapping : event.getMappings(Registries.ITEM, LPConstants.LP_MOD_ID)) {
-			String oldKey = mapping.getKey().getPath();
-			if (ignoreItems.contains(oldKey)) {
-				mapping.ignore();
-				continue;
-			}
-			String newKey = itemIDMap.get(oldKey);
-			if (newKey != null) {
-				Item newItem = BuiltInRegistries.ITEM.get(new ResourceLocation(LPConstants.LP_MOD_ID, newKey));
-				if (newItem != null) {
-					mapping.remap(newItem);
-				}
-			}
-		}
-		for (MissingMappingsEvent.Mapping<Block> mapping : event.getMappings(Registries.BLOCK, LPConstants.LP_MOD_ID)) {
-			String oldKey = mapping.getKey().getPath();
-			String newKey = blockIDMap.get(oldKey);
-			if (newKey != null) {
-				Block newBlock = BuiltInRegistries.BLOCK.get(new ResourceLocation(LPConstants.LP_MOD_ID, newKey));
-				if (newBlock != null) {
-					mapping.remap(newBlock);
-				}
-			}
-		}
-		// Block entity types: old 1.12.2 Forge entries were stored as "minecraft:<classname>".
-		// We only remap keys that are in our map so other mods' "minecraft:"-namespaced BEs are untouched.
-		for (MissingMappingsEvent.Mapping<BlockEntityType<?>> mapping : event.getMappings(Registries.BLOCK_ENTITY_TYPE, "minecraft")) {
-			String newRl = BE_TYPE_ID_MAP.get(mapping.getKey().toString());
-			if (newRl == null) continue;
-			BlockEntityType<?> newType = BuiltInRegistries.BLOCK_ENTITY_TYPE.get(new ResourceLocation(newRl));
-			if (newType != null) {
-				mapping.remap(newType);
-			}
-		}
-	}
 
 	// Solid block items in 1.12.2 used a single registry key ("logisticspipes:solid_block") with
 	// a Damage metadata value to distinguish variants. In 1.20.1 each variant is its own item.

@@ -53,7 +53,7 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 	private static final ExecutorService pool = Executors.newFixedThreadPool(1);
 	private static final int LIQUID_STAGES = 40;
 	private static final int MAX_ITEMS_TO_RENDER = 10;
-	private static final ResourceLocation SIGN = new ResourceLocation("textures/entity/sign.png");
+	private static final ResourceLocation SIGN = ResourceLocation.parse("textures/entity/sign.png");
 	public static LogisticsNewRenderPipe secondRenderer = new LogisticsNewRenderPipe();
 	public static LogisticsNewPipeItemBoxRenderer boxRenderer = new LogisticsNewPipeItemBoxRenderer();
 	public static ClientConfiguration config = LogisticsPipes.getClientPlayerConfig();
@@ -181,7 +181,7 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 		if (requestTableIcon == null) {
 			net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = Minecraft.getInstance()
 					.getTextureAtlas(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)
-					.apply(new ResourceLocation(LPConstants.LP_MOD_ID, "blocks/requesttable/requesttexture"));
+					.apply(ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "blocks/requesttable/requesttexture"));
 			requestTableIcon = SimpleServiceLocator.cclProxy.createIconTransformer(sprite);
 		}
 		if (requestTableIcon == null) return;

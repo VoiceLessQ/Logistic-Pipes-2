@@ -85,7 +85,7 @@ public class GuiSneakyConfigurator extends ModuleBaseGui {
 		guiGraphics.drawString(minecraft.font, "Sneaky orientation", imageWidth / 2 - minecraft.font.width("Sneaky orientation") / 2, 10, 0x404040, false);
 	}
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/sneaky.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/sneaky.png");
 
 	@Override
 	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int x, int y) {

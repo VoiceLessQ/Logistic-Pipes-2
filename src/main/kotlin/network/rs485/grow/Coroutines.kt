@@ -54,10 +54,10 @@ object Coroutines {
         get() = CoroutineScope(server)
 
     fun scheduleServerTask(inTicks: Int, task: Runnable) {
-        val runTick = ServerLifecycleHooks.getCurrentServer().tickCount + inTicks
+        val runTick = ServerLifecycleHooks.getCurrentServer()!!.tickCount + inTicks
 
         fun waitForTick() {
-            if (ServerLifecycleHooks.getCurrentServer().tickCount >= runTick) {
+            if (ServerLifecycleHooks.getCurrentServer()!!.tickCount >= runTick) {
                 task.run()
             } else {
                 server.scheduleNextTick(::waitForTick)

@@ -17,7 +17,7 @@ import logisticspipes.utils.string.StringUtils;
 public class HUDPowerLevel extends BasicHUDGui implements IHeadUpDisplayRenderer {
 
 	private final IPowerLevelDisplay junction;
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/power_junction.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/power_junction.png");
 
 	public HUDPowerLevel(IPowerLevelDisplay junction) {
 		this.junction = junction;

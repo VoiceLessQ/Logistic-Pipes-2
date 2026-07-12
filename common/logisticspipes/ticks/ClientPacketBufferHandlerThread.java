@@ -12,7 +12,6 @@ import java.util.zip.GZIPOutputStream;
 
 import net.minecraft.world.entity.player.Player;
 
-import net.neoforged.neoforge.event.TickEvent;
 
 import logisticspipes.network.PacketHandler;
 import logisticspipes.network.abstractpackets.ModernPacket;

@@ -22,13 +22,13 @@ import logisticspipes.LPConstants;
  */
 public class ShapelessResetRecipe extends CustomRecipe {
 
-	public static final ResourceLocation ID = new ResourceLocation(LPConstants.LP_MOD_ID, "reset");
+	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "reset");
 
 	public static final RecipeSerializer<ShapelessResetRecipe> SERIALIZER = new RecipeSerializer<>() {
 
 		@Override
 		public ShapelessResetRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-			Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new ResourceLocation(json.get("item").getAsString()));
+			Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ResourceLocation.parse(json.get("item").getAsString()));
 			return new ShapelessResetRecipe(recipeId, CraftingBookCategory.MISC, item);
 		}
 

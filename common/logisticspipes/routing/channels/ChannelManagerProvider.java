@@ -6,7 +6,7 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 
@@ -19,7 +19,7 @@ public class ChannelManagerProvider implements IChannelManagerProvider {
 	private ChannelManager channelManager = null;
 
 	public ChannelManagerProvider() {
-		MinecraftForge.EVENT_BUS.register(this);
+		NeoForge.EVENT_BUS.register(this);
 	}
 
 	@Override

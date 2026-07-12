@@ -6,10 +6,9 @@ import java.util.Set;
 
 import net.minecraft.world.level.Level;
 
-import net.neoforged.neoforge.event.TickEvent.ClientTickEvent;
-import net.neoforged.neoforge.event.TickEvent.LevelTickEvent;
-import net.neoforged.neoforge.event.TickEvent.Phase;
-import net.neoforged.neoforge.event.TickEvent.ServerTickEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 
 import com.google.common.collect.MapMaker;
@@ -31,8 +30,8 @@ public class LPTickHandler {
 
 	@SubscribeEvent
 	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
-	public void clientTick(ClientTickEvent event) {
-		if (event.phase == Phase.END) {
+	public void clientTick(ClientTickEvent.Post event) {
+		{
 			FluidIdentifier.initFromForge(true);
 			SimpleServiceLocator.clientBufferHandler.clientTick();
 			MainProxy.proxy.tickClient();
@@ -41,8 +40,8 @@ public class LPTickHandler {
 	}
 
 	@SubscribeEvent
-	public void serverTick(ServerTickEvent event) {
-		if (event.phase == Phase.END) {
+	public void serverTick(ServerTickEvent.Post event) {
+		{
 			HudUpdateTick.tick();
 			SimpleServiceLocator.serverBufferHandler.serverTick();
 			MainProxy.proxy.tickServer();
@@ -55,14 +54,11 @@ public class LPTickHandler {
 	private static Map<Level, LPWorldInfo> worldInfo = new MapMaker().weakKeys().makeMap();
 
 	@SubscribeEvent
-	public void worldTick(LevelTickEvent event) {
-		if (event.phase != Phase.END) {
+	public void worldTick(LevelTickEvent.Post event) {
+		if (event.getLevel().isClientSide()) {
 			return;
 		}
-		if (event.side != net.neoforged.fml.LogicalSide.SERVER) {
-			return;
-		}
-		LPWorldInfo info = LPTickHandler.getWorldInfo(event.level);
+		LPWorldInfo info = LPTickHandler.getWorldInfo(event.getLevel());
 		info.worldTick++;
 	}
 

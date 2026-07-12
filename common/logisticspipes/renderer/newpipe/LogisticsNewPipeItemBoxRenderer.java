@@ -29,7 +29,7 @@ public class LogisticsNewPipeItemBoxRenderer {
 	private static final int RENDER_SIZE = 40;
 
 	private int renderList = -1;
-	private static final ResourceLocation BLOCKS = new ResourceLocation("textures/atlas/blocks.png");
+	private static final ResourceLocation BLOCKS = ResourceLocation.parse("textures/atlas/blocks.png");
 	private static final Map<FluidIdentifier, int[]> renderLists = new HashMap<>();
 
 	@OnlyIn(Dist.CLIENT)

@@ -78,7 +78,7 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		}
 	}
 
-	private static final ResourceLocation achievementTextures = new ResourceLocation("logisticspipes", "textures/gui/gui_border.png");
+	private static final ResourceLocation achievementTextures = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/gui_border.png");
 	private final PipeBlockRequestTable _table;
 	private final int orderId;
 

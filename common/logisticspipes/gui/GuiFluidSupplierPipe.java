@@ -60,7 +60,7 @@ public class GuiFluidSupplierPipe extends LogisticsBaseGuiScreen {
 		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiFluidSupplierPipe.PREFIX + "Partialrequests") + ":", imageWidth - 140, imageHeight - 112, 0x404040, false);
 	}
 
-	protected static final ResourceLocation SUPPLIER = new ResourceLocation("logisticspipes", "textures/gui/supplier.png");
+	protected static final ResourceLocation SUPPLIER = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/supplier.png");
 
 	@Override
 	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int x, int y) {

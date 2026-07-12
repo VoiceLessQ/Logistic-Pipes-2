@@ -54,7 +54,7 @@ public class CCItemIdentifierBuilder implements ILPCCTypeHolder {
 	public ItemIdentifier build() {
 		Item item;
 		if (itemIDName != null) {
-			item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new ResourceLocation(itemIDName));
+			item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemIDName));
 		} else {
 			item = BuiltInRegistries.ITEM.byId(itemID);
 		}

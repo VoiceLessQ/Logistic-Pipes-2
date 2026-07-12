@@ -113,7 +113,7 @@ object GuiDrawer {
         // TODO: texture-atlas sprite blit — no widget GUI calls this yet; port alongside guide book work.
     }
 
-    private val VANILLA_WIDGETS = ResourceLocation("textures/gui/widgets.png")
+    private val VANILLA_WIDGETS = ResourceLocation.withDefaultNamespace("textures/gui/widgets.png")
 
     fun drawBorderedTile(
         rect: IRectangle,
@@ -128,14 +128,33 @@ object GuiDrawer {
             hovered -> 2
             else -> 1
         } * 20
-        gg.blitNineSliced(
-            VANILLA_WIDGETS,
-            rect.roundedLeft,
-            rect.roundedTop,
-            rect.roundedWidth,
-            rect.roundedHeight,
-            20, 4, 200, 20, 0, textureY,
-        )
+        // Nine-slice of the 200x20 vanilla button texture: 20px horizontal and 4px vertical
+        // borders, middle stretched (blitNineSliced was removed in 1.20.2+).
+        val x = rect.roundedLeft
+        val y = rect.roundedTop
+        val w = rect.roundedWidth
+        val h = rect.roundedHeight
+        val bw = minOf(20, w / 2)
+        val bh = minOf(4, h / 2)
+        val v = textureY.toFloat()
+        // corners
+        gg.blit(VANILLA_WIDGETS, x, y, bw, bh, 0f, v, bw, bh, 256, 256)
+        gg.blit(VANILLA_WIDGETS, x + w - bw, y, bw, bh, (200 - bw).toFloat(), v, bw, bh, 256, 256)
+        gg.blit(VANILLA_WIDGETS, x, y + h - bh, bw, bh, 0f, v + 20 - bh, bw, bh, 256, 256)
+        gg.blit(VANILLA_WIDGETS, x + w - bw, y + h - bh, bw, bh, (200 - bw).toFloat(), v + 20 - bh, bw, bh, 256, 256)
+        // edges
+        if (w > 2 * bw) {
+            gg.blit(VANILLA_WIDGETS, x + bw, y, w - 2 * bw, bh, bw.toFloat(), v, 200 - 2 * bw, bh, 256, 256)
+            gg.blit(VANILLA_WIDGETS, x + bw, y + h - bh, w - 2 * bw, bh, bw.toFloat(), v + 20 - bh, 200 - 2 * bw, bh, 256, 256)
+        }
+        if (h > 2 * bh) {
+            gg.blit(VANILLA_WIDGETS, x, y + bh, bw, h - 2 * bh, 0f, v + bh, bw, 20 - 2 * bh, 256, 256)
+            gg.blit(VANILLA_WIDGETS, x + w - bw, y + bh, bw, h - 2 * bh, (200 - bw).toFloat(), v + bh, bw, 20 - 2 * bh, 256, 256)
+        }
+        // center
+        if (w > 2 * bw && h > 2 * bh) {
+            gg.blit(VANILLA_WIDGETS, x + bw, y + bh, w - 2 * bw, h - 2 * bh, bw.toFloat(), v + bh, 200 - 2 * bw, 20 - 2 * bh, 256, 256)
+        }
     }
 
     fun drawGuideBookFrame(rect: IRectangle, slider: IRectangle) {

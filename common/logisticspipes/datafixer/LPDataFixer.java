@@ -1,6 +1,6 @@
 package logisticspipes.datafixer;
 
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 // Full DFU (DataFixerUpper) registration is not feasible for the 1.12.2→1.20.1 gap:
 // Minecraft's own chunk format requires passing through every intermediate MC version.
 // What IS covered by MissingMappingsEvent (fired on the Forge bus):
@@ -21,7 +21,7 @@ public class LPDataFixer {
 
 	public void init() {
 		// MissingMappingsEvent does NOT implement IModBusEvent — it fires on the Forge bus.
-		MinecraftForge.EVENT_BUS.register(new MissingMappingHandler());
+		NeoForge.EVENT_BUS.register(new MissingMappingHandler());
 	}
 
 }

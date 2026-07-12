@@ -47,10 +47,16 @@ Still to verify against live API when the phases reach them:
       neoforge.*). Left as net.minecraftforge on purpose for their phases:
       common.capabilities + common.util.LazyOptional (Phase 2), network.* (Phase 3),
       common.MinecraftForge and event shapes (Phase 4). Build still red.
-- [ ] 2. Capabilities (the hard one). LazyOptional is gone. Remove the
-      getCapability overrides on the pipe and the RF provider, write a
-      RegisterCapabilitiesEvent handler (there is none today), rewrite PowerProxy
-      and the ~10 consumer lookups. Wire the two half-finished block entities.
+- [x] 2. Capabilities. Done 2026-07-12. getCapability overrides removed from
+      the pipe and the RF provider; new LPCapabilities registers on
+      RegisterCapabilitiesEvent (pipe item+fluid, RF provider + power junction
+      energy, crafting table item via getInvWrapper). All consumer lookups moved
+      to level.getCapability(Capabilities.X.BLOCK, pos, side): PowerProxy (2),
+      RF provider neighbor pull, LogisticsEventListener, TransportInvConnection,
+      InventoryUtilFactory, InventoryHelper, PathFinder, FluidRoutedPipe.
+      FluidIdentifier moved to Capabilities.FluidHandler.ITEM. Also added a
+      creative_power_source testing block (CreativePowerSourceBlock/-TileEntity,
+      bottomless FE, pushes 1M FE/t to all neighbors; redstone block texture).
 - [ ] 3. Networking bridge. SimpleChannel to RegisterPayloadsEvent /
       PayloadRegistrar, LPPacketPayload to CustomPacketPayload plus StreamCodec.
       Keep the index-based packet IDs and the copy/release framing exactly. The

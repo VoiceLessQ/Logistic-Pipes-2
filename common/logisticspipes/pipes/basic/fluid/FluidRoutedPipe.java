@@ -8,7 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -104,7 +104,7 @@ public abstract class FluidRoutedPipe extends CoreRoutedPipe {
 		}
 		boolean fluidTile = false;
 		if (tile != null && tile.getLevel() != null) {
-			IFluidHandler fluidHandler = tile.getCapability(ForgeCapabilities.FLUID_HANDLER, dir).orElse(null);
+			IFluidHandler fluidHandler = tile.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, tile.getBlockPos(), dir);
 			if (fluidHandler != null) {
 				fluidTile = true;
 			}

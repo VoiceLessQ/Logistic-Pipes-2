@@ -4,7 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 
-// CapabilityEnergy removed in NeoForge 1.20.1 — use ForgeCapabilities.EnergyStorage.BLOCK
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
@@ -40,7 +40,7 @@ public class PowerProxy implements IPowerProxy {
 	@Override
 	public boolean isEnergyReceiver(BlockEntity tile, Direction face) {
 		if (tile != null && tile.getLevel() != null) {
-			IEnergyStorage storage = tile.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ENERGY, face).orElse(null);
+			IEnergyStorage storage = tile.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, tile.getBlockPos(), face);
 			if (storage != null) return storage.canReceive();
 		}
 		return tile instanceof IEnergyStorage;
@@ -50,7 +50,7 @@ public class PowerProxy implements IPowerProxy {
 	public ICoFHEnergyReceiver getEnergyReceiver(BlockEntity tile, Direction face) {
 		IEnergyStorage bHandler = null;
 		if (tile != null && tile.getLevel() != null) {
-			bHandler = tile.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ENERGY, face).orElse(null);
+			bHandler = tile.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, tile.getBlockPos(), face);
 		}
 		if (bHandler == null && tile instanceof IEnergyStorage) {
 			bHandler = (IEnergyStorage) tile;

@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.nbt.CompoundTag;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 
@@ -216,7 +216,7 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 		}
 		if (f == null) {
 			ItemStack itemStack = stack.unsafeMakeNormalStack();
-			IFluidHandlerItem capability = itemStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null);
+			IFluidHandlerItem capability = itemStack.getCapability(Capabilities.FluidHandler.ITEM);
 			if (capability != null) {
 				{
 					f = IntStream.range(0, capability.getTanks())

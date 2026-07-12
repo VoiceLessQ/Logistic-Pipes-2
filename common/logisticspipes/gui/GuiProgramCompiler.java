@@ -125,7 +125,7 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 				ResourceLocation sel = getProgramListForSelectionIndex(list).get(index);
 
 				ListTag listPrograms = compiler.getListTagForKey("compilerPrograms");
-				return StreamSupport.stream(listPrograms.spliterator(), false).anyMatch(it -> new ResourceLocation(((StringTag) it).getAsString()).equals(sel))
+				return StreamSupport.stream(listPrograms.spliterator(), false).anyMatch(it -> ResourceLocation.parse(((StringTag) it).getAsString()).equals(sel))
 						? 0xAAFFAA : 0xFFAAAA;
 			}
 		};
@@ -187,7 +187,7 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 				ResourceLocation sel = getProgramListForSelectionIndex(list).get(selIndex);
 				ListTag listPrograms = compiler.getListTagForKey("compilerPrograms");
 				boolean flag = StreamSupport.stream(listPrograms.spliterator(), false)
-						.anyMatch(it -> new ResourceLocation(((StringTag) it).getAsString()).equals(sel));
+						.anyMatch(it -> ResourceLocation.parse(((StringTag) it).getAsString()).equals(sel));
 				MainProxy.sendPacketToServer(PacketHandler.getPacket(CompilerTriggerTaskPacket.class).setCategory(sel).setType(flag ? "flash" : "program").setTilePos(compiler));
 			}
 		});
@@ -252,7 +252,7 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 				ResourceLocation sel = getProgramListForSelectionIndex(list).get(selIndex);
 
 				ListTag listPrograms = compiler.getListTagForKey("compilerPrograms");
-				if (StreamSupport.stream(listPrograms.spliterator(), false).anyMatch(it -> new ResourceLocation(((StringTag) it).getAsString()).equals(sel))) {
+				if (StreamSupport.stream(listPrograms.spliterator(), false).anyMatch(it -> ResourceLocation.parse(((StringTag) it).getAsString()).equals(sel))) {
 					programmerButton.setMessage(net.minecraft.network.chat.Component.literal("Flash"));
 					programmerButton.active = !compiler.getInventory().getItem(1).isEmpty();
 				} else {
@@ -265,7 +265,7 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 
 	private List<ResourceLocation> getProgramListForSelectionIndex(ListTag list) {
 		return StreamSupport.stream(list.spliterator(), false).flatMap(
-				nbtBase -> LogisticsProgramCompilerTileEntity.programByCategory.get(new ResourceLocation(((StringTag) nbtBase).getAsString()))
+				nbtBase -> LogisticsProgramCompilerTileEntity.programByCategory.get(ResourceLocation.parse(((StringTag) nbtBase).getAsString()))
 						.stream())
 				.filter(it -> TextUtil.translate(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(it).getDescriptionId()).toLowerCase().contains(search.getText().toLowerCase()))
 				.sorted(Comparator.<ResourceLocation, Integer>comparing(o -> getSortingClass(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(o)))

@@ -20,7 +20,7 @@ import network.rs485.logisticspipes.gui.BaseGuiContainer;
 public class LPJEIPlugin implements IModPlugin {
 
     private static final ResourceLocation PLUGIN_ID =
-            new ResourceLocation(LPConstants.LP_MOD_ID, "jei_plugin");
+            ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "jei_plugin");
 
     @Override
     public ResourceLocation getPluginUid() {

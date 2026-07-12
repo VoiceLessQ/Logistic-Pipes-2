@@ -1,15 +1,9 @@
 package logisticspipes.blocks.powertile;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 
-
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
 import logisticspipes.pipes.basic.CoreRoutedPipe;
@@ -97,12 +91,8 @@ public class LogisticsRFPowerProviderTileEntity extends LogisticsPowerProviderTi
 	}
 
 	private int pullFromNeighbor(net.minecraft.world.level.Level world, Direction dir, int remaining) {
-		net.minecraft.world.level.block.entity.BlockEntity neighbor = world.getBlockEntity(getBlockPos().relative(dir));
-		if (neighbor == null) return remaining;
-		LazyOptional<IEnergyStorage> cap = neighbor.getCapability(ForgeCapabilities.ENERGY, dir.getOpposite());
-		if (!cap.isPresent()) return remaining;
-		IEnergyStorage neighborStorage = cap.orElseThrow(IllegalStateException::new);
-		if (!neighborStorage.canExtract()) return remaining;
+		IEnergyStorage neighborStorage = world.getCapability(Capabilities.EnergyStorage.BLOCK, getBlockPos().relative(dir), dir.getOpposite());
+		if (neighborStorage == null || !neighborStorage.canExtract()) return remaining;
 		int extracted = neighborStorage.extractEnergy(remaining, false);
 		if (extracted > 0) {
 			addEnergy(extracted);
@@ -165,15 +155,6 @@ public class LogisticsRFPowerProviderTileEntity extends LogisticsPowerProviderTi
 	@Override
 	protected int getLaserColor() {
 		return LogisticsPowerProviderTileEntity.RF_COLOR;
-	}
-
-	@Nonnull
-	@Override
-	public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-		if (cap == ForgeCapabilities.ENERGY) {
-			return ForgeCapabilities.ENERGY.orEmpty(cap, LazyOptional.of(() -> energyInterface));
-		}
-		return super.getCapability(cap, side);
 	}
 
 	public IEnergyStorage getEnergyInterface() {

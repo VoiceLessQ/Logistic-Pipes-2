@@ -37,7 +37,7 @@ public final class SpeedupTubeRenderer implements ISpecialPipeRenderer, IHighlig
 	//Global Access
 	public static Map<SpeedupDirection, IModel3D> tubeSpeedup = new HashMap<>();
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/blocks/pipes/hs-speedup.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/blocks/pipes/hs-speedup.png");
 
 	public static void loadModels() {
 		try {

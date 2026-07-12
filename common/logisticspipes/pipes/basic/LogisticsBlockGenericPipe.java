@@ -61,7 +61,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import static logisticspipes.LPConstants.PIPE_MAX_POS;
 import static logisticspipes.LPConstants.PIPE_MIN_POS;
@@ -244,7 +244,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	 * is intentionally deferred — those methods belong to the 1.12.2 rendering system
 	 * and will be addressed when ItemLogisticsPipe is migrated to 1.20.1.</p>
 	 */
-	public static RegistryObject<ItemLogisticsPipe> registerPipe(
+	public static DeferredHolder<?, ItemLogisticsPipe> registerPipe(
 			DeferredRegister<Item> registry,
 			String name,
 			Function<Item, ? extends CoreUnroutedPipe> constructor) {
@@ -514,7 +514,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 
 	public InternalRayTraceResult doRayTrace(Level world, BlockPos pos, Player player) {
 		double reachDistance = player instanceof ServerPlayer
-				? player.getAttributeValue(net.minecraftforge.common.ForgeMod.BLOCK_REACH.get())
+				? player.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.BLOCK_INTERACTION_RANGE)
 				: 5;
 
 		Vec3 lookVec = player.getLookAngle();

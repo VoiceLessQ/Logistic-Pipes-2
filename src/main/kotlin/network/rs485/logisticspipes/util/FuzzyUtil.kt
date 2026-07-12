@@ -96,12 +96,8 @@ object FuzzyUtil {
         if (fuzzyFlagger(FuzzyFlag.IGNORE_NBT)) {
             return true
         }
-        if (firstStack.hasTag() xor secondStack.hasTag()) {
-            return false
-        }
-        return if (!firstStack.hasTag() && !secondStack.hasTag()) {
-            true
-        } else ItemStack.isSameItemSameTags(firstStack, secondStack)
+        // 1.20.5+: stack NBT became data components; component compare subsumes the tag checks.
+        return ItemStack.isSameItemSameComponents(firstStack, secondStack)
     }
 
 }

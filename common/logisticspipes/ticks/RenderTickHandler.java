@@ -23,11 +23,10 @@ import net.minecraft.world.phys.HitResult;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.event.RenderGuiOverlayEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.client.gui.overlay.VanillaGuiOverlay;
-import net.neoforged.neoforge.event.TickEvent.Phase;
-import net.neoforged.neoforge.event.TickEvent.RenderTickEvent;
+import net.neoforged.neoforge.client.event.RenderFrameEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 
@@ -48,18 +47,21 @@ import network.rs485.logisticspipes.world.DoubleCoordinatesType;
 
 public class RenderTickHandler {
 
-	private static final ResourceLocation GHOST_PIPE_TEXTURE = new ResourceLocation("logisticspipes", "textures/blocks/pipes/white.png");
+	private static final ResourceLocation GHOST_PIPE_TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/blocks/pipes/white.png");
 
 	private long renderTicks = 0;
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
-	public void renderTick(RenderTickEvent event) {
-		if (event.phase == Phase.START) {
-			if (GuiOverlay.getInstance().isCompatibleGui()) {
-				GuiOverlay.getInstance().preRender();
-			}
-			ClientViewController.instance().tick();
-		} else {
+	public void renderTickPre(RenderFrameEvent.Pre event) {
+		if (GuiOverlay.getInstance().isCompatibleGui()) {
+			GuiOverlay.getInstance().preRender();
+		}
+		ClientViewController.instance().tick();
+	}
+
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	public void renderTickPost(RenderFrameEvent.Post event) {
+		{
 			renderTicks++;
 			// TODO: migrate HUD rendering to 1.20 PoseStack / GameRenderer approach.
 			// mc.entityRenderer.setupCameraTransform() and ActiveRenderInfo.updateRenderInfo() were removed.
@@ -75,8 +77,8 @@ public class RenderTickHandler {
 	 *  LP1's {@code GuiIngameForge.renderCrosshairs} check. */
 	@SubscribeEvent
 	@OnlyIn(Dist.CLIENT)
-	public void renderGuiOverlay(RenderGuiOverlayEvent.Post event) {
-		if (!event.getOverlay().id().equals(VanillaGuiOverlay.CROSSHAIR.id())) {
+	public void renderGuiOverlay(RenderGuiLayerEvent.Post event) {
+		if (!event.getName().equals(VanillaGuiLayers.CROSSHAIR)) {
 			return;
 		}
 		LogisticsHUDRenderer.instance().renderPlayerDisplay(renderTicks, event.getGuiGraphics());

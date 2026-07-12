@@ -44,7 +44,7 @@ public class ItemDisplay {
 		NAME_DOWN,
 	}
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("textures/gui/icons.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.parse("textures/gui/icons.png");
 	private static final int PANELSIZEX = 20;
 	private static final int PANELSIZEY = 20;
 

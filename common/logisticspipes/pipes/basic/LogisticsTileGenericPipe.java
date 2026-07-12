@@ -27,9 +27,6 @@ import net.minecraft.world.phys.AABB;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
 import net.neoforged.neoforge.items.IItemHandler;
 
 
@@ -935,23 +932,12 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		return this.subMultiBlock.stream().map(pos -> pos.getTileEntity(level));
 	}
 
-	@Nonnull
-	@Override
-	public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER && side != null) {
-			IItemHandler handler = getItemHandlerForSide(side);
-			if (handler != null) {
-				return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> handler));
-			}
+	@Nullable
+	public net.neoforged.neoforge.fluids.capability.IFluidHandler getFluidHandlerForSide(@Nullable Direction side) {
+		if (side != null && pipe != null && pipe.transport instanceof logisticspipes.transport.PipeFluidTransportLogistics fluidTransport) {
+			return fluidTransport.getIFluidHandler(side);
 		}
-		if (cap == ForgeCapabilities.FLUID_HANDLER && side != null
-				&& pipe != null && pipe.transport instanceof logisticspipes.transport.PipeFluidTransportLogistics) {
-			logisticspipes.transport.PipeFluidTransportLogistics fluidTransport =
-					(logisticspipes.transport.PipeFluidTransportLogistics) pipe.transport;
-			return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap,
-					LazyOptional.of(() -> fluidTransport.getIFluidHandler(side)));
-		}
-		return super.getCapability(cap, side);
+		return null;
 	}
 
 	public static class CoreState implements IClientState {

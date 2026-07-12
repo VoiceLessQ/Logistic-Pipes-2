@@ -76,7 +76,7 @@ public class LogisticsSolidBlockRenderer<T extends BlockEntity> implements Block
 		String name = textureNameFor(type) + (useActive ? "_active" : "");
 		TextureAtlasSprite sprite = Minecraft.getInstance()
 				.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
-				.apply(new ResourceLocation(LPConstants.LP_MOD_ID, "solid_block/" + name));
+				.apply(ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "solid_block/" + name));
 		TextureTransformation tx = SimpleServiceLocator.cclProxy.createIconTransformer(sprite);
 		cache.put(type, tx);
 		return tx;

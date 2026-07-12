@@ -43,7 +43,7 @@ import network.rs485.logisticspipes.util.TextUtil;
 public class GuiSupplierPipe extends LogisticsBaseGuiScreen {
 
 	private static final String PREFIX = "gui.supplierpipe.";
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/supplier.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/supplier.png");
 	private final boolean hasPatternUpgrade;
 	private final PropertyLayer propertyLayer;
 	private final ModuleActiveSupplier supplierModule;

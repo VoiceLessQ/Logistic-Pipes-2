@@ -96,7 +96,7 @@ private val metadataRegex = "^\\s*<!---\\s*\\n(.*?)\\n\\s*--->\\s*(.*)$".toRegex
 fun loadPage(path: String, lang: String): PageInfoProvider {
     val resolvedLocation = resolveAbsoluteLocation(resolvedLocation = Paths.get(path), language = lang).toLocation(false)
     return try {
-        val bookFile = Minecraft.getInstance().resourceManager.getResource(ResourceLocation(LPConstants.LP_MOD_ID, resolvedLocation))
+        val bookFile = Minecraft.getInstance().resourceManager.getResource(ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, resolvedLocation))
             .orElseThrow { IOException("Resource not found: $resolvedLocation") }
         LoadedPage(
             fileLocation = path,
@@ -234,7 +234,7 @@ class LoadedPage(override val fileLocation: String, override val language: Strin
                 try {
                     it.icon.split(":").apply {
                         val item = BuiltInRegistries.ITEM.get(
-                            ResourceLocation(
+                            ResourceLocation.fromNamespaceAndPath(
                                 this@apply[0],
                                 this@apply[1],
                             )
@@ -281,7 +281,7 @@ interface PageInfoProvider {
                 key = resourcePath,
                 defaultValue = resolveAbsoluteLocation(resolveLocation(resourcePath), language).toLocation(false)
             )
-            ResourceLocation(resourceDomain, resourcePath)
+            ResourceLocation.fromNamespaceAndPath(resourceDomain, resourcePath)
         }
 
     val language: String

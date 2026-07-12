@@ -20,7 +20,7 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import logisticspipes.LPConstants;
 import logisticspipes.LPItems;
@@ -37,7 +37,7 @@ import logisticspipes.utils.FluidIdentifier;
  * by the fluid's tint colour) reads the same at item scale.</p>
  */
 @OnlyIn(Dist.CLIENT)
-@Mod.EventBusSubscriber(modid = LPConstants.LP_MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = LPConstants.LP_MOD_ID, value = Dist.CLIENT)
 public class FluidContainerRenderer {
 
 	private static final Map<Fluid, Integer> COLOR_CACHE = new HashMap<>();
@@ -46,7 +46,7 @@ public class FluidContainerRenderer {
 	public static void registerItemProperties() {
 		net.minecraft.client.renderer.item.ItemProperties.register(
 				LPItems.fluidContainer.get(),
-				new ResourceLocation(LPConstants.LP_MOD_ID, "fluid"),
+				ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "fluid"),
 				(stack, level, entity, seed) -> FluidIdentifier.get(stack) != null ? 1.0F : 0.0F);
 	}
 
@@ -75,7 +75,7 @@ public class FluidContainerRenderer {
 	}
 
 	private static int averageTextureColor(ResourceLocation spriteName) {
-		ResourceLocation file = new ResourceLocation(spriteName.getNamespace(), "textures/" + spriteName.getPath() + ".png");
+		ResourceLocation file = ResourceLocation.fromNamespaceAndPath(spriteName.getNamespace(), "textures/" + spriteName.getPath() + ".png");
 		Resource resource = Minecraft.getInstance().getResourceManager().getResource(file).orElse(null);
 		if (resource == null) return 0xFFFFFFFF;
 		try (InputStream in = resource.open(); NativeImage image = NativeImage.read(in)) {

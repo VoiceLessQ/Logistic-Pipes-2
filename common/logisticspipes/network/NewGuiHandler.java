@@ -127,7 +127,7 @@ public class NewGuiHandler {
 			throw new RuntimeException("Failed to set LP container windowId", ex);
 		}
 		player.containerMenu = container;
-		net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
+		net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
 				new net.neoforged.neoforge.event.entity.player.PlayerContainerEvent.Open(player, player.containerMenu));
 
 		// Send OpenGUIPacket BEFORE initMenu so the client's containerMenu is

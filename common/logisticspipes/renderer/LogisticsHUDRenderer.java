@@ -179,7 +179,7 @@ public class LogisticsHUDRenderer {
 	private static final float PANEL_OFFSET = 0.75F;
 
 	//TODO: only load this once, rather than twice
-	private static final ResourceLocation TEXTURE = new ResourceLocation("textures/gui/icons.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.parse("textures/gui/icons.png");
 
 	public void renderPlayerDisplay(long renderTicks, GuiGraphics guiGraphics) {
 		if (!displayRenderer()) {

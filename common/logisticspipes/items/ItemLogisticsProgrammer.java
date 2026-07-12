@@ -40,7 +40,7 @@ public class ItemLogisticsProgrammer extends LogisticsItem {
 				CompoundTag nbt = stack.getTag();
 				String target = nbt.getString(RECIPE_TARGET);
 				if (!target.isEmpty()) {
-					Item targetItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new ResourceLocation(target));
+					Item targetItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ResourceLocation.parse(target));
 					if (targetItem instanceof ItemModule) {
 						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate("tooltip.programmerForModule")));
 						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate(targetItem.getDescriptionId() + ".name")));

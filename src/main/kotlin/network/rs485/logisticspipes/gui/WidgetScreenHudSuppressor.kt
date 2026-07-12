@@ -8,8 +8,8 @@
 package network.rs485.logisticspipes.gui
 
 import net.minecraft.client.Minecraft
-import net.neoforged.neoforge.client.event.RenderGuiOverlayEvent
-import net.neoforged.neoforge.client.gui.overlay.VanillaGuiOverlay
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers
 import net.neoforged.bus.api.EventPriority
 import net.neoforged.bus.api.SubscribeEvent
 
@@ -26,21 +26,21 @@ import net.neoforged.bus.api.SubscribeEvent
 object WidgetScreenHudSuppressor {
 
     private val SUPPRESSED = setOf(
-        VanillaGuiOverlay.HOTBAR.id(),
-        VanillaGuiOverlay.CROSSHAIR.id(),
-        VanillaGuiOverlay.PLAYER_HEALTH.id(),
-        VanillaGuiOverlay.FOOD_LEVEL.id(),
-        VanillaGuiOverlay.ARMOR_LEVEL.id(),
-        VanillaGuiOverlay.EXPERIENCE_BAR.id(),
-        VanillaGuiOverlay.AIR_LEVEL.id(),
-        VanillaGuiOverlay.MOUNT_HEALTH.id(),
-        VanillaGuiOverlay.JUMP_BAR.id(),
-        VanillaGuiOverlay.CHAT_PANEL.id(),
+        VanillaGuiLayers.HOTBAR,
+        VanillaGuiLayers.CROSSHAIR,
+        VanillaGuiLayers.PLAYER_HEALTH,
+        VanillaGuiLayers.FOOD_LEVEL,
+        VanillaGuiLayers.ARMOR_LEVEL,
+        VanillaGuiLayers.EXPERIENCE_BAR,
+        VanillaGuiLayers.AIR_LEVEL,
+        VanillaGuiLayers.VEHICLE_HEALTH,
+        VanillaGuiLayers.JUMP_METER,
+        VanillaGuiLayers.CHAT,
     )
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onRenderOverlay(event: RenderGuiOverlayEvent.Pre) {
+    fun onRenderLayer(event: RenderGuiLayerEvent.Pre) {
         if (Minecraft.getInstance().screen !is BaseGuiContainer) return
-        if (event.overlay.id() in SUPPRESSED) event.isCanceled = true
+        if (event.name in SUPPRESSED) event.isCanceled = true
     }
 }

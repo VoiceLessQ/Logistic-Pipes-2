@@ -37,16 +37,16 @@ import logisticspipes.utils.Color;
 @OnlyIn(Dist.CLIENT)
 public final class LPGuiGraphics {
 
-	public static final ResourceLocation WIDGETS_TEXTURE = new ResourceLocation("textures/gui/widgets.png");
-	public static final ResourceLocation SLOT_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot.png");
-	public static final ResourceLocation BIG_SLOT_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot-big.png");
-	public static final ResourceLocation SMALL_SLOT_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot-small.png");
-	public static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/guibackground.png");
-	public static final ResourceLocation LOCK_ICON = new ResourceLocation("logisticspipes", "textures/gui/lock.png");
-	public static final ResourceLocation LINES_ICON = new ResourceLocation("logisticspipes", "textures/gui/lines.png");
-	public static final ResourceLocation STATS_ICON = new ResourceLocation("logisticspipes", "textures/gui/stats.png");
-	public static final ResourceLocation SLOT_DISK_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot_disk.png");
-	public static final ResourceLocation SLOT_PROGRAMMER_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot_programmer.png");
+	public static final ResourceLocation WIDGETS_TEXTURE = ResourceLocation.parse("textures/gui/widgets.png");
+	public static final ResourceLocation SLOT_TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/slot.png");
+	public static final ResourceLocation BIG_SLOT_TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/slot-big.png");
+	public static final ResourceLocation SMALL_SLOT_TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/slot-small.png");
+	public static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/guibackground.png");
+	public static final ResourceLocation LOCK_ICON = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/lock.png");
+	public static final ResourceLocation LINES_ICON = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/lines.png");
+	public static final ResourceLocation STATS_ICON = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/stats.png");
+	public static final ResourceLocation SLOT_DISK_TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/slot_disk.png");
+	public static final ResourceLocation SLOT_PROGRAMMER_TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/gui/slot_programmer.png");
 	public static float zLevel = 0.0F;
 
 	private LPGuiGraphics() {}

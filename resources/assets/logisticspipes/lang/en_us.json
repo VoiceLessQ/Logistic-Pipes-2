@@ -234,6 +234,7 @@
   "block.logisticspipes.power_provider_mj": "Logistics MJ Power Provider",
   "block.logisticspipes.power_provider_eu": "Logistics EU Power Provider",
   "block.logisticspipes.power_provider_rf": "Logistics RF Power Provider",
+  "block.logisticspipes.creative_power_source": "Creative Power Source",
   "block.logisticspipes.statistics_table": "Logistics Statistics Table",
   "block.logisticspipes.program_compiler": "Logistics Program Compiler",
   "itemGroup.Logistics_Pipes": "Logistics Pipes",

@@ -1,6 +1,6 @@
 package logisticspipes;
 
-import net.neoforged.neoforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import logisticspipes.blocks.LogisticsSolidBlock;
 import logisticspipes.pipes.basic.LogisticsBlockGenericPipe;
@@ -15,17 +15,17 @@ import logisticspipes.pipes.basic.LogisticsBlockGenericSubMultiBlock;
  */
 public class LPBlocks {
 
-	public static final RegistryObject<LogisticsSolidBlock>           frame           = LPRegistries.FRAME;
-	public static final RegistryObject<LogisticsSolidBlock>           powerJunction   = LPRegistries.POWER_JUNCTION;
-	public static final RegistryObject<LogisticsSolidBlock>           securityStation = LPRegistries.SECURITY_STATION;
-	public static final RegistryObject<LogisticsSolidBlock>           crafter         = LPRegistries.CRAFTER;
-	public static final RegistryObject<LogisticsSolidBlock>           crafterFuzzy    = LPRegistries.CRAFTER_FUZZY;
-	public static final RegistryObject<LogisticsSolidBlock>           statisticsTable = LPRegistries.STATISTICS_TABLE;
-	public static final RegistryObject<LogisticsSolidBlock>           powerProviderRF = LPRegistries.POWER_PROVIDER_RF;
-	public static final RegistryObject<LogisticsSolidBlock>           powerProviderEU = LPRegistries.POWER_PROVIDER_EU;
-	public static final RegistryObject<LogisticsSolidBlock>           powerProviderMJ = LPRegistries.POWER_PROVIDER_MJ;
-	public static final RegistryObject<LogisticsSolidBlock>           programCompiler = LPRegistries.PROGRAM_COMPILER;
-	public static final RegistryObject<LogisticsBlockGenericPipe>          pipe           = LPRegistries.PIPE;
-	public static final RegistryObject<LogisticsBlockGenericSubMultiBlock> subMultiblock  = LPRegistries.SUB_MULTIBLOCK;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           frame           = LPRegistries.FRAME;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           powerJunction   = LPRegistries.POWER_JUNCTION;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           securityStation = LPRegistries.SECURITY_STATION;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           crafter         = LPRegistries.CRAFTER;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           crafterFuzzy    = LPRegistries.CRAFTER_FUZZY;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           statisticsTable = LPRegistries.STATISTICS_TABLE;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           powerProviderRF = LPRegistries.POWER_PROVIDER_RF;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           powerProviderEU = LPRegistries.POWER_PROVIDER_EU;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           powerProviderMJ = LPRegistries.POWER_PROVIDER_MJ;
+	public static final DeferredHolder<?, LogisticsSolidBlock>           programCompiler = LPRegistries.PROGRAM_COMPILER;
+	public static final DeferredHolder<?, LogisticsBlockGenericPipe>          pipe           = LPRegistries.PIPE;
+	public static final DeferredHolder<?, LogisticsBlockGenericSubMultiBlock> subMultiblock  = LPRegistries.SUB_MULTIBLOCK;
 
 }

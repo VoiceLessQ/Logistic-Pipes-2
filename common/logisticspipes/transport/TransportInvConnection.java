@@ -1,6 +1,6 @@
 package logisticspipes.transport;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.Objects;
 
@@ -33,7 +33,7 @@ public class TransportInvConnection extends PipeTransportLogistics {
 		final Direction orientationOfTilewithTile = OrientationsUtil.getOrientationOfTilewithTile(getPipe().container, tile);
 		Objects.requireNonNull(orientationOfTilewithTile, "Could not get direction from pipe and tile entity");
 
-		if (tile.getLevel() != null && tile.getCapability(ForgeCapabilities.ITEM_HANDLER, orientationOfTilewithTile.getOpposite()).isPresent()) {
+		if (tile.getLevel() != null && tile.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, tile.getBlockPos(), orientationOfTilewithTile.getOpposite()) != null) {
 			((PipeItemsInvSysConnector) container.pipe).handleItemEnterInv(info, tile);
 		}
 	}

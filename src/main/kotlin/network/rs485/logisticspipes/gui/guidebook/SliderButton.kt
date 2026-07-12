@@ -55,17 +55,20 @@ class SliderButton(
         val src = texture.translated(0, hoverState * texture.roundedHeight)
         RenderSystem.enableBlend()
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f)
-        // Vertical nine-slice: 2px top/bottom caps from the 12x16 grip region, stretched to grip height.
-        guiGraphics.blitNineSliced(
-            GuideBookGraphics.GUI_ATLAS,
-            grip.roundedLeft,
-            grip.roundedTop,
-            grip.roundedWidth,
-            grip.roundedHeight,
-            0, 2,
-            texture.roundedWidth, texture.roundedHeight,
-            src.roundedLeft, src.roundedTop,
-        )
+        // Vertical three-slice: 2px top/bottom caps from the 12x16 grip region, middle
+        // stretched to grip height (blitNineSliced was removed in 1.20.2+).
+        val gx = grip.roundedLeft
+        val gy = grip.roundedTop
+        val gw = grip.roundedWidth
+        val gh = grip.roundedHeight
+        val su = src.roundedLeft.toFloat()
+        val sv = src.roundedTop.toFloat()
+        val sw = texture.roundedWidth
+        val sh = texture.roundedHeight
+        val atlas = GuideBookGraphics.ATLAS_SIZE
+        guiGraphics.blit(GuideBookGraphics.GUI_ATLAS, gx, gy, gw, 2, su, sv, sw, 2, atlas, atlas)
+        guiGraphics.blit(GuideBookGraphics.GUI_ATLAS, gx, gy + 2, gw, gh - 4, su, sv + 2, sw, sh - 4, atlas, atlas)
+        guiGraphics.blit(GuideBookGraphics.GUI_ATLAS, gx, gy + gh - 2, gw, 2, su, sv + sh - 2, sw, 2, atlas, atlas)
         RenderSystem.disableBlend()
     }
 

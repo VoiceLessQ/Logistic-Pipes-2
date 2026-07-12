@@ -36,7 +36,7 @@ public final class LineTubeRenderer implements ISpecialPipeRenderer, IHighlightP
 	//Global Access
 	public static Map<TubeLineRenderOrientation, IModel3D> tubeLine = new HashMap<>();
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/blocks/pipes/hs-tube-line.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("logisticspipes", "textures/blocks/pipes/hs-tube-line.png");
 
 	public static void loadModels() {
 		try {

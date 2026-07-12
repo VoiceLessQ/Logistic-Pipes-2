@@ -39,14 +39,14 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 
 	public static class ProgrammCategories {
 
-		public static final ResourceLocation BASIC = new ResourceLocation("logisticspipes", "compilercategory.basic");
-		public static final ResourceLocation TIER_2 = new ResourceLocation("logisticspipes", "compilercategory.tier_2");
-		public static final ResourceLocation FLUID = new ResourceLocation("logisticspipes", "compilercategory.fluid");
-		public static final ResourceLocation TIER_3 = new ResourceLocation("logisticspipes", "compilercategory.tier_3");
-		public static final ResourceLocation CHASSIS = new ResourceLocation("logisticspipes", "compilercategory.chassis");
-		public static final ResourceLocation CHASSIS_2 = new ResourceLocation("logisticspipes", "compilercategory.chassis_2");
-		public static final ResourceLocation CHASSIS_3 = new ResourceLocation("logisticspipes", "compilercategory.chassis_3");
-		public static final ResourceLocation MODDED = new ResourceLocation("logisticspipes", "compilercategory.modded");
+		public static final ResourceLocation BASIC = ResourceLocation.fromNamespaceAndPath("logisticspipes", "compilercategory.basic");
+		public static final ResourceLocation TIER_2 = ResourceLocation.fromNamespaceAndPath("logisticspipes", "compilercategory.tier_2");
+		public static final ResourceLocation FLUID = ResourceLocation.fromNamespaceAndPath("logisticspipes", "compilercategory.fluid");
+		public static final ResourceLocation TIER_3 = ResourceLocation.fromNamespaceAndPath("logisticspipes", "compilercategory.tier_3");
+		public static final ResourceLocation CHASSIS = ResourceLocation.fromNamespaceAndPath("logisticspipes", "compilercategory.chassis");
+		public static final ResourceLocation CHASSIS_2 = ResourceLocation.fromNamespaceAndPath("logisticspipes", "compilercategory.chassis_2");
+		public static final ResourceLocation CHASSIS_3 = ResourceLocation.fromNamespaceAndPath("logisticspipes", "compilercategory.chassis_3");
+		public static final ResourceLocation MODDED = ResourceLocation.fromNamespaceAndPath("logisticspipes", "compilercategory.modded");
 
 		static {
 			//Force the order of keys

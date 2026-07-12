@@ -65,7 +65,7 @@ public class LogicLayoutGui extends LogisticsBaseGuiScreen {
 		}
 	}
 
-	private static final ResourceLocation achievementTextures = new ResourceLocation("textures/gui/achievement/achievement_background.png");
+	private static final ResourceLocation achievementTextures = ResourceLocation.parse("textures/gui/achievement/achievement_background.png");
 
 	private final ItemRenderer renderItem = net.minecraft.client.Minecraft.getInstance().getItemRenderer();
 

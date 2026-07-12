@@ -19,7 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.level.LevelEvent;
 
 import net.neoforged.fml.LogicalSide;
@@ -186,9 +186,8 @@ public class MainProxy {
 		if (tile == null) return;
 		net.minecraft.world.level.Level lvl = tile.getLevel();
 		if (lvl instanceof net.minecraft.server.level.ServerLevel sl) {
-			net.minecraft.world.level.chunk.LevelChunk chunk = sl.getChunkAt(tile.getBlockPos());
-			logisticspipes.network.PacketHandler.CHANNEL.send(
-				net.minecraftforge.network.PacketDistributor.TRACKING_CHUNK.with(() -> chunk),
+			net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingChunk(
+				sl, new net.minecraft.world.level.ChunkPos(tile.getBlockPos()),
 				logisticspipes.network.PacketHandler.buildPayloadPublic(packet));
 			return;
 		}

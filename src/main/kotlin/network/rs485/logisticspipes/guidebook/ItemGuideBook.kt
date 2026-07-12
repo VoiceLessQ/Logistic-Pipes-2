@@ -42,6 +42,8 @@ import logisticspipes.network.PacketHandler
 import logisticspipes.network.guis.OpenGuideBook
 import logisticspipes.proxy.MainProxy
 import net.minecraft.client.Minecraft
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.CustomData
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.ItemStack
@@ -65,8 +67,9 @@ class ItemGuideBook : LogisticsItem() {
         private fun loadDataFromNBT(stack: ItemStack): Pair<PageData, List<PageData>> {
             var currentPage: PageData? = null
             var tabPages: List<PageData>? = null
-            if (stack.hasTag()) {
-                val nbt = stack.tag!!
+            // 1.20.5+: stack NBT lives in the CUSTOM_DATA component.
+            val nbt = stack.get(DataComponents.CUSTOM_DATA)?.copyTag()
+            if (nbt != null) {
                 if (nbt.contains("version")) {
                     when (nbt.getByte("version")) {
                         1.toByte() -> {
@@ -123,9 +126,9 @@ class ItemGuideBook : LogisticsItem() {
 
     fun saveState(state: GuideBookState) {
         val stack = Minecraft.getInstance().player!!.getItemBySlot(state.equipmentSlot)
-        val compound = if (stack.hasTag()) stack.tag!! else CompoundTag()
+        val compound = stack.get(DataComponents.CUSTOM_DATA)?.copyTag() ?: CompoundTag()
         // update NBT for the client
-        stack.setTag(updateNBT(compound, state.currentPage, state.bookmarks))
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(updateNBT(compound, state.currentPage, state.bookmarks)))
 
         // … and for the server
         MainProxy.sendPacketToServer(

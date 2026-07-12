@@ -1,6 +1,9 @@
 package logisticspipes.network;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 import io.netty.buffer.Unpooled;
@@ -15,9 +18,12 @@ import io.netty.buffer.Unpooled;
  *   int    — debug ID
  *   ...    — LPDataOutput-encoded packet body
  */
-public final class LPPacketPayload {
+public final class LPPacketPayload implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation("logisticspipes", "packet");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("logisticspipes", "packet");
+    public static final CustomPacketPayload.Type<LPPacketPayload> TYPE = new CustomPacketPayload.Type<>(ID);
+    public static final StreamCodec<RegistryFriendlyByteBuf, LPPacketPayload> STREAM_CODEC =
+            StreamCodec.of((buf, payload) -> payload.write(buf), LPPacketPayload::decode);
 
     private final FriendlyByteBuf data;
 
@@ -61,7 +67,8 @@ public final class LPPacketPayload {
         buf.writeBytes(data, data.readerIndex(), data.readableBytes());
     }
 
-    public ResourceLocation id() {
-        return ID;
+    @Override
+    public CustomPacketPayload.Type<LPPacketPayload> type() {
+        return TYPE;
     }
 }

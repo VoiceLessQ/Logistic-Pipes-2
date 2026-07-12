@@ -128,7 +128,7 @@ public class LogisticsEventListener {
 		BlockEntity te = world.getBlockEntity(pos);
 		if (te == null) return;
 		// Only act on blocks that expose an item handler (chests, barrels, etc.)
-		if (!te.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER).isPresent()) return;
+		if (world.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK, pos, null) == null) return;
 
 		Player player = event.getEntity();
 		List<WeakReference<AsyncQuicksortModule>> modules = null;

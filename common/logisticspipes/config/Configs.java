@@ -1,6 +1,6 @@
 package logisticspipes.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 //@formatter:off
 //CHECKSTYLE:OFF
@@ -10,40 +10,40 @@ public class Configs {
 	public static final String CATEGORY_MULTITHREAD = "multithread";
 	public static final String CATEGORY_PERFORMANCE = "performance";
 
-	// ── ForgeConfigSpec ────────────────────────────────────────────────────────
-	public static final ForgeConfigSpec SPEC;
+	// ── ModConfigSpec ────────────────────────────────────────────────────────
+	public static final ModConfigSpec SPEC;
 
 	// Value holders (package-private, read in load())
-	static final ForgeConfigSpec.IntValue     DETECTION_LENGTH_V;
-	static final ForgeConfigSpec.IntValue     DETECTION_COUNT_V;
-	static final ForgeConfigSpec.IntValue     DETECTION_FREQUENCY_V;
-	static final ForgeConfigSpec.BooleanValue ORDERER_COUNT_INVERT_V;
-	static final ForgeConfigSpec.BooleanValue ORDERER_PAGE_INVERT_V;
-	static final ForgeConfigSpec.BooleanValue DISPLAY_POPUP_V;
-	static final ForgeConfigSpec.IntValue     MAX_UNROUTED_CONNECTIONS_V;
-	static final ForgeConfigSpec.IntValue     HUD_RENDER_DISTANCE_V;
-	static final ForgeConfigSpec.DoubleValue  PIPE_DURABILITY_V;
-	static final ForgeConfigSpec.BooleanValue POWER_USAGE_DISABLED_V;
-	static final ForgeConfigSpec.DoubleValue  POWER_USAGE_MULTIPLIER_V;
-	static final ForgeConfigSpec.DoubleValue  COMPILER_SPEED_V;
-	static final ForgeConfigSpec.BooleanValue ENABLE_RESEARCH_SYSTEM_V;
-	static final ForgeConfigSpec.IntValue     CRAFTING_TABLE_POWER_USAGE_V;
-	static final ForgeConfigSpec.BooleanValue TOOLTIP_INFO_V;
-	static final ForgeConfigSpec.BooleanValue ENABLE_PARTICLE_FX_V;
-	static final ForgeConfigSpec.BooleanValue CHECK_FOR_UPDATES_V;
-	static final ForgeConfigSpec.BooleanValue EASTER_EGGS_V;
-	static final ForgeConfigSpec.BooleanValue OPAQUE_V;
-	static final ForgeConfigSpec.IntValue     MAX_ROBOT_DISTANCE_V;
-	static final ForgeConfigSpec.IntValue     MULTI_THREAD_NUMBER_V;
-	static final ForgeConfigSpec.IntValue     MULTI_THREAD_PRIORITY_V;
-	static final ForgeConfigSpec.BooleanValue DISABLE_ASYNC_WORK_V;
-	static final ForgeConfigSpec.IntValue     MIN_SLOT_ACCESS_V;
-	static final ForgeConfigSpec.IntValue     MAX_SLOT_ACCESS_V;
-	static final ForgeConfigSpec.IntValue     MIN_JOB_TICK_LENGTH_V;
-	static final ForgeConfigSpec.EnumValue<PowerSourceMode> POWER_SOURCE_MODE_V;
+	static final ModConfigSpec.IntValue     DETECTION_LENGTH_V;
+	static final ModConfigSpec.IntValue     DETECTION_COUNT_V;
+	static final ModConfigSpec.IntValue     DETECTION_FREQUENCY_V;
+	static final ModConfigSpec.BooleanValue ORDERER_COUNT_INVERT_V;
+	static final ModConfigSpec.BooleanValue ORDERER_PAGE_INVERT_V;
+	static final ModConfigSpec.BooleanValue DISPLAY_POPUP_V;
+	static final ModConfigSpec.IntValue     MAX_UNROUTED_CONNECTIONS_V;
+	static final ModConfigSpec.IntValue     HUD_RENDER_DISTANCE_V;
+	static final ModConfigSpec.DoubleValue  PIPE_DURABILITY_V;
+	static final ModConfigSpec.BooleanValue POWER_USAGE_DISABLED_V;
+	static final ModConfigSpec.DoubleValue  POWER_USAGE_MULTIPLIER_V;
+	static final ModConfigSpec.DoubleValue  COMPILER_SPEED_V;
+	static final ModConfigSpec.BooleanValue ENABLE_RESEARCH_SYSTEM_V;
+	static final ModConfigSpec.IntValue     CRAFTING_TABLE_POWER_USAGE_V;
+	static final ModConfigSpec.BooleanValue TOOLTIP_INFO_V;
+	static final ModConfigSpec.BooleanValue ENABLE_PARTICLE_FX_V;
+	static final ModConfigSpec.BooleanValue CHECK_FOR_UPDATES_V;
+	static final ModConfigSpec.BooleanValue EASTER_EGGS_V;
+	static final ModConfigSpec.BooleanValue OPAQUE_V;
+	static final ModConfigSpec.IntValue     MAX_ROBOT_DISTANCE_V;
+	static final ModConfigSpec.IntValue     MULTI_THREAD_NUMBER_V;
+	static final ModConfigSpec.IntValue     MULTI_THREAD_PRIORITY_V;
+	static final ModConfigSpec.BooleanValue DISABLE_ASYNC_WORK_V;
+	static final ModConfigSpec.IntValue     MIN_SLOT_ACCESS_V;
+	static final ModConfigSpec.IntValue     MAX_SLOT_ACCESS_V;
+	static final ModConfigSpec.IntValue     MIN_JOB_TICK_LENGTH_V;
+	static final ModConfigSpec.EnumValue<PowerSourceMode> POWER_SOURCE_MODE_V;
 
 	static {
-		ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
+		ModConfigSpec.Builder b = new ModConfigSpec.Builder();
 
 		b.comment("Pipe network detection settings").push("detection");
 		DETECTION_LENGTH_V         = b.comment("Max detection length for pipe network scan").defineInRange("detectionLength", 50, 1, 1000);
