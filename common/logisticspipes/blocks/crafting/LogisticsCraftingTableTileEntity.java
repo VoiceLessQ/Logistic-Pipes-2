@@ -383,8 +383,8 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 		}
 		fuzzyFlags.writeToNBT(par1nbtTagCompound);
 		if (targetType != null) {
-			CompoundTag type = new CompoundTag();
-			targetType.makeNormalStack(1).save(logisticspipes.utils.RegistryAccessUtil.registries(), type);
+			// 1.20.5+ ItemStack.save returns the encoded tag; it does not mutate the argument.
+			CompoundTag type = (CompoundTag) targetType.makeNormalStack(1).save(logisticspipes.utils.RegistryAccessUtil.registries(), new CompoundTag());
 			par1nbtTagCompound.put("targetType", type);
 		} else {
 			par1nbtTagCompound.remove("targetType");

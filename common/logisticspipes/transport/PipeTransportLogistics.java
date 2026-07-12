@@ -411,8 +411,7 @@ public class PipeTransportLogistics {
 		ListTag nbttaglist2 = new ListTag();
 
 		for (Pair<ItemIdentifierStack, Pair<Integer, Integer>> stack : _itemBuffer) {
-			CompoundTag nbttagcompound1 = new CompoundTag();
-			stack.getValue1().makeNormalStack().save(logisticspipes.utils.RegistryAccessUtil.registries(), nbttagcompound1);
+			CompoundTag nbttagcompound1 = (CompoundTag) stack.getValue1().makeNormalStack().save(logisticspipes.utils.RegistryAccessUtil.registries(), new CompoundTag());
 			nbttaglist2.add(nbttagcompound1);
 		}
 		nbt.put("buffercontents", nbttaglist2);

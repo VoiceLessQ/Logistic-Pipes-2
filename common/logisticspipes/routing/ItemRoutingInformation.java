@@ -81,8 +81,7 @@ public class ItemRoutingInformation {
 		nbttagcompound.putInt("bufferCounter", bufferCounter);
 		nbttagcompound.putInt("transportMode", _transportMode.ordinal());
 
-		CompoundTag nbttagcompound2 = new CompoundTag();
-		getItem().makeNormalStack().save(logisticspipes.utils.RegistryAccessUtil.registries(), nbttagcompound2);
+		CompoundTag nbttagcompound2 = (CompoundTag) getItem().makeNormalStack().save(logisticspipes.utils.RegistryAccessUtil.registries(), new CompoundTag());
 		nbttagcompound.put("Item", nbttagcompound2);
 	}
 
