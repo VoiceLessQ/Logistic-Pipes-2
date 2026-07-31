@@ -52,7 +52,7 @@ public final class LPTransformOp {
 		op.ax = axisX;
 		op.ay = axisY;
 		op.az = axisZ;
-		op.ox = op.oy = op.oz = 0.5;
+		op.ox = op.oy = op.oz = 0.0;
 		return op;
 	}
 
