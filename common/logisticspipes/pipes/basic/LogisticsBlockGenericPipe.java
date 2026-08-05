@@ -37,6 +37,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import logisticspipes.interfaces.ITickable;
 
 
@@ -144,7 +145,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	}
 
 	public LogisticsBlockGenericPipe() {
-		super(BlockBehaviour.Properties.of().strength(1.5F).noOcclusion());
+		super(BlockBehaviour.Properties.of().strength(0.5F).noOcclusion());
 		registerDefaultState(this.stateDefinition.any()
 				.setValue(rotationProperty, 0)
 				.setValue(modelTypeProperty, PipeRenderModel.NONE));
@@ -398,6 +399,16 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 			}
 		}
 		return list;
+	}
+
+	@Override
+	@Nonnull
+	public List<ItemStack> getDrops(@Nonnull BlockState state, @Nonnull net.minecraft.world.level.storage.loot.LootParams.Builder params) {
+		BlockEntity tile = params.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
+		if (tile instanceof LogisticsTileGenericPipe logisticsTile && logisticsTile.pipe != null && logisticsTile.pipe.item != null) {
+			return List.of(new ItemStack(logisticsTile.pipe.item));
+		}
+		return List.of();
 	}
 
 	// getBlockFaceShape removed in 1.20.1; dead stub kept for reference

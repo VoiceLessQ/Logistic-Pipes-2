@@ -5,9 +5,11 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -109,8 +111,18 @@ public class LogisticsSolidBlock extends Block implements EntityBlock {
 		// noOcclusion() is required so the BER receives a non-zero packedLight value.
 		// Without it Minecraft treats the block as fully opaque, stores sky-light = 0
 		// at its own position, and the BER renders pitch-black regardless of ambient light.
-		super(BlockBehaviour.Properties.of().strength(6.0F).requiresCorrectToolForDrops().noOcclusion());
+		super(BlockBehaviour.Properties.of().strength(0.5F).noOcclusion());
 		this.type = type;
+	}
+
+	@Override
+	@Nonnull
+	public List<ItemStack> getDrops(@Nonnull BlockState state, @Nonnull net.minecraft.world.level.storage.loot.LootParams.Builder params) {
+		ItemStack stack = new ItemStack(BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(this)));
+		if (stack.isEmpty()) {
+			return List.of();
+		}
+		return List.of(stack);
 	}
 
 	@Override
