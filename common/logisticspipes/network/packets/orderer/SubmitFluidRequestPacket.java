@@ -7,7 +7,6 @@ import logisticspipes.network.abstractpackets.ModernPacket;
 import logisticspipes.network.abstractpackets.RequestPacket;
 import logisticspipes.pipes.basic.CoreRoutedPipe;
 import logisticspipes.pipes.basic.LogisticsTileGenericPipe;
-import logisticspipes.proxy.MainProxy;
 import logisticspipes.request.RequestHandler;
 import logisticspipes.utils.StaticResolve;
 
@@ -25,7 +24,7 @@ public class SubmitFluidRequestPacket extends RequestPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		final LogisticsTileGenericPipe pipe = MainProxy.proxy.getPipeInDimensionAt(getDimension(), getPosX(), getPosY(), getPosZ(), player);
+		final LogisticsTileGenericPipe pipe = getPipeOrNull(player.level());
 		if (pipe == null || !(pipe.pipe instanceof CoreRoutedPipe) || !(pipe.pipe instanceof IRequestFluid)) {
 			return;
 		}
