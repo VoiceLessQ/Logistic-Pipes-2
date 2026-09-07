@@ -56,32 +56,34 @@ public class UpgradeChippedCraftingRecipes extends CraftingPartRecipes {
 		final Set<ResourceLocation> compilerPrograms = LogisticsProgramCompilerTileEntity.programByCategory.computeIfAbsent(recipeCategory, k -> new HashSet<>());
 		compilerPrograms.add(upgradeResource);
 
+		// Beta style (pre-1.8): drop the Logistics Programmer from the top row, chip-only crafting.
+		String topRow = logisticspipes.config.Configs.getBetaUpgradeRecipes() ? "r r" : "rpr";
 		RecipeManager.RecipeLayout layout = null;
 		switch (type) {
 			case LEVEL_1:
 				layout = new RecipeManager.RecipeLayout(
-						"rpr",
+						topRow,
 						"ibi",
 						"qnq"
 				);
 				break;
 			case LEVEL_2:
 				layout = new RecipeManager.RecipeLayout(
-						"rpr",
+						topRow,
 						"iai",
 						"qnq"
 				);
 				break;
 			case LEVEL_3:
 				layout = new RecipeManager.RecipeLayout(
-						"rpr",
+						topRow,
 						"gbg",
 						"qnq"
 				);
 				break;
 			case LEVEL_4:
 				layout = new RecipeManager.RecipeLayout(
-						"rpr",
+						topRow,
 						"gag",
 						"qnq"
 				);
