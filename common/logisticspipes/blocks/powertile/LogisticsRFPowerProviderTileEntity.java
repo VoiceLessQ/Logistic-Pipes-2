@@ -110,11 +110,10 @@ public class LogisticsRFPowerProviderTileEntity extends LogisticsPowerProviderTi
 		super.update();
 		if (MainProxy.isServer(getWorld())) {
 			if (freeSpace() > 0) {
-				if (logisticspipes.config.Configs.getPowerSourceMode() == logisticspipes.config.Configs.PowerSourceMode.ADJACENT) {
-					pullFromAdjacentStorage();
-				} else {
-					addStoredRF();
-				}
+				addStoredRF();
+			}
+			if (freeSpace() > 0 && logisticspipes.config.Configs.getPowerSourceMode() == logisticspipes.config.Configs.PowerSourceMode.ADJACENT) {
+				pullFromAdjacentStorage();
 			}
 		}
 	}
