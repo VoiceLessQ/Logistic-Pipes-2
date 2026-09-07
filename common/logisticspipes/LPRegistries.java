@@ -143,6 +143,12 @@ public final class LPRegistries {
 	public static final DeferredHolder<net.neoforged.neoforge.common.crafting.IngredientType<?>, net.neoforged.neoforge.common.crafting.IngredientType<logisticspipes.recipes.NBTIngredient>> NBT_INGREDIENT_TYPE =
 			INGREDIENT_TYPES.register("nbt", () -> logisticspipes.recipes.NBTIngredient.TYPE);
 
+	public static final DeferredRegister<com.mojang.serialization.MapCodec<? extends net.neoforged.neoforge.common.conditions.ICondition>> RECIPE_CONDITIONS =
+			DeferredRegister.create(net.neoforged.neoforge.registries.NeoForgeRegistries.Keys.CONDITION_CODECS, LPConstants.LP_MOD_ID);
+
+	public static final DeferredHolder<com.mojang.serialization.MapCodec<? extends net.neoforged.neoforge.common.conditions.ICondition>, com.mojang.serialization.MapCodec<logisticspipes.recipes.condition.BetaRecipesCondition>> BETA_RECIPES_CONDITION =
+			RECIPE_CONDITIONS.register("beta_recipes", () -> logisticspipes.recipes.condition.BetaRecipesCondition.CODEC);
+
 	public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<logisticspipes.recipes.ShapelessResetRecipe>> RESET_RECIPE_SERIALIZER =
 			RECIPE_SERIALIZERS.register("reset", () -> logisticspipes.recipes.ShapelessResetRecipe.SERIALIZER);
 
@@ -347,6 +353,7 @@ public final class LPRegistries {
 		CREATIVE_TABS.register(modEventBus);
 		RECIPE_SERIALIZERS.register(modEventBus);
 		INGREDIENT_TYPES.register(modEventBus);
+		RECIPE_CONDITIONS.register(modEventBus);
 		// Capability exposure: LPCapabilities.register on RegisterCapabilitiesEvent (NeoForge 21.x).
 		// IC2/BC/MJ power providers: disabled (mods not ported).
 	}

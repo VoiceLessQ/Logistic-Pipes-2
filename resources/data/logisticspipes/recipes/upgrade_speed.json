@@ -1,5 +1,8 @@
 {
   "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {"type": "neoforge:not", "value": {"type": "logisticspipes:beta_recipes"}}
+  ],
   "pattern": ["rpr", "ibi", "qnq"],
   "key": {
     "r": {"item": "minecraft:redstone"},

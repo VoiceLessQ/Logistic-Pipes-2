@@ -41,6 +41,7 @@ public class Configs {
 	static final ModConfigSpec.IntValue     MAX_SLOT_ACCESS_V;
 	static final ModConfigSpec.IntValue     MIN_JOB_TICK_LENGTH_V;
 	static final ModConfigSpec.EnumValue<PowerSourceMode> POWER_SOURCE_MODE_V;
+	static final ModConfigSpec.BooleanValue BETA_UPGRADE_RECIPES_V;
 
 	static {
 		ModConfigSpec.Builder b = new ModConfigSpec.Builder();
@@ -75,6 +76,7 @@ public class Configs {
 		b.comment("Logistics system settings").push("logistics");
 		COMPILER_SPEED_V         = b.comment("Program compiler speed multiplier").defineInRange("compilerSpeed", 1.0, 0.01, 100.0);
 		ENABLE_RESEARCH_SYSTEM_V = b.comment("Enable research system").define("enableResearchSystem", false);
+		BETA_UPGRADE_RECIPES_V   = b.comment("Craft module upgrades from a chip only, skipping the Logistics Programmer requirement (pre-1.8 beta style)").define("betaUpgradeRecipes", false);
 		ENABLE_PARTICLE_FX_V     = b.comment("Enable particle effects").define("enableParticleFx", true);
 		CHECK_FOR_UPDATES_V      = b.comment("Check for mod updates on startup").define("checkForUpdates", true);
 		EASTER_EGGS_V            = b.comment("Enable easter eggs").define("easterEggs", true);
@@ -115,6 +117,7 @@ public class Configs {
 	public static PowerSourceMode POWER_SOURCE_MODE = PowerSourceMode.ADJACENT;
 	public static double COMPILER_SPEED = 1.0;
 	public static boolean ENABLE_RESEARCH_SYSTEM = false;
+	public static boolean BETA_UPGRADE_RECIPES = false;
 
 	public static int LOGISTICS_CRAFTING_TABLE_POWER_USAGE = 250;
 
@@ -165,6 +168,7 @@ public class Configs {
 		POWER_SOURCE_MODE                      = POWER_SOURCE_MODE_V.get();
 		COMPILER_SPEED                         = COMPILER_SPEED_V.get();
 		ENABLE_RESEARCH_SYSTEM                 = ENABLE_RESEARCH_SYSTEM_V.get();
+		BETA_UPGRADE_RECIPES                   = BETA_UPGRADE_RECIPES_V.get();
 		LOGISTICS_CRAFTING_TABLE_POWER_USAGE   = CRAFTING_TABLE_POWER_USAGE_V.get();
 		TOOLTIP_INFO                           = TOOLTIP_INFO_V.get();
 		ENABLE_PARTICLE_FX                     = ENABLE_PARTICLE_FX_V.get();
@@ -190,6 +194,11 @@ public class Configs {
 	/** Always reads live from the spec so config file edits take effect on reload. */
 	public static PowerSourceMode getPowerSourceMode() {
 		return POWER_SOURCE_MODE_V.get();
+	}
+
+	/** Always reads live from the spec: recipe conditions are evaluated on every datapack reload. */
+	public static boolean getBetaUpgradeRecipes() {
+		return BETA_UPGRADE_RECIPES_V.get();
 	}
 
 	public enum PowerSourceMode {
