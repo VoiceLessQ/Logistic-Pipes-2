@@ -42,8 +42,8 @@ import network.rs485.minecraft.BlockPosSelector
 import network.rs485.minecraft.TestState
 import network.rs485.util.checkBooleanProperty
 import logisticspipes.LogisticsPipes
-import net.minecraftforge.server.ServerLifecycleHooks
-import net.minecraftforge.event.server.ServerStartedEvent
+import net.neoforged.neoforge.server.ServerLifecycleHooks
+import net.neoforged.neoforge.event.server.ServerStartedEvent
 import net.minecraft.server.dedicated.DedicatedServer
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel

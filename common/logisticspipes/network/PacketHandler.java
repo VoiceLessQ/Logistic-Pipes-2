@@ -212,7 +212,7 @@ public class PacketHandler {
     /** Decodes a raw LP packet from an LPDataInput (used by NBT-embedded packets). */
     public static void onPacketData(@Nonnull final LPDataInput data, @Nonnull final Player player) {
         final int packetID = data.readShort();
-        final ModernPacket packet = PacketHandler.packetlist.get(packetID).template();
+        final ModernPacket packet = templateForId(packetID);
         packet.setDebugId(data.readInt());
         packet.readData(data);
         onPacketData(packet, player);

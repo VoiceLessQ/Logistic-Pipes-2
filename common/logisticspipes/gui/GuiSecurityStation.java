@@ -234,12 +234,22 @@ public class GuiSecurityStation extends LogisticsBaseGuiScreen implements Player
 	}
 
 	@Override
-	public boolean charTyped(char c, int i) {
-		if (searchBar.isFocused()) {
-			if ((c == 13) || (i == 1) || (i == 28)) {
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (searchBar != null && searchBar.isFocused()) {
+			if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER) {
 				searchBar.setFocused(false);
 				return true;
 			}
+			if (searchBar.keyPressed(keyCode, scanCode, modifiers)) {
+				return true;
+			}
+		}
+		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+
+	@Override
+	public boolean charTyped(char c, int i) {
+		if (searchBar.isFocused()) {
 			if (searchBar.handleKey(c, i)) {
 				return true;
 			}

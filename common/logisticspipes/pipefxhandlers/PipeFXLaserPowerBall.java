@@ -1,18 +1,11 @@
 package logisticspipes.pipefxhandlers;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -37,11 +30,11 @@ public class PipeFXLaserPowerBall extends Particle {
 
 	@Override
 	public ParticleRenderType getRenderType() {
-		return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+		return LaserRenderType.INSTANCE;
 	}
 
 	@Override
-	public void render(VertexConsumer ignored, Camera camera, float partialTicks) {
+	public void render(VertexConsumer bb, Camera camera, float partialTicks) {
 		double px = Mth.lerp(partialTicks, xo, x) - camera.getPosition().x;
 		double py = Mth.lerp(partialTicks, yo, y) - camera.getPosition().y;
 		double pz = Mth.lerp(partialTicks, zo, z) - camera.getPosition().z;
@@ -59,25 +52,14 @@ public class PipeFXLaserPowerBall extends Particle {
 
 		float s = this.bbWidth * 0.5f;
 
-		Tesselator tes = Tesselator.getInstance();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.depthMask(false);
-
 		// Two crossed billboard quads for a glowing ball look
-		BufferBuilder bb = tes.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 		billboardVertex(bb, px, py, pz, right, up,  s,  s, ri, gi, bi, ai);
 		billboardVertex(bb, px, py, pz, right, up, -s,  s, ri, gi, bi, ai);
 		billboardVertex(bb, px, py, pz, right, up, -s, -s, ri, gi, bi, ai);
 		billboardVertex(bb, px, py, pz, right, up,  s, -s, ri, gi, bi, ai);
-		BufferUploader.drawWithShader(bb.buildOrThrow());
-
-		RenderSystem.depthMask(true);
-		RenderSystem.disableBlend();
 	}
 
-	private static void billboardVertex(BufferBuilder bb, double cx, double cy, double cz,
+	private static void billboardVertex(VertexConsumer bb, double cx, double cy, double cz,
 			org.joml.Vector3f right, org.joml.Vector3f up, float rs, float us,
 			int r, int g, int b, int a) {
 		bb.addVertex((float) (cx + right.x * rs + up.x * us),

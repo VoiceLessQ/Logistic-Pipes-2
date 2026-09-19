@@ -406,13 +406,37 @@ public abstract class LogisticsBaseGuiScreen extends AbstractContainerScreen imp
 		}
 		// Button presses are handled by AbstractContainerScreen/Screen's own widget dispatch
 		// (addRenderableWidget wires SmallGuiButton/GuiCheckBox press listeners in this class).
-		return super.mouseClicked(par1, par2, par3);
+		boolean handled = super.mouseClicked(par1, par2, par3);
+		// LP1 parity: clicks beside the window toggle the side extensions.
+		if (par3 == 0 && !mouseCanPressButton((int) par1, (int) par2) && !isOverSlot((int) par1, (int) par2)) {
+			if (par1 < leftPos) {
+				extensionControllerLeft.mouseClicked(par1, par2, par3);
+			} else if (par1 > leftPos + imageWidth) {
+				extensionControllerRight.mouseClicked(par1, par2, par3);
+			}
+		}
+		return handled;
 	}
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
 		if (subGui != null) {
 			return subGui.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+		}
+		// LP1 parity: wheel over a ghost slot steps its amount (DummyContainer buttons 1000/1001).
+		if (scrollY != 0) {
+			Optional<DummySlot> slotOpt = menu.slots.stream().filter(it -> it instanceof DummySlot).map(it -> (DummySlot) it)
+					.filter(it -> isMouseOverSlot(it, (int) mouseX, (int) mouseY)).findFirst();
+			if (slotOpt.isPresent()) {
+				DummySlot slot = slotOpt.get();
+				slot.setRedirectCall(true);
+				if (slot.getMaxStackSize() > 0 && slot.hasItem()) {
+					int buttonActionID = scrollY > 0 ? 1000 : 1001;
+					minecraft.gameMode.handleInventoryMouseClick(menu.containerId, slot.index, buttonActionID, ClickType.SWAP, minecraft.player);
+				}
+				slot.setRedirectCall(false);
+				return true;
+			}
 		}
 		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 	}

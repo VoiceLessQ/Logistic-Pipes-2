@@ -166,7 +166,17 @@ public class GuiDiskPopup extends SubGuiScreen {
 		}
 	}
 
-	// Deferred: scroll wheel handling not wired
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		if (scrollY < 0) {
+			textList.scrollUp();
+		} else if (scrollY > 0) {
+			textList.scrollDown();
+		} else {
+			return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+		}
+		return true;
+	}
 
 	private void handleRequest() {
 		MainProxy.sendPacketToServer(PacketHandler.getPacket(DiskMacroRequestPacket.class).putInt(textList.getSelected()).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
@@ -213,52 +223,51 @@ public class GuiDiskPopup extends SubGuiScreen {
 	}
 
 	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (!editName) {
+			return super.keyPressed(keyCode, scanCode, modifiers);
+		}
+		if (Screen.isPaste(keyCode)) {
+			name1 = name1 + net.minecraft.client.Minecraft.getInstance().keyboardHandler.getClipboard();
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE) {
+			if (name1.length() > 0) {
+				name1 = name1.substring(0, name1.length() - 1);
+			}
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT) {
+			if (name1.length() > 0) {
+				name2 = name1.substring(name1.length() - 1) + name2;
+				name1 = name1.substring(0, name1.length() - 1);
+			}
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT) {
+			if (name2.length() > 0) {
+				name1 += name2.substring(0, 1);
+				name2 = name2.substring(1);
+			}
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER) {
+			writeDiskName();
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_HOME) {
+			name2 = name1 + name2;
+			name1 = "";
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_END) {
+			name1 = name1 + name2;
+			name2 = "";
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE) {
+			if (name2.length() > 0) {
+				name2 = name2.substring(1);
+			}
+		}
+		return true;
+	}
+
+	@Override
 	public boolean charTyped(char c, int i) {
 		if (editName) {
-			if (c == 13) {
-				writeDiskName();
-				return true;
-			} else if (i == 47 && Screen.hasControlDown()) {
-				name1 = name1 + net.minecraft.client.Minecraft.getInstance().keyboardHandler.getClipboard();
-			} else if (c == 8) {
-				if (name1.length() > 0) {
-					name1 = name1.substring(0, name1.length() - 1);
-				}
-				return true;
-			} else if (Character.isLetterOrDigit(c) || c == ' ') {
+			if (Character.isLetterOrDigit(c) || c == ' ') {
 				if (minecraft.font.width(name1 + c + name2) <= SEARCH_WIDTH) {
 					name1 += c;
 				}
 				return true;
-			} else if (i == 203) { //Left
-				if (name1.length() > 0) {
-					name2 = name1.substring(name1.length() - 1) + name2;
-					name1 = name1.substring(0, name1.length() - 1);
-				}
-			} else if (i == 205) { //Right
-				if (name2.length() > 0) {
-					name1 += name2.substring(0, 1);
-					name2 = name2.substring(1);
-				}
-			} else if (i == 1) { //ESC
-				writeDiskName();
-			} else if (i == 28) { //Enter
-				writeDiskName();
-			} else if (i == 199) { //Pos
-				name2 = name1 + name2;
-				name1 = "";
-			} else if (i == 207) { //Ende
-				name1 = name1 + name2;
-				name2 = "";
-			} else if (i == 211) { //Entf
-				if (name2.length() > 0) {
-					name2 = name2.substring(1);
-				}
 			}
-			//		} else if (Screen.hasShiftDown()){
-			//			return super.charTyped(c, i);
-			//		} else if (Screen.hasControlDown()){
-			//			return super.charTyped(c, i);
 		} else {
 			return super.charTyped(c, i);
 		}

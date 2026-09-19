@@ -49,10 +49,10 @@ public class LPRecipePack implements PackResources {
 	public IoSupplier<InputStream> getResource(PackType type, ResourceLocation location) {
 		if (type != PackType.SERVER_DATA) return null;
 		if (!NAMESPACE.equals(location.getNamespace())) return null;
-		if (!location.getPath().startsWith("recipes/")) return null;
+		if (!location.getPath().startsWith("recipe/")) return null;
 
-		// Strip "recipes/" prefix, reconstruct ResourceLocation key
-		String recipeName = location.getPath().substring("recipes/".length());
+		// Strip "recipe/" prefix, reconstruct ResourceLocation key
+		String recipeName = location.getPath().substring("recipe/".length());
 		if (recipeName.endsWith(".json")) {
 			recipeName = recipeName.substring(0, recipeName.length() - ".json".length());
 		}
@@ -68,11 +68,11 @@ public class LPRecipePack implements PackResources {
 	public void listResources(PackType type, String namespace, String path, ResourceOutput output) {
 		if (type != PackType.SERVER_DATA) return;
 		if (!NAMESPACE.equals(namespace)) return;
-		if (!"recipes".equals(path) && !path.startsWith("recipes/")) return;
+		if (!"recipe".equals(path) && !path.startsWith("recipe/")) return;
 
 		for (ResourceLocation key : RecipeManager.craftingManager.virtualRecipes.keySet()) {
 			if (!key.getNamespace().equals(NAMESPACE)) continue;
-			ResourceLocation fileLocation = ResourceLocation.fromNamespaceAndPath(NAMESPACE, "recipes/" + key.getPath() + ".json");
+			ResourceLocation fileLocation = ResourceLocation.fromNamespaceAndPath(NAMESPACE, "recipe/" + key.getPath() + ".json");
 			IoSupplier<InputStream> supplier = getResource(type, fileLocation);
 			if (supplier != null) {
 				output.accept(fileLocation, supplier);

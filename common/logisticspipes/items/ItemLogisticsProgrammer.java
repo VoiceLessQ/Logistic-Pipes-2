@@ -24,12 +24,16 @@ public class ItemLogisticsProgrammer extends LogisticsItem {
 		super(new Item.Properties().stacksTo(1));
 	}
 
+	// LP1 setContainerItem(this): the programmer stays in the grid, program included.
+	@Override
+	public boolean hasCraftingRemainingItem(@Nonnull ItemStack itemStack) {
+		return true;
+	}
+
 	@Nonnull
 	@Override
 	public ItemStack getCraftingRemainingItem(@Nonnull ItemStack itemStack) {
-		ItemStack items = super.getCraftingRemainingItem(itemStack);
-		logisticspipes.utils.item.StackTag.setTag(items, logisticspipes.utils.item.StackTag.getTag(itemStack));
-		return items;
+		return itemStack.copyWithCount(1);
 	}
 
 	@Override

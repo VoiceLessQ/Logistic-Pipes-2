@@ -2,6 +2,7 @@ package logisticspipes.network.packets.orderer;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 
 import logisticspipes.LPItems;
 import logisticspipes.network.abstractpackets.ModernPacket;
@@ -38,8 +39,10 @@ public class DiskSetNamePacket extends StringCoordinatesPacket {
 			if (!logisticspipes.utils.item.StackTag.hasTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk())) {
 				logisticspipes.utils.item.StackTag.setTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk(), new CompoundTag());
 			}
-			CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk());
+			ItemStack disk = ((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk();
+			CompoundTag nbt = logisticspipes.utils.item.StackTag.getTag(disk);
 			nbt.putString("name", getString());
+			logisticspipes.utils.item.StackTag.setTag(disk, nbt);
 		}
 	}
 }

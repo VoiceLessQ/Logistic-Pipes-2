@@ -274,6 +274,34 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 	}
 
 	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (hasSubGui()) {
+			return super.keyPressed(keyCode, scanCode, modifiers);
+		}
+		if (search.isFocused() && !search.isEmpty() && search.keyPressed(keyCode, scanCode, modifiers)) {
+			return true;
+		}
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_A && Screen.hasControlDown()) {
+			itemDisplay.setMaxAmount();
+			return true;
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_D && Screen.hasControlDown()) {
+			itemDisplay.resetAmount();
+			return true;
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP) {
+			itemDisplay.prevPage();
+			return true;
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN) {
+			itemDisplay.nextPage();
+			return true;
+		}
+		// Track everything except Escape when in search bar
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || !search.keyPressed(keyCode, scanCode, modifiers)) {
+			return super.keyPressed(keyCode, scanCode, modifiers);
+		}
+		return true;
+	}
+
+	@Override
 	public boolean charTyped(char c, int i) {
 		if (search.isFocused()) {
 			if (!search.isEmpty() && search.handleKey(c, i)) {
@@ -287,8 +315,7 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 			return true;
 		}
 		if (!itemDisplay.keyTyped(c, i)) {
-			// Track everything except Escape when in search bar
-			if (i == 1 || !search.handleKey(c, i)) {
+			if (!search.handleKey(c, i)) {
 				return super.charTyped(c, i);
 			}
 		}

@@ -310,6 +310,22 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 		}
 		result = result.copy();
 		result.onCraftedBy(getWorld(), fake, result.getCount());
+		// LP1 SlotCrafting.onTake: consume one per slot, keep container items (buckets).
+		net.minecraft.core.NonNullList<ItemStack> remaining = recipe.getRemainingItems(crafter.asCraftInput());
+		for (int i = 0; i < 9; i++) {
+			ItemStack slotStack = crafter.getItem(i);
+			if (!slotStack.isEmpty()) {
+				slotStack.shrink(1);
+			}
+			ItemStack rest = i < remaining.size() ? remaining.get(i) : ItemStack.EMPTY;
+			if (!rest.isEmpty()) {
+				if (slotStack.isEmpty()) {
+					crafter.setItem(i, rest);
+				} else {
+					ItemIdentifierInventory.dropItems(level, rest, getBlockPos());
+				}
+			}
+		}
 		for (int i = 0; i < 9; i++) {
 			ItemStack left = crafter.getItem(i);
 			crafter.setItem(i, ItemStack.EMPTY);

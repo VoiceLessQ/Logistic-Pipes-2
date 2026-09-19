@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {"type": "logisticspipes:beta_recipes"}
+  ],
+  "pattern": ["r r", "ibi", "qnq"],
+  "key": {
+    "r": {"item": "minecraft:redstone"},
+    "i": {"item": "minecraft:iron_ingot"},
+    "b": {"item": "logisticspipes:chip_basic"},
+    "q": {"item": "minecraft:paper"},
+    "n": {"item": "minecraft:gold_nugget"}
+  },
+  "result": {"id": "logisticspipes:upgrade_speed", "count": 1}
+}

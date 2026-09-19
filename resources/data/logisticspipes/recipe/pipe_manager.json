@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["ibi", "rsl", "rrl"],
+  "key": {
+    "i": {"tag": "c:ingots/iron"},
+    "b": {"item": "logisticspipes:chip_basic"},
+    "r": {"item": "minecraft:redstone"},
+    "s": {"tag": "c:glass_blocks"},
+    "l": {"tag": "c:gems/lapis"}
+  },
+  "result": {"id": "logisticspipes:pipe_manager"}
+}

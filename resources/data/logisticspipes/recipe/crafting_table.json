@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [" c ", "wfw", " p "],
+  "key": {
+    "c": {"item": "minecraft:crafting_table"},
+    "w": {"tag": "minecraft:planks"},
+    "f": {"item": "logisticspipes:frame"},
+    "p": {"item": "minecraft:piston"}
+  },
+  "result": {"id": "logisticspipes:crafting_table"}
+}

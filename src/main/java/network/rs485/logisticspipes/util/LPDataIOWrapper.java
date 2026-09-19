@@ -79,6 +79,8 @@ import logisticspipes.utils.item.ItemIdentifierStack;
 public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 
 	private static final Charset UTF_8 = StandardCharsets.UTF_8;
+	// Same cap vanilla applies to custom payload NBT; bounds client-sent arrays and tags.
+	private static final int MAX_BYTE_ARRAY = 2 * 1024 * 1024;
 	private static final HashMap<Long, LPDataIOWrapper> BUFFER_WRAPPER_MAP = new HashMap<>();
 	ByteBuf localBuffer;
 	private int reference;
@@ -177,6 +179,9 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 		final int length = readInt();
 		if (length == -1) {
 			return null;
+		}
+		if (length < 0 || length > MAX_BYTE_ARRAY) {
+			throw new IllegalStateException("LP byte array length out of bounds: " + length);
 		}
 
 		return readBytes(length);
@@ -533,7 +538,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 		}
 
 		try {
-			return NbtIo.readCompressed(new ByteArrayInputStream(Objects.requireNonNull(readByteArray())), net.minecraft.nbt.NbtAccounter.unlimitedHeap());
+			return NbtIo.readCompressed(new ByteArrayInputStream(Objects.requireNonNull(readByteArray())), net.minecraft.nbt.NbtAccounter.create(MAX_BYTE_ARRAY));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -39,6 +39,7 @@ public class SneakyUpgradeSidePacket extends SlotPacket {
 		}
 		final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 		tag.putString(SneakyUpgradeConfig.SIDE_KEY, SneakyUpgradeConfig.Sides.getNameForDirection(side));
+		logisticspipes.utils.item.StackTag.setTag(stack, tag);
 		slot.set(stack);
 	}
 

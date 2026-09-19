@@ -373,28 +373,28 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	}
 
 	@Nonnull
-	// @Override removed — getDrops(BlockGetter...) does not match 1.20.1 Block API
-	public NonNullList<ItemStack> getDrops(@Nonnull BlockGetter world, @Nonnull BlockPos pos, @Nonnull BlockState state, int fortune) {
-		NonNullList<ItemStack> list = NonNullList.create();
-		if (world instanceof Level && MainProxy.isClient((Level) world)) {
-			return list;
+	@Override
+	public List<ItemStack> getDrops(@Nonnull BlockState state, @Nonnull net.minecraft.world.level.storage.loot.LootParams.Builder params) {
+		List<ItemStack> list = new ArrayList<>();
+		net.minecraft.server.level.ServerLevel level = params.getLevel();
+		BlockPos pos = BlockPos.containing(params.getParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN));
+		CoreUnroutedPipe pipe = null;
+		// The block is usually gone by now; the loot context still carries the block entity.
+		if (params.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_ENTITY) instanceof LogisticsTileGenericPipe tile) {
+			pipe = tile.pipe;
 		}
-
-		int count = 1; // quantityDropped removed in 1.20.1
-		for (int i = 0; i < count; i++) {
-			CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(world, pos);
-
-			if (pipe == null) {
-				pipe = LogisticsBlockGenericPipe.pipeRemoved.get(new DoubleCoordinates(pos));
-			}
-
-			if (pipe != null) {
-				if (pipe.item != null && (pipe.canBeDestroyed() || pipe.destroyByPlayer())) {
-					list.addAll(pipe.dropContents());
-					list.add(new ItemStack(pipe.item, 1));
-				} else if (pipe.item != null) {
-					LogisticsBlockGenericPipe.cacheTileToPreventRemoval(pipe);
-				}
+		if (pipe == null) {
+			pipe = LogisticsBlockGenericPipe.getPipe(level, pos);
+		}
+		if (pipe == null) {
+			pipe = LogisticsBlockGenericPipe.pipeRemoved.get(new DoubleCoordinates(pos));
+		}
+		if (pipe != null) {
+			if (pipe.item != null && (pipe.canBeDestroyed() || pipe.destroyByPlayer())) {
+				list.addAll(pipe.dropContents());
+				list.add(new ItemStack(pipe.item, 1));
+			} else if (pipe.item != null) {
+				LogisticsBlockGenericPipe.cacheTileToPreventRemoval(pipe);
 			}
 		}
 		return list;
@@ -713,36 +713,6 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 			LogisticsBlockGenericPipe.removePipe(LogisticsBlockGenericPipe.getPipe(world, pos));
 		}
 		super.onRemove(state, world, pos, newState, isMoving);
-	}
-
-	// @Override removed — dropBlockAsItemWithChance removed in 1.20.1
-	public void dropBlockAsItemWithChance_DEAD(Level world, @Nonnull final BlockPos pos, @Nonnull BlockState state, float chance, int fortune) {
-
-		if (world.isClientSide) {
-			return;
-		}
-
-		// quantityDropped removed in 1.20.1; drop once if chance passes
-		if (world.getRandom().nextFloat() > chance) {
-			return;
-		}
-
-		CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(world, pos);
-
-		if (pipe == null) {
-			pipe = LogisticsBlockGenericPipe.pipeRemoved.get(new DoubleCoordinates(pos));
-		}
-
-		if (pipe == null) return;
-
-		if (pipe.item != null && (pipe.canBeDestroyed() || pipe.destroyByPlayer())) {
-			for (ItemStack stack : pipe.dropContents()) {
-				Block.popResource(world, pos, stack);
-			}
-			Block.popResource(world, pos, new ItemStack(pipe.item, 1));
-		} else if (pipe.item != null) {
-			LogisticsBlockGenericPipe.cacheTileToPreventRemoval(pipe);
-		}
 	}
 
 	// @Override removed — getItemDropped removed in 1.20.1

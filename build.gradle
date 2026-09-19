@@ -79,6 +79,7 @@ neoForge {
     // The api source set is separate from main, so wire the MC/NeoForge classpath
     // onto it too (MDG only adds it to main by default).
     addModdingDependenciesTo sourceSets.api
+    addModdingDependenciesTo sourceSets.test
 
     accessTransformers {
         from rootProject.file('resources/META-INF/lp_at.cfg')

@@ -37,6 +37,9 @@ public class HUDPowerLevel extends BasicHUDGui implements IHeadUpDisplayRenderer
 			// Fill bar (uv 176, level*59/100 size 5 x filled)
 			gg.blit(TEXTURE, -49, -29 + (level * 59 / 100), 176.0f, (float)(level * 59 / 100), 5, filled, 256, 256);
 		}
+		gg.drawString(minecraft.font, "Stored Energy:", -30, -15, 0xff404040, false);
+		gg.drawString(minecraft.font, StringUtils.getStringWithSpacesFromInteger(junction.getDisplayPowerLevel()) + " " + junction.getBrand(), -30, -5, 0xff404040, false);
+		gg.drawString(minecraft.font, "/ " + StringUtils.getStringWithSpacesFromInteger(junction.getMaxStorage()) + " " + junction.getBrand(), -30, 5, 0xff404040, false);
 	}
 
 	@Override

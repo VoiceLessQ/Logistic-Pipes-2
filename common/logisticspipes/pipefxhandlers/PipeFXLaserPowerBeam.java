@@ -1,18 +1,11 @@
 package logisticspipes.pipefxhandlers;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -47,11 +40,11 @@ public class PipeFXLaserPowerBeam extends Particle {
 
 	@Override
 	public ParticleRenderType getRenderType() {
-		return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+		return LaserRenderType.INSTANCE;
 	}
 
 	@Override
-	public void render(VertexConsumer ignored, Camera camera, float partialTicks) {
+	public void render(VertexConsumer bb, Camera camera, float partialTicks) {
 		double px = Mth.lerp(partialTicks, xo, x) - camera.getPosition().x;
 		double py = Mth.lerp(partialTicks, yo, y) - camera.getPosition().y;
 		double pz = Mth.lerp(partialTicks, zo, z) - camera.getPosition().z;
@@ -81,26 +74,14 @@ public class PipeFXLaserPowerBeam extends Particle {
 		int bi = (int) (b * 255);
 		int ai = 200;
 
-		Tesselator tes = Tesselator.getInstance();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.depthMask(false);
-
-		BufferBuilder bb = tes.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
 		// Two crossed quads along the beam axis for a 3D beam look
 		beamQuad(bb, px, py, pz, ax, ay, az, length, p1x, p1y, p1z, ri, gi, bi, ai);
 		beamQuad(bb, px, py, pz, ax, ay, az, length, p2x, p2y, p2z, ri, gi, bi, ai);
 
-		BufferUploader.drawWithShader(bb.buildOrThrow());
-
-		RenderSystem.depthMask(true);
-		RenderSystem.disableBlend();
 	}
 
 	/** Render one flat quad along the beam axis, offset by ±perp. */
-	private static void beamQuad(BufferBuilder bb,
+	private static void beamQuad(VertexConsumer bb,
 			double ox, double oy, double oz,
 			float ax, float ay, float az, float len,
 			float px, float py, float pz,

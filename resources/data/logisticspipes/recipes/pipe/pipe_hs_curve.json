@@ -1,8 +1,0 @@
-{
-  "type": "minecraft:crafting_shaped",
-  "pattern": ["ppp", "p  ", "p  "],
-  "key": {
-    "p": {"item": "logisticspipes:pipe_hs_line"}
-  },
-  "result": {"item": "logisticspipes:pipe_hs_curve"}
-}

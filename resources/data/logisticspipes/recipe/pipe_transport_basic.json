@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["ggg", " i ", "ggg"],
+  "key": {
+    "g": {"item": "minecraft:glass_pane"},
+    "i": {"item": "minecraft:iron_ingot"}
+  },
+  "result": {"id": "logisticspipes:pipe_transport_basic", "count": 8}
+}

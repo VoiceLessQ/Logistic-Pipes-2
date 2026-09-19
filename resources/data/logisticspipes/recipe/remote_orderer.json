@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["aga", "rsl", "rrl"],
+  "key": {
+    "a": {"item": "logisticspipes:chip_advanced"},
+    "g": {"tag": "c:ingots/gold"},
+    "r": {"item": "minecraft:redstone"},
+    "s": {"tag": "c:glass_blocks"},
+    "l": {"tag": "c:gems/lapis"}
+  },
+  "result": {"id": "logisticspipes:remote_orderer"}
+}

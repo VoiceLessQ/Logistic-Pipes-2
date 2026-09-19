@@ -475,88 +475,88 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 	}
 
 	@Override
-	public boolean charTyped(char c, int i) {
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 		if (editName) {
-			if (c == 13) {
-				editName = false;
-				return true;
-			} else if (i == 47 && Screen.hasControlDown()) {
+			if (Screen.isPaste(keyCode)) {
 				name1 = name1 + Minecraft.getInstance().keyboardHandler.getClipboard();
-			} else if (c == 8) {
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE) {
 				if (name1.length() > 0) {
 					name1 = name1.substring(0, name1.length() - 1);
 				}
-				return true;
-			} else if (Character.isLetterOrDigit(c) || c == ' ') {
-				if (minecraft.font.width(name1 + c + name2) <= NAME_WIDTH) {
-					name1 += c;
-				}
-				return true;
-			} else if (i == 203) { //Left
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT) {
 				if (name1.length() > 0) {
 					name2 = name1.substring(name1.length() - 1) + name2;
 					name1 = name1.substring(0, name1.length() - 1);
 				}
-			} else if (i == 205) { //Right
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT) {
 				if (name2.length() > 0) {
 					name1 += name2.substring(0, 1);
 					name2 = name2.substring(1);
 				}
-			} else if (i == 1) { //ESC
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER) {
 				editName = false;
-			} else if (i == 28) { //Enter
-				editName = false;
-			} else if (i == 199) { //Pos
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_HOME) {
 				name2 = name1 + name2;
 				name1 = "";
-			} else if (i == 207) { //Ende
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_END) {
 				name1 = name1 + name2;
 				name2 = "";
-			} else if (i == 211) { //Entf
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE) {
 				if (name2.length() > 0) {
 					name2 = name2.substring(1);
 				}
 			}
 		} else if (editSearch) {
-			if (c == 13) {
-				editSearch = false;
-				return true;
-			} else if (i == 47 && Screen.hasControlDown()) {
+			if (Screen.isPaste(keyCode)) {
 				Search1 = Search1 + Minecraft.getInstance().keyboardHandler.getClipboard();
-			} else if (c == 8) {
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE) {
 				if (Search1.length() > 0) {
 					Search1 = Search1.substring(0, Search1.length() - 1);
 				}
-				return true;
-			} else if (Character.isLetterOrDigit(c) || c == ' ') {
-				if (minecraft.font.width(Search1 + c + Search2) <= SEARCH_WIDTH) {
-					Search1 += c;
-				}
-				return true;
-			} else if (i == 203) { //Left
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT) {
 				if (Search1.length() > 0) {
 					Search2 = Search1.substring(Search1.length() - 1) + Search2;
 					Search1 = Search1.substring(0, Search1.length() - 1);
 				}
-			} else if (i == 205) { //Right
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT) {
 				if (Search2.length() > 0) {
 					Search1 += Search2.substring(0, 1);
 					Search2 = Search2.substring(1);
 				}
-			} else if (i == 1) { //ESC
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER) {
 				editSearch = false;
-			} else if (i == 28) { //Enter
-				editSearch = false;
-			} else if (i == 199) { //Pos
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_HOME) {
 				Search2 = Search1 + Search2;
 				Search1 = "";
-			} else if (i == 207) { //Ende
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_END) {
 				Search1 = Search1 + Search2;
 				Search2 = "";
-			} else if (i == 211) { //Entf
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE) {
 				if (Search2.length() > 0) {
 					Search2 = Search2.substring(1);
 				}
+			}
+		} else {
+			return super.keyPressed(keyCode, scanCode, modifiers);
+		}
+		return true;
+	}
+
+	@Override
+	public boolean charTyped(char c, int i) {
+		if (editName) {
+			if (Character.isLetterOrDigit(c) || c == ' ') {
+				if (minecraft.font.width(name1 + c + name2) <= NAME_WIDTH) {
+					name1 += c;
+				}
+				return true;
+			}
+		} else if (editSearch) {
+			if (Character.isLetterOrDigit(c) || c == ' ') {
+				if (minecraft.font.width(Search1 + c + Search2) <= SEARCH_WIDTH) {
+					Search1 += c;
+				}
+				return true;
 			}
 		} else {
 			return super.charTyped(c, i);

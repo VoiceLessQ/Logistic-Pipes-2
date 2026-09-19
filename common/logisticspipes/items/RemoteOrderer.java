@@ -82,8 +82,7 @@ public class RemoteOrderer extends LogisticsItem {
 	}
 
 	public static void connectToPipe(@Nonnull ItemStack stack, PipeItemsRemoteOrdererLogistics pipe) {
-		logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
-		final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
+		final CompoundTag tag = new CompoundTag();
 		tag.putInt("connectedPipe-x", pipe.getX());
 		tag.putInt("connectedPipe-y", pipe.getY());
 		tag.putInt("connectedPipe-z", pipe.getZ());
@@ -92,6 +91,7 @@ public class RemoteOrderer extends LogisticsItem {
 		int dimension = pipe.getWorld().dimension().location().hashCode();
 		tag.putInt("connectedPipe-world-dim", dimension);
 		tag.putString("connectedPipe-world-dim-key", pipe.getWorld().dimension().location().toString());
+		logisticspipes.utils.item.StackTag.setTag(stack, tag);
 	}
 
 	public static PipeItemsRemoteOrdererLogistics getPipe(@Nonnull ItemStack stack) {

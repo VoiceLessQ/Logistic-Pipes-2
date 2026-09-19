@@ -67,7 +67,7 @@ class SliderButton(
         val sh = texture.roundedHeight
         val atlas = GuideBookGraphics.ATLAS_SIZE
         guiGraphics.blit(GuideBookGraphics.GUI_ATLAS, gx, gy, gw, 2, su, sv, sw, 2, atlas, atlas)
-        guiGraphics.blit(GuideBookGraphics.GUI_ATLAS, gx, gy + 2, gw, gh - 4, su, sv + 2, sw, sh - 4, atlas, atlas)
+        if (gh > 4) guiGraphics.blit(GuideBookGraphics.GUI_ATLAS, gx, gy + 2, gw, gh - 4, su, sv + 2, sw, sh - 4, atlas, atlas)
         guiGraphics.blit(GuideBookGraphics.GUI_ATLAS, gx, gy + gh - 2, gw, 2, su, sv + sh - 2, sw, 2, atlas, atlas)
         RenderSystem.disableBlend()
     }

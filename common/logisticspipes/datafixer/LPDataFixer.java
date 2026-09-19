@@ -1,15 +1,13 @@
 package logisticspipes.datafixer;
 
 import net.neoforged.neoforge.common.NeoForge;
-// Full DFU (DataFixerUpper) registration is not feasible for the 1.12.2→1.20.1 gap:
+// Full DFU (DataFixerUpper) registration is not feasible for the 1.12.2 to 1.21 gap:
 // Minecraft's own chunk format requires passing through every intermediate MC version.
-// What IS covered by MissingMappingsEvent (fired on the Forge bus):
-//   • Item registry renames        — MissingMappingHandler (ITEMS, namespace "logisticspipes")
-//   • Block registry renames       — MissingMappingHandler (BLOCKS, namespace "logisticspipes")
-//   • Block entity type renames    — MissingMappingHandler (BLOCK_ENTITY_TYPES, namespace "minecraft")
-// What remains unhandled:
-//   • Item NBT damage→id migration — DataFixerSolidBlockItems.fixTagCompound() exists but is
-//     not called; requires a DFU DataFixTypes.ITEM_STACK fixer or ChunkDataEvent.Load walk.
+// NeoForge 21.1 has no MissingMappingsEvent, so the item/block/BE rename maps in
+// MissingMappingHandler are currently dead data. What actually runs:
+//   ChunkDataEvent.Load walk (MissingMappingHandler.onChunkLoad) rewriting the raw
+//   solid_block item NBT via DataFixerSolidBlockItems before MC deserializes it.
+// Registry renames need a DFU fixer or a wider chunk NBT walk; see MIGRATION.md.
 
 public class LPDataFixer {
 
@@ -20,7 +18,7 @@ public class LPDataFixer {
 	private LPDataFixer() {}
 
 	public void init() {
-		// MissingMappingsEvent does NOT implement IModBusEvent — it fires on the Forge bus.
+		// ChunkDataEvent fires on the game bus, not the mod bus.
 		NeoForge.EVENT_BUS.register(new MissingMappingHandler());
 	}
 

@@ -482,7 +482,8 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 			net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters params =
 					new net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters(
 							net.minecraft.world.flag.FeatureFlags.REGISTRY.allFlags(), false,
-							net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+							// Static registry-of-registries lacks dynamic ones (banner_pattern).
+							logisticspipes.utils.RegistryAccessUtil.registries());
 			for (net.minecraft.world.item.CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
 				// SEARCH aggregates every other tab's items and HOTBAR/INVENTORY are synthetic;
 				// only CATEGORY tabs correspond to LP1's per-item CreativeTabs#tabLabel.

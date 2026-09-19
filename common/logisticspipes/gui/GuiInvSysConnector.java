@@ -182,6 +182,14 @@ public class GuiInvSysConnector extends LogisticsBaseGuiScreen implements IGUICh
 	}
 
 	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (resistanceCountBar.keyPressed(keyCode, scanCode, modifiers)) {
+			return true;
+		}
+		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+
+	@Override
 	public boolean charTyped(char c, int i) {
 		if (!resistanceCountBar.handleKey(c, i)) {
 			return super.charTyped(c, i);

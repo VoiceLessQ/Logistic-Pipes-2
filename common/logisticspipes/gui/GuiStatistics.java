@@ -126,9 +126,11 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	public boolean charTyped(char c, int i) {
-		getActiveTab().charTyped(c, i);
-		return super.charTyped(c, i);
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (!hasSubGui()) {
+			getActiveTab().keyPressed(keyCode);
+		}
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	@Override
@@ -176,7 +178,7 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 
 		default void checkButtons() {}
 
-		default void charTyped(char c, int i) {}
+		default void keyPressed(int keyCode) {}
 
 		default void handleClick(int mouseX, int mouseY, int mouseButton) {}
 
@@ -365,10 +367,10 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 		}
 
 		@Override
-		public void charTyped(char c, int i) {
-			if (i == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP) { //PgUp
+		public void keyPressed(int keyCode) {
+			if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP) { //PgUp
 				itemDisplay.prevPage();
-			} else if (i == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN) { //PgDn
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN) { //PgDn
 				itemDisplay.nextPage();
 			}
 		}
@@ -544,14 +546,20 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 		@Override
 		public void drawForegroundLayer(int mouseX, int mouseY) {
 			guiGraphics.drawString(minecraft.font, TextUtil.translate(PREFIX + "crafting"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
-			// Item tooltip omitted — tab has no hovered-item lookup at this point
+			if (hasSubGui()) {
+				return;
+			}
+			Object[] tip = itemDisplay != null ? itemDisplay.getToolTip() : null;
+			if (tip != null && tip.length >= 3) {
+				guiGraphics.renderTooltip(minecraft.font, (ItemStack) tip[2], (int) tip[0], (int) tip[1]);
+			}
 		}
 
 		@Override
-		public void charTyped(char c, int i) {
-			if (i == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP) { //PgUp
+		public void keyPressed(int keyCode) {
+			if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP) { //PgUp
 				itemDisplay.prevPage();
-			} else if (i == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN) { //PgDn
+			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN) { //PgDn
 				itemDisplay.nextPage();
 			}
 		}

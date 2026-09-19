@@ -95,7 +95,17 @@ public class GuiSelectSatellitePopup extends SubGuiScreen {
 		return super.mouseClicked(i, j, k);
 	}
 
-	// Deferred: scroll wheel handling not wired
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		if (scrollY < 0) {
+			textList.scrollUp();
+		} else if (scrollY > 0) {
+			textList.scrollDown();
+		} else {
+			return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+		}
+		return true;
+	}
 
 	public void handleSatelliteList(List<Pair<String, UUID>> list) {
 		pipeList = list;

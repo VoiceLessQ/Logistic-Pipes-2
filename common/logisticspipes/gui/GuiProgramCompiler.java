@@ -285,7 +285,36 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 		return 10;
 	}
 
-	// Deferred: scroll wheel handling not wired
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		if (scrollY == 0 || compiler.getCurrentTask() != null) {
+			return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+		}
+		if (categoryTextList.getSize() == 0 && programTextList.getSize() != 0) {
+			if (scrollY < 0) {
+				programListLarge.mouseScrollUp();
+			} else {
+				programListLarge.mouseScrollDown();
+			}
+		} else {
+			if (scrollY < 0) {
+				categoryList.mouseScrollUp();
+				programList.mouseScrollUp();
+			} else {
+				categoryList.mouseScrollDown();
+				programList.mouseScrollDown();
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (compiler.getCurrentTask() == null && search.keyPressed(keyCode, scanCode, modifiers)) {
+			return true;
+		}
+		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
 
 	@Override
 	public boolean charTyped(char typedChar, int keyCode) {

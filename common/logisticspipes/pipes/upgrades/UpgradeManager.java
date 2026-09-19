@@ -1,7 +1,6 @@
 package logisticspipes.pipes.upgrades;
 
 import java.util.EnumSet;
-import java.util.Objects;
 import java.util.UUID;
 
 import net.minecraft.world.entity.player.Player;
@@ -384,9 +383,9 @@ public class UpgradeManager implements ISimpleInventoryEventHandler, ISlotUpgrad
 
 	public void insetSecurityID(UUID id) {
 		ItemStack stack = new ItemStack(LPItems.itemCard.get(), 1);
-		logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
-		final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
+		final CompoundTag tag = new CompoundTag();
 		tag.putString("UUID", id.toString());
+		logisticspipes.utils.item.StackTag.setTag(stack, tag);
 		secInv.setItem(0, stack);
 		InventoryChanged(secInv);
 	}

@@ -30,6 +30,7 @@ public class RecipeManager {
 
 	public static void loadRecipes() {
 		recipeProvider.forEach(IRecipeProvider::loadRecipes);
+		logisticspipes.LogisticsPipes.log.info("Generated {} virtual recipes", craftingManager.virtualRecipes.size());
 	}
 
 	@AllArgsConstructor
@@ -160,7 +161,7 @@ public class RecipeManager {
 			}
 
 			JsonObject r = new JsonObject();
-			r.addProperty("item", BuiltInRegistries.ITEM.getKey(result.getItem()).toString());
+			r.addProperty("id", BuiltInRegistries.ITEM.getKey(result.getItem()).toString());
 			if (result.getCount() > 1) r.addProperty("count", result.getCount());
 			obj.add("result", r);
 			obj.add("key", keys);
@@ -172,34 +173,34 @@ public class RecipeManager {
 		/** Maps 1.12.2 ore dict names to NeoForge 1.20.1 tag paths. */
 		private static String oreDictToTag(String oreDict) {
 			switch (oreDict) {
-				case "ingotIron":        return "forge:ingots/iron";
-				case "ingotGold":        return "forge:ingots/gold";
-				case "nuggetGold":       return "forge:nuggets/gold";
-				case "dustRedstone":     return "forge:dusts/redstone";
-				case "gemLapis":         return "forge:gems/lapis";
-				case "gemDiamond":       return "forge:gems/diamond";
-				case "gemQuartz":        return "forge:gems/quartz";
-				case "dustGlowstone":    return "forge:dusts/glowstone";
-				case "dyeBlack":         return "forge:dyes/black";
-				case "dyeRed":           return "forge:dyes/red";
-				case "dyeGreen":         return "forge:dyes/green";
-				case "dyeBrown":         return "forge:dyes/brown";
-				case "dyeBlue":          return "forge:dyes/blue";
-				case "dyePurple":        return "forge:dyes/purple";
-				case "dyeCyan":          return "forge:dyes/cyan";
-				case "dyeLightGray":     return "forge:dyes/light_gray";
-				case "dyeGray":          return "forge:dyes/gray";
-				case "dyePink":          return "forge:dyes/pink";
-				case "dyeLime":          return "forge:dyes/lime";
-				case "dyeYellow":        return "forge:dyes/yellow";
-				case "dyeLightBlue":     return "forge:dyes/light_blue";
-				case "dyeMagenta":       return "forge:dyes/magenta";
-				case "dyeOrange":        return "forge:dyes/orange";
-				case "dyeWhite":         return "forge:dyes/white";
-				case "paper":            return "forge:paper";
+				case "ingotIron":        return "c:ingots/iron";
+				case "ingotGold":        return "c:ingots/gold";
+				case "nuggetGold":       return "c:nuggets/gold";
+				case "dustRedstone":     return "c:dusts/redstone";
+				case "gemLapis":         return "c:gems/lapis";
+				case "gemDiamond":       return "c:gems/diamond";
+				case "gemQuartz":        return "c:gems/quartz";
+				case "dustGlowstone":    return "c:dusts/glowstone";
+				case "dyeBlack":         return "c:dyes/black";
+				case "dyeRed":           return "c:dyes/red";
+				case "dyeGreen":         return "c:dyes/green";
+				case "dyeBrown":         return "c:dyes/brown";
+				case "dyeBlue":          return "c:dyes/blue";
+				case "dyePurple":        return "c:dyes/purple";
+				case "dyeCyan":          return "c:dyes/cyan";
+				case "dyeLightGray":     return "c:dyes/light_gray";
+				case "dyeGray":          return "c:dyes/gray";
+				case "dyePink":          return "c:dyes/pink";
+				case "dyeLime":          return "c:dyes/lime";
+				case "dyeYellow":        return "c:dyes/yellow";
+				case "dyeLightBlue":     return "c:dyes/light_blue";
+				case "dyeMagenta":       return "c:dyes/magenta";
+				case "dyeOrange":        return "c:dyes/orange";
+				case "dyeWhite":         return "c:dyes/white";
+				case "paper":            return "c:paper";
 				default:
 					// Unknown ore dict — return as forge tag guess
-					return "forge:" + oreDict;
+					return "c:" + oreDict;
 			}
 		}
 

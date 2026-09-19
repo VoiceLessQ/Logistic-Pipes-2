@@ -106,12 +106,40 @@ public class SelectItemOutOfList extends SubGuiScreen implements IItemSearch {
 		itemDisplay.renderItemArea(0.0f);
 	}
 
-	// Deferred: scroll wheel handling not wired
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		if (scrollY != 0) {
+			itemDisplay.handleMouse(scrollY);
+			return true;
+		}
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+	}
+
+	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_A && net.minecraft.client.gui.screens.Screen.hasControlDown()) {
+			itemDisplay.setMaxAmount();
+			return true;
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_D && net.minecraft.client.gui.screens.Screen.hasControlDown()) {
+			itemDisplay.resetAmount();
+			return true;
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP) {
+			itemDisplay.prevPage();
+			return true;
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN) {
+			itemDisplay.nextPage();
+			return true;
+		}
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || !search.keyPressed(keyCode, scanCode, modifiers)) {
+			return super.keyPressed(keyCode, scanCode, modifiers);
+		}
+		return true;
+	}
 
 	@Override
 	public boolean charTyped(char par1, int par2) {
 		if (!itemDisplay.keyTyped(par1, par2)) {
-			if (par2 == 1 || !search.handleKey(par1, par2)) {
+			if (!search.handleKey(par1, par2)) {
 				return super.charTyped(par1, par2);
 			}
 		}

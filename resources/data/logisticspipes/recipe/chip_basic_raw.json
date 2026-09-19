@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["iri", "rrr", "iri"],
+  "key": {
+    "i": {"item": "minecraft:iron_ingot"},
+    "r": {"item": "minecraft:redstone"}
+  },
+  "result": {"id": "logisticspipes:chip_basic_raw", "count": 4}
+}

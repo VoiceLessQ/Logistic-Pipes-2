@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {"type": "neoforge:not", "value": {"type": "logisticspipes:beta_recipes"}}
+  ],
+  "pattern": ["rpr", "gfg", "qnq"],
+  "key": {
+    "r": {"item": "minecraft:redstone"},
+    "p": {"item": "logisticspipes:logistics_programmer"},
+    "g": {"item": "minecraft:gold_ingot"},
+    "f": {"item": "logisticspipes:chip_fpga"},
+    "q": {"item": "minecraft:paper"},
+    "n": {"item": "minecraft:gold_nugget"}
+  },
+  "result": {"id": "logisticspipes:upgrade_module_upgrade", "count": 1}
+}

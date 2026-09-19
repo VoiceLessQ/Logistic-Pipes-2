@@ -1,9 +1,0 @@
-{
-  "type": "minecraft:crafting_shaped",
-  "pattern": ["iri", "r r", "iri"],
-  "key": {
-    "i": {"item": "minecraft:iron_ingot"},
-    "r": {"item": "minecraft:redstone"}
-  },
-  "result": {"item": "logisticspipes:module_blank", "count": 1}
-}

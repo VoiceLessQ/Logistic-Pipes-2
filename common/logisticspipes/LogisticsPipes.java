@@ -219,6 +219,10 @@ public class LogisticsPipes {
 	public LogisticsPipes(IEventBus modEventBus, net.neoforged.fml.ModContainer modContainer) {
 		instance = this;
 		loadManifestValues(LogisticsPipes.class.getClassLoader());
+		if (UNKNOWN.equals(VERSION)) {
+			// Dev runs have no jar manifest; the mod file's neoforge.mods.toml still knows.
+			VERSION = modContainer.getModInfo().getVersion().toString();
+		}
 		modContainer.registerConfig(ModConfig.Type.COMMON, Configs.SPEC);
 		LPRegistries.register(modEventBus);
 		modEventBus.addListener(LPCapabilities::register);

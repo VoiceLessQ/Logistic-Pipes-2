@@ -1,8 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "ingredients": [
-    {"item": "logisticspipes:pipe_transport_basic"},
-    {"item": "logisticspipes:chip_basic"}
-  ],
-  "result": {"item": "logisticspipes:pipe_basic", "count": 1}
-}
