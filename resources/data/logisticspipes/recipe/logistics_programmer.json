@@ -1,10 +1,28 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["rir", "igi", "rir"],
+  "pattern": [
+    " a ",
+    "ifi",
+    "gmg"
+  ],
   "key": {
-    "r": {"item": "minecraft:redstone"},
-    "i": {"item": "minecraft:iron_ingot"},
-    "g": {"item": "minecraft:gold_ingot"}
+    "a": {
+      "item": "logisticspipes:chip_advanced"
+    },
+    "i": {
+      "tag": "c:ingots/iron"
+    },
+    "f": {
+      "item": "logisticspipes:chip_fpga"
+    },
+    "g": {
+      "tag": "c:ingots/gold"
+    },
+    "m": {
+      "item": "logisticspipes:module_blank"
+    }
   },
-  "result": {"id": "logisticspipes:logistics_programmer", "count": 1}
+  "result": {
+    "id": "logisticspipes:logistics_programmer"
+  }
 }

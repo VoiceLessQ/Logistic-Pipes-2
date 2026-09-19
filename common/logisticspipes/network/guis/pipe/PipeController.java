@@ -84,7 +84,7 @@ public class PipeController extends CoordinatesGuiProvider {
 			if (itemStack.getItem() != LPItems.itemCard.get()) {
 				return false;
 			}
-			if (itemStack.getDamageValue() != LogisticsItemCard.SEC_CARD) {
+			if (LogisticsItemCard.getCardType(itemStack) != LogisticsItemCard.SEC_CARD) {
 				return false;
 			}
 			final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(itemStack));

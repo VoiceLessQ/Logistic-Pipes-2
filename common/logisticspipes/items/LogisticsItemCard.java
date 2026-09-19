@@ -26,6 +26,21 @@ public class LogisticsItemCard extends LogisticsItem implements IItemAdvancedExi
 	public static final int FREQ_CARD = 0;
 	public static final int SEC_CARD = 1;
 
+	// 1.12 used the damage value; the item has no durability now, so the type lives in NBT.
+	public static int getCardType(@Nonnull ItemStack stack) {
+		CompoundTag tag = logisticspipes.utils.item.StackTag.getTag(stack);
+		return tag != null && tag.contains("cardType") ? tag.getInt("cardType") : FREQ_CARD;
+	}
+
+	public static ItemStack makeSecurityCard(UUID id, int count) {
+		ItemStack stack = new ItemStack(logisticspipes.LPItems.itemCard.get(), count);
+		CompoundTag tag = new CompoundTag();
+		tag.putInt("cardType", SEC_CARD);
+		tag.putString("UUID", id.toString());
+		logisticspipes.utils.item.StackTag.setTag(stack, tag);
+		return stack;
+	}
+
 	public LogisticsItemCard() {
 		// hasSubtypes removed in 1.20.1 — item variants handled via DamageValue or separate items
 	}
@@ -39,14 +54,14 @@ public class LogisticsItemCard extends LogisticsItem implements IItemAdvancedExi
 		} else {
 			final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
 			if (tag.contains("UUID")) {
-				if (stack.getDamageValue() == LogisticsItemCard.FREQ_CARD) {
+				if (LogisticsItemCard.getCardType(stack) == LogisticsItemCard.FREQ_CARD) {
 					tooltip.add(net.minecraft.network.chat.Component.literal("Freq. Card"));
-				} else if (stack.getDamageValue() == LogisticsItemCard.SEC_CARD) {
+				} else if (LogisticsItemCard.getCardType(stack) == LogisticsItemCard.SEC_CARD) {
 					tooltip.add(net.minecraft.network.chat.Component.literal("Sec. Card"));
 				}
 				if (Screen.hasShiftDown()) {
 					tooltip.add(net.minecraft.network.chat.Component.literal("Id: " + tag.getString("UUID")));
-					if (stack.getDamageValue() == LogisticsItemCard.SEC_CARD) {
+					if (LogisticsItemCard.getCardType(stack) == LogisticsItemCard.SEC_CARD) {
 						UUID id = UUID.fromString(tag.getString("UUID"));
 						tooltip.add(net.minecraft.network.chat.Component.literal("Authorization: " + (SimpleServiceLocator.securityStationManager.isAuthorized(id) ? "Authorized" : "Unauthorized")));
 					}
@@ -72,6 +87,6 @@ public class LogisticsItemCard extends LogisticsItem implements IItemAdvancedExi
 
 	@Override
 	public boolean canExistInWorld(@Nonnull ItemStack stack) {
-		return stack.getDamageValue() != LogisticsItemCard.SEC_CARD;
+		return LogisticsItemCard.getCardType(stack) != LogisticsItemCard.SEC_CARD;
 	}
 }

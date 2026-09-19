@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;
 
@@ -141,8 +142,13 @@ public class RecipeManager {
 
 				JsonObject key = new JsonObject();
 				if (index.getValue() instanceof String) {
-					// Ore dict tag → forge tag
-					key.addProperty("tag", oreDictToTag((String) index.getValue()));
+					// Ore dict name to a c: tag, or "item:<id>" when no common tag exists.
+					String mapped = oreDictToTag((String) index.getValue());
+					if (mapped.startsWith("item:")) {
+						key.addProperty("item", mapped.substring("item:".length()));
+					} else {
+						key.addProperty("tag", mapped);
+					}
 				} else if (index.getValue() instanceof ItemStack) {
 					ItemStack stack = (ItemStack) index.getValue();
 					key.addProperty("item", BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
@@ -153,8 +159,12 @@ public class RecipeManager {
 				} else if (index.getValue() instanceof NBTIngredient) {
 					NBTIngredient nbtIng = (NBTIngredient) index.getValue();
 					key = nbtIng.toJson().getAsJsonObject();
+				} else if (index.getValue() instanceof Ingredient ing && ing.getCustomIngredient() instanceof NBTIngredient nbtIng) {
+					// NBTIngredient.fromStacks hands back the vanilla wrapper, not the custom ingredient
+					key = nbtIng.toJson().getAsJsonObject();
 				} else {
-					// Unhandled type — skip this recipe
+					logisticspipes.LogisticsPipes.log.warn("Skipping recipe for {}: unhandled ingredient {} for key '{}'",
+							BuiltInRegistries.ITEM.getKey(result.getItem()), index.getValue(), index.getIndex());
 					return null;
 				}
 				keys.add(index.getIndex() + "", key);
@@ -197,7 +207,15 @@ public class RecipeManager {
 				case "dyeMagenta":       return "c:dyes/magenta";
 				case "dyeOrange":        return "c:dyes/orange";
 				case "dyeWhite":         return "c:dyes/white";
-				case "paper":            return "c:paper";
+				case "paper":            return "item:minecraft:paper";
+				case "sand":             return "c:sands";
+				case "blockGlass":       return "c:glass_blocks";
+				case "paneGlass":        return "c:glass_panes";
+				case "plankWood":        return "minecraft:planks";
+				case "logWood":          return "minecraft:logs";
+				case "chestWood":        return "c:chests/wooden";
+				case "slimeball":        return "c:slime_balls";
+				case "obsidian":         return "c:obsidians";
 				default:
 					// Unknown ore dict — return as forge tag guess
 					return "c:" + oreDict;
@@ -208,7 +226,8 @@ public class RecipeManager {
 			// meta was a 1.12.2 damage value — ignored in 1.20.1 (no damage-based variants)
 			ResourceLocation itemKey = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
 			if (itemKey == null) return;
-			ResourceLocation loc = getFreeRecipeResourceLocation(item);
+			// Own suffix so the reset recipe never collides with the item's craft recipe
+			ResourceLocation loc = getFreeRecipeResourceLocation(itemKey.getPath() + "_reset");
 			JsonObject json = new JsonObject();
 			json.addProperty("type", ShapelessResetRecipe.ID.toString());
 			json.addProperty("item", itemKey.toString());
@@ -221,12 +240,15 @@ public class RecipeManager {
 	}
 
 	private static ResourceLocation getFreeRecipeResourceLocation(Item item) {
-		ResourceLocation baseLoc = ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, BuiltInRegistries.ITEM.getKey(item).getPath());
-		ResourceLocation recipeLoc = baseLoc;
+		return getFreeRecipeResourceLocation(BuiltInRegistries.ITEM.getKey(item).getPath());
+	}
+
+	private static ResourceLocation getFreeRecipeResourceLocation(String basePath) {
+		ResourceLocation recipeLoc = ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, basePath);
 		int index = 0;
 		while (craftingManager.virtualRecipes.containsKey(recipeLoc)) {
 			index++;
-			recipeLoc = ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, BuiltInRegistries.ITEM.getKey(item).getPath() + "_" + index);
+			recipeLoc = ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, basePath + "_" + index);
 		}
 		return recipeLoc;
 	}

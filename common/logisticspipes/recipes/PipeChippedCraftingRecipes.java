@@ -208,16 +208,41 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 				new RecipeManager.RecipeIndex('i', "ingotIron")
 		);
 
-		// PipeFluidBasic and PipeFluidTerminus were removed in the 1.20.1 migration; their
-		// LPItems fields are null. LP1 used pipeFluidBasic as the 's' base for the rest of the
-		// fluid-pipe line, so here we substitute pipeFluidSupplier (a registered fluid pipe) as
-		// the base — mirroring how the pipeFluidSupplierMk2 recipe below is keyed off pipeFluidSupplier.
-		registerPipeRecipe(parts, RecipeType.LEVEL_2, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidRequest.get(), LPItems.pipeFluidSupplier.get());
-		registerPipeRecipe(parts, RecipeType.LEVEL_2, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidProvider.get(), LPItems.pipeFluidSupplier.get());
+		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidBasic.get());
+		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeFluidBasic.get()),
+				new RecipeManager.RecipeLayout(
+						" p ",
+						"bsb",
+						"gwg"
+				),
+				new RecipeManager.RecipeIndex('b', parts.getChipBasic()),
+				new RecipeManager.RecipeIndex('p', getIngredientForProgrammer(LPItems.pipeFluidBasic.get())),
+				new RecipeManager.RecipeIndex('s', LPItems.pipeBasic.get()),
+				new RecipeManager.RecipeIndex('w', Items.BUCKET),
+				new RecipeManager.RecipeIndex('g', "ingotGold")
+		);
+
+		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidTerminus.get());
+		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeFluidTerminus.get()),
+				new RecipeManager.RecipeLayout(
+						" p ",
+						"wsv",
+						"gbg"
+				),
+				new RecipeManager.RecipeIndex('b', parts.getChipBasic()),
+				new RecipeManager.RecipeIndex('p', getIngredientForProgrammer(LPItems.pipeFluidTerminus.get())),
+				new RecipeManager.RecipeIndex('s', LPItems.pipeFluidBasic.get()),
+				new RecipeManager.RecipeIndex('w', "dyeBlack"),
+				new RecipeManager.RecipeIndex('v', "dyePurple"),
+				new RecipeManager.RecipeIndex('g', "ingotIron")
+		);
+
+		registerPipeRecipe(parts, RecipeType.LEVEL_2, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidRequest.get(), LPItems.pipeFluidBasic.get());
+		registerPipeRecipe(parts, RecipeType.LEVEL_2, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidProvider.get(), LPItems.pipeFluidBasic.get());
 		registerPipeRecipe(parts, RecipeType.LEVEL_2, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidSupplierMk2.get(), LPItems.pipeFluidSupplier.get());
-		registerPipeRecipe(parts, RecipeType.LEVEL_1, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidSatellite.get(), LPItems.pipeFluidSupplier.get());
-		registerPipeRecipe(parts, RecipeType.LEVEL_1, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidInsertion.get(), LPItems.pipeFluidSupplier.get());
-		registerPipeRecipe(parts, RecipeType.LEVEL_1, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidExtractor.get(), LPItems.pipeFluidSupplier.get());
+		registerPipeRecipe(parts, RecipeType.LEVEL_1, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidSatellite.get(), LPItems.pipeFluidBasic.get());
+		registerPipeRecipe(parts, RecipeType.LEVEL_1, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidInsertion.get(), LPItems.pipeFluidBasic.get());
+		registerPipeRecipe(parts, RecipeType.LEVEL_1, LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidExtractor.get(), LPItems.pipeFluidBasic.get());
 
 	}
 

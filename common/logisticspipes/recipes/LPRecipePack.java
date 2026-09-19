@@ -59,6 +59,7 @@ public class LPRecipePack implements PackResources {
 		ResourceLocation recipeKey = ResourceLocation.fromNamespaceAndPath(NAMESPACE, recipeName);
 		String json = RecipeManager.craftingManager.virtualRecipes.get(recipeKey);
 		if (json == null) return null;
+		if (hasStaticRecipe(recipeName)) return null;
 
 		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 		return () -> new ByteArrayInputStream(bytes);
@@ -70,14 +71,25 @@ public class LPRecipePack implements PackResources {
 		if (!NAMESPACE.equals(namespace)) return;
 		if (!"recipe".equals(path) && !path.startsWith("recipe/")) return;
 
+		java.util.List<String> shadowed = new java.util.ArrayList<>();
 		for (ResourceLocation key : RecipeManager.craftingManager.virtualRecipes.keySet()) {
 			if (!key.getNamespace().equals(NAMESPACE)) continue;
 			ResourceLocation fileLocation = ResourceLocation.fromNamespaceAndPath(NAMESPACE, "recipe/" + key.getPath() + ".json");
 			IoSupplier<InputStream> supplier = getResource(type, fileLocation);
 			if (supplier != null) {
 				output.accept(fileLocation, supplier);
+			} else if (hasStaticRecipe(key.getPath())) {
+				shadowed.add(key.getPath());
 			}
 		}
+		if (!shadowed.isEmpty()) {
+			logisticspipes.LogisticsPipes.log.info("Virtual recipes shadowed by static recipe JSON: {}", shadowed);
+		}
+	}
+
+	/** A hand-written data/logisticspipes/recipe/<name>.json in the mod jar wins over the generated one. */
+	private static boolean hasStaticRecipe(String recipeName) {
+		return LPRecipePack.class.getResource("/data/" + NAMESPACE + "/recipe/" + recipeName + ".json") != null;
 	}
 
 	@Override

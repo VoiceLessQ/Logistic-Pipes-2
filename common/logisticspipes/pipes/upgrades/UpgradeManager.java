@@ -83,7 +83,7 @@ public class UpgradeManager implements ISimpleInventoryEventHandler, ISlotUpgrad
 		secInv.readFromNBT(nbttagcompound, "SecurityInventory_");
 
 		if (!sneakyInv.getItem(8).isEmpty()) {
-			if (sneakyInv.getItem(8).getItem() == LPItems.itemCard.get() && sneakyInv.getItem(8).getDamageValue() == LogisticsItemCard.SEC_CARD) {
+			if (sneakyInv.getItem(8).getItem() == LPItems.itemCard.get() && LogisticsItemCard.getCardType(sneakyInv.getItem(8)) == LogisticsItemCard.SEC_CARD) {
 				secInv.setItem(0, sneakyInv.getItem(8));
 				sneakyInv.setItem(8, ItemStack.EMPTY);
 			}
@@ -247,7 +247,7 @@ public class UpgradeManager implements ISimpleInventoryEventHandler, ISlotUpgrad
 		if (stack.isEmpty()) {
 			return;
 		}
-		if (stack.getItem() != LPItems.itemCard.get() || stack.getDamageValue() != LogisticsItemCard.SEC_CARD) {
+		if (stack.getItem() != LPItems.itemCard.get() || LogisticsItemCard.getCardType(stack) != LogisticsItemCard.SEC_CARD) {
 			return;
 		}
 		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
@@ -343,7 +343,7 @@ public class UpgradeManager implements ISimpleInventoryEventHandler, ISlotUpgrad
 				}
 			}
 		}
-		if (!itemStackInMainHand.isEmpty() && itemStackInMainHand.getItem() == LPItems.itemCard.get() && itemStackInMainHand.getDamageValue() == LogisticsItemCard.SEC_CARD) {
+		if (!itemStackInMainHand.isEmpty() && itemStackInMainHand.getItem() == LPItems.itemCard.get() && LogisticsItemCard.getCardType(itemStackInMainHand) == LogisticsItemCard.SEC_CARD) {
 			if (MainProxy.isClient(world)) {
 				return true;
 			}
@@ -382,11 +382,7 @@ public class UpgradeManager implements ISimpleInventoryEventHandler, ISlotUpgrad
 	}
 
 	public void insetSecurityID(UUID id) {
-		ItemStack stack = new ItemStack(LPItems.itemCard.get(), 1);
-		final CompoundTag tag = new CompoundTag();
-		tag.putString("UUID", id.toString());
-		logisticspipes.utils.item.StackTag.setTag(stack, tag);
-		secInv.setItem(0, stack);
+		secInv.setItem(0, logisticspipes.items.LogisticsItemCard.makeSecurityCard(id, 1));
 		InventoryChanged(secInv);
 	}
 

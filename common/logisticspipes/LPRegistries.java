@@ -246,7 +246,9 @@ public final class LPRegistries {
 	public static final DeferredHolder<Item, ItemLogisticsPipe> PIPE_REQUEST_TABLE      = LogisticsBlockGenericPipe.registerPipe(ITEMS, "request_table",           PipeBlockRequestTable::new);
 	public static final DeferredHolder<Item, ItemLogisticsPipe> PIPE_UNROUTED           = LogisticsBlockGenericPipe.registerPipe(ITEMS, "transport_basic",         PipeItemsBasicTransport::new);
 	// Fluid pipes
+	public static final DeferredHolder<Item, ItemLogisticsPipe> PIPE_FLUID_BASIC        = LogisticsBlockGenericPipe.registerPipe(ITEMS, "fluid_basic",             logisticspipes.pipes.PipeFluidBasic::new);
 	public static final DeferredHolder<Item, ItemLogisticsPipe> PIPE_FLUID_SUPPLIER     = LogisticsBlockGenericPipe.registerPipe(ITEMS, "fluid_supplier",          PipeItemsFluidSupplier::new);
+	public static final DeferredHolder<Item, ItemLogisticsPipe> PIPE_FLUID_TERMINUS     = LogisticsBlockGenericPipe.registerPipe(ITEMS, "fluid_terminus",          logisticspipes.pipes.PipeFluidTerminus::new);
 	public static final DeferredHolder<Item, ItemLogisticsPipe> PIPE_FLUID_INSERTION    = LogisticsBlockGenericPipe.registerPipe(ITEMS, "fluid_insertion",         PipeFluidInsertion::new);
 	public static final DeferredHolder<Item, ItemLogisticsPipe> PIPE_FLUID_PROVIDER     = LogisticsBlockGenericPipe.registerPipe(ITEMS, "fluid_provider",          PipeFluidProvider::new);
 	public static final DeferredHolder<Item, ItemLogisticsPipe> PIPE_FLUID_REQUEST      = LogisticsBlockGenericPipe.registerPipe(ITEMS, "fluid_request",           PipeFluidRequestLogistics::new);

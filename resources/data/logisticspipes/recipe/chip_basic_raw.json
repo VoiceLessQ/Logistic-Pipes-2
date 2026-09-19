@@ -1,9 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["iri", "rrr", "iri"],
+  "pattern": [
+    "sg",
+    "gs"
+  ],
   "key": {
-    "i": {"item": "minecraft:iron_ingot"},
-    "r": {"item": "minecraft:redstone"}
+    "s": {
+      "tag": "c:sands"
+    },
+    "g": {
+      "tag": "c:ingots/copper"
+    }
   },
-  "result": {"id": "logisticspipes:chip_basic_raw", "count": 4}
+  "result": {
+    "id": "logisticspipes:chip_basic_raw",
+    "count": 2
+  }
 }

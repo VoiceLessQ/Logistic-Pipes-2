@@ -151,11 +151,16 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 	@Override
 	public void setRemoved() {
 		if (pipe == null) {
-						initialized = false;
+			initialized = false;
+			tileBuffer = null;
+			super.setRemoved();
+		} else if (unloading) {
+			// Chunk unload: LP1 only cleared router caches here, never invalidated the pipe.
+			initialized = false;
 			tileBuffer = null;
 			super.setRemoved();
 		} else if (!pipe.preventRemove()) {
-						initialized = false;
+			initialized = false;
 			tileBuffer = null;
 			pipe.invalidate();
 			super.setRemoved();
@@ -175,7 +180,15 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		TEControl.validate(this);
 	}
 
-	// onChunkUnload() removed in 1.20.1 — call manually if needed, or hook level unload events
+	private boolean unloading = false;
+
+	@Override
+	public void onChunkUnloaded() {
+		super.onChunkUnloaded();
+		unloading = true;
+		onChunkUnload();
+	}
+
 	public void onChunkUnload() {
 		if (pipe != null) {
 			pipe.onChunkUnload();

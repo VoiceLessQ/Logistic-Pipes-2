@@ -49,8 +49,7 @@ public class LPItems {
 	public static final DeferredHolder<net.minecraft.world.item.Item, ItemLogisticsPipe> requestTable             = LPRegistries.PIPE_REQUEST_TABLE;
 
 	// Logistics Fluid Pipes
-	// NOTE: pipeFluidBasic and pipeFluidTerminus have no corresponding pipe class (removed upstream).
-	public static final DeferredHolder<net.minecraft.world.item.Item, ? extends Item>    pipeFluidBasic           = null; // unregistered — PipeFluidBasic removed
+	public static final DeferredHolder<net.minecraft.world.item.Item, ItemLogisticsPipe> pipeFluidBasic           = LPRegistries.PIPE_FLUID_BASIC;
 	public static final DeferredHolder<net.minecraft.world.item.Item, ItemLogisticsPipe> pipeFluidRequest         = LPRegistries.PIPE_FLUID_REQUEST;
 	public static final DeferredHolder<net.minecraft.world.item.Item, ItemLogisticsPipe> pipeFluidProvider        = LPRegistries.PIPE_FLUID_PROVIDER;
 	public static final DeferredHolder<net.minecraft.world.item.Item, ItemLogisticsPipe> pipeFluidSatellite       = LPRegistries.PIPE_FLUID_SATELLITE;
@@ -58,7 +57,7 @@ public class LPItems {
 	public static final DeferredHolder<net.minecraft.world.item.Item, ItemLogisticsPipe> pipeFluidSupplierMk2     = LPRegistries.PIPE_FLUID_SUPPLIER_MK2;
 	public static final DeferredHolder<net.minecraft.world.item.Item, ItemLogisticsPipe> pipeFluidInsertion       = LPRegistries.PIPE_FLUID_INSERTION;
 	public static final DeferredHolder<net.minecraft.world.item.Item, ItemLogisticsPipe> pipeFluidExtractor       = LPRegistries.PIPE_FLUID_EXTRACTOR;
-	public static final DeferredHolder<net.minecraft.world.item.Item, ? extends Item>    pipeFluidTerminus        = null; // unregistered — PipeFluidTerminus removed
+	public static final DeferredHolder<net.minecraft.world.item.Item, ItemLogisticsPipe> pipeFluidTerminus        = LPRegistries.PIPE_FLUID_TERMINUS;
 
 	// Modules / Upgrades
 	public static final DeferredHolder<net.minecraft.world.item.Item, ItemBlankModule>      blankModule          = LPRegistries.MODULE_BLANK;
