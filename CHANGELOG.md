@@ -11,12 +11,19 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   A bottomless Forge Energy source that pushes to every neighbour each tick,
   meant for testing power providers without a third-party generator mod.
   Added after a user asked how to power the RF provider on a bare install.
+- Crafting recipes for the **Logistics RF Power Provider** and the **RF Power
+  Supplier Upgrade**. LogisticsPipes 1.12.2 only had them through Thermal
+  Expansion parts, so on a bare install they were creative-only. The shapes
+  follow the old ones with a Power Junction, gold and copper standing in for
+  the dynamo and coils.
 
 ### Changed
 - Forward port to NeoForge 21.1 / Minecraft 1.21.1 (branch `port/1.21.1`):
   typed block capabilities, `CustomPacketPayload` networking, item NBT via
   `CUSTOM_DATA`, recipes on the 1.21 `recipe/` folder and `result.id` shape.
   Save data from 1.20.1 worlds is not migrated.
+- NeoForge only. There is no MinecraftForge build for 1.21.1 and none is
+  planned.
 
 ### Fixed (1.21.1 port, reviewed against LogisticsPipes 1.12.2 `dev`)
 - **No LP recipe loaded.** The datapack folder was still `recipes/` and results
