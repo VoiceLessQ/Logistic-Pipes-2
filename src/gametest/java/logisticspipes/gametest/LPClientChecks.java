@@ -73,6 +73,7 @@ public final class LPClientChecks {
 					checkInputBar(mc);
 					checkSolidSides(mc);
 					checkOrdererColours(mc);
+					checkSlotFinder(mc);
 					startParticleCheck(mc);
 				}
 				case SETTLE_TICKS + 3 -> finishParticleCheck(mc);
@@ -124,6 +125,33 @@ public final class LPClientChecks {
 			if (!tex.equals("items/remote_orderer/" + v)) bad.append(v).append("->").append(tex).append(' ');
 		}
 		result("orderer.colourModels", bad.length() == 0, bad.length() == 0 ? "17 variants" : bad.toString());
+	}
+
+	/** Slot finder: a left click on a slot is consumed, picks it and closes; a click off-slot is consumed only. */
+	private static void checkSlotFinder(Minecraft mc) {
+		logisticspipes.renderer.GuiOverlay overlay = logisticspipes.renderer.GuiOverlay.getInstance();
+		InventoryScreen screen = new InventoryScreen(mc.player);
+		mc.setScreen(screen);
+		overlay.setOverlaySlotActive(true);
+		net.minecraft.world.inventory.Slot slot = screen.getMenu().slots.get(9);
+		double sx = screen.getGuiLeft() + slot.x + 8, sy = screen.getGuiTop() + slot.y + 8;
+
+		boolean offSlot = click(screen, 1, 1, 0);
+		boolean rightClick = click(screen, sx, sy, 1);
+		boolean stillActive = overlay.isOverlaySlotActive();
+		logisticspipes.LogisticsPipes.log.info("LPCHECK INFO slotFinder: next SlotFinderNumberPacket targets 0,0,0; its debug 'Packet handling error' is expected");
+		boolean onSlot = click(screen, sx, sy, 0);
+		boolean closed = mc.screen == null;
+		boolean deactivated = !overlay.isOverlaySlotActive();
+		overlay.setOverlaySlotActive(false);
+		mc.setScreen(null);
+		result("slotFinder.click", offSlot && !rightClick && stillActive && onSlot && closed && deactivated,
+				"offSlot=" + offSlot + " right=" + rightClick + " active=" + stillActive + " onSlot=" + onSlot + " closed=" + closed + " off=" + deactivated);
+	}
+
+	private static boolean click(net.minecraft.client.gui.screens.Screen screen, double x, double y, int button) {
+		return net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+				new net.neoforged.neoforge.client.event.ScreenEvent.MouseButtonPressed.Pre(screen, x, y, button)).isCanceled();
 	}
 
 	/** Worklog item 6: click inside focuses, editing keys work, click outside unfocuses. */

@@ -10,6 +10,10 @@ follows [Semantic Versioning](https://semver.org/) where practical.
 - Coloured remote orderers are back: craft an orderer with any dye. The
   orderer keeps its link, and resetting it keeps the colour.
 
+### Fixed
+- The slot finder works again: the hovered slot shows red, and clicking it
+  picks that slot.
+
 ## [0.0.3] - 2026-10-08
 
 First release for Minecraft 1.21.1 (NeoForge 21.1). Requires Kotlin for Forge 5

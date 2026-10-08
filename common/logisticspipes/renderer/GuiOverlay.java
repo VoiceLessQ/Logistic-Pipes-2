@@ -1,8 +1,7 @@
 package logisticspipes.renderer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.Slot;
 
@@ -13,22 +12,15 @@ import lombok.Setter;
 
 
 
-import logisticspipes.LogisticsPipes;
 import logisticspipes.modules.LogisticsModule.ModulePositionType;
 import logisticspipes.network.PacketHandler;
 import logisticspipes.network.packets.pipe.SlotFinderNumberPacket;
 import logisticspipes.proxy.MainProxy;
-import logisticspipes.utils.gui.SimpleGraphics;
 
 public class GuiOverlay {
 
 	@Getter
 	private static final GuiOverlay instance = new GuiOverlay();
-
-	private int oldX;
-	private int oldY;
-	private boolean hasBeenSaved;
-	private boolean clicked;
 
 	@Setter
 	private int targetPosX;
@@ -48,6 +40,7 @@ public class GuiOverlay {
 	private int positionInt;
 	@Setter
 	private int slot;
+	@Getter
 	@Setter
 	private boolean isOverlaySlotActive;
 
@@ -55,67 +48,46 @@ public class GuiOverlay {
 		// Mouse class removed in 1.20.1 (LWJGL 3 uses GLFW); fX/fY reflection no longer needed
 	}
 
-	public boolean isCompatibleGui() {
-		Minecraft client = Minecraft.getInstance();
-		if (client == null) return false;
-
-		return client.screen instanceof AbstractContainerScreen;
+	/** Red box over the hovered slot; called from ScreenEvent.Render.Post. */
+	public void render(AbstractContainerScreen<?> gui, GuiGraphics graphics, int mouseX, int mouseY) {
+		if (!isOverlaySlotActive) return;
+		Slot slot = slotAt(gui, mouseX, mouseY);
+		if (slot == null) return;
+		int x = slot.x + gui.getGuiLeft();
+		int y = slot.y + gui.getGuiTop();
+		graphics.pose().pushPose();
+		graphics.pose().translate(0, 0, 400);
+		graphics.fill(x, y, x + 16, y + 16, 0xa0ff0000);
+		graphics.pose().popPose();
 	}
 
-	public void preRender() {
-		if (isOverlaySlotActive) {
-			Minecraft mc = Minecraft.getInstance();
-			oldX = (int) mc.mouseHandler.xpos();
-			oldY = (int) mc.mouseHandler.ypos();
-			hasBeenSaved = true;
+	/** Picks the clicked slot. Returns true to cancel the click, as LP1 drained the mouse events. */
+	public boolean mouseClicked(AbstractContainerScreen<?> gui, double mouseX, double mouseY, int button) {
+		if (!isOverlaySlotActive || button != 0) return false;
+		Slot slot = slotAt(gui, (int) mouseX, (int) mouseY);
+		if (slot != null) {
+			MainProxy.sendPacketToServer(PacketHandler.getPacket(SlotFinderNumberPacket.class)
+					.setInventorySlot(slot.index)
+					.setSlot(this.slot)
+					.setPipePosX(pipePosX)
+					.setPipePosY(pipePosY)
+					.setPipePosZ(pipePosZ)
+					.setType(positionType)
+					.setPositionInt(positionInt)
+					.setPosX(targetPosX)
+					.setPosY(targetPosY)
+					.setPosZ(targetPosZ));
+			isOverlaySlotActive = false;
+			Minecraft.getInstance().player.closeContainer();
 		}
+		return true;
 	}
 
-	public void renderOverGui() {
-		if (hasBeenSaved) {
-			hasBeenSaved = false;
-			// Mouse restore removed — GLFW mouse position is not directly settable in 1.20.1
+	private Slot slotAt(AbstractContainerScreen<?> gui, int mouseX, int mouseY) {
+		for (Slot slot : gui.getMenu().slots) {
+			if (isMouseOverSlot(gui, slot, mouseX, mouseY)) return slot;
 		}
-		if (isOverlaySlotActive) {
-			Minecraft client = Minecraft.getInstance();
-			AbstractContainerScreen gui = (AbstractContainerScreen) client.screen;
-
-			int guiTop = gui.getGuiTop();
-			int guiLeft = gui.getGuiLeft();
-
-			int x = oldX * gui.width / client.getWindow().getScreenWidth();
-			int y = oldY * gui.height / client.getWindow().getScreenHeight();
-
-			for (Slot slot : gui.getMenu().slots) {
-				if (isMouseOverSlot(gui, slot, x, y)) {
-					if (SimpleGraphics.guiGraphics != null) {
-						RenderSystem.disableDepthTest();
-						int k1 = slot.x + guiLeft;
-						int i1 = slot.y + guiTop;
-						SimpleGraphics.drawGradientRect(k1, i1, k1 + 16, i1 + 16, 0xa0ff0000, 0xa0ff0000, 0.0);
-						RenderSystem.enableDepthTest();
-					}
-					if (clicked) {
-						MainProxy.sendPacketToServer(PacketHandler.getPacket(SlotFinderNumberPacket.class)
-								.setInventorySlot(slot.index)
-								.setSlot(this.slot)
-								.setPipePosX(pipePosX)
-								.setPipePosY(pipePosY)
-								.setPipePosZ(pipePosZ)
-								.setType(positionType)
-								.setPositionInt(positionInt)
-								.setPosX(targetPosX)
-								.setPosY(targetPosY)
-								.setPosZ(targetPosZ));
-						clicked = false;
-						client.player.closeContainer();
-						isOverlaySlotActive = false;
-					}
-					break;
-				}
-			}
-			clicked = false;
-		}
+		return null;
 	}
 
 	private boolean isMouseOverSlot(AbstractContainerScreen gui, Slot slot, int mouseX, int mouseY) {
