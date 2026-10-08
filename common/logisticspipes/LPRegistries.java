@@ -165,6 +165,8 @@ public final class LPRegistries {
 
 	public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<logisticspipes.recipes.ShapelessResetRecipe>> RESET_RECIPE_SERIALIZER =
 			RECIPE_SERIALIZERS.register("reset", () -> logisticspipes.recipes.ShapelessResetRecipe.SERIALIZER);
+	public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<logisticspipes.recipes.OrdererDyeRecipe>> ORDERER_DYE_RECIPE_SERIALIZER =
+			RECIPE_SERIALIZERS.register("orderer_dye", () -> logisticspipes.recipes.OrdererDyeRecipe.SERIALIZER);
 
 	// ── Creative tab ─────────────────────────────────────────────────────────
 
@@ -181,7 +183,17 @@ public final class LPRegistries {
 								"power_supplier_eu_hv", "power_supplier_eu_ev");
 						ITEMS.getEntries().stream()
 								.filter(reg -> !hidden.contains(reg.getId().getPath()))
-								.forEach(reg -> output.accept(new ItemStack(reg.get())));
+								.forEach(reg -> {
+									output.accept(new ItemStack(reg.get()));
+									// LP1 listed all 17 orderer colours
+									if (reg.get() instanceof RemoteOrderer) {
+										for (int v = 1; v <= 16; v++) {
+											ItemStack coloured = new ItemStack(reg.get());
+											coloured.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA, new net.minecraft.world.item.component.CustomModelData(v));
+											output.accept(coloured);
+										}
+									}
+								});
 					})
 					.build());
 

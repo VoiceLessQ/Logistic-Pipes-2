@@ -3,6 +3,7 @@ package logisticspipes.recipes;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -56,20 +57,31 @@ public class ShapelessResetRecipe extends CustomRecipe {
 
 	@Override
 	public boolean matches(CraftingInput input, Level level) {
-		int matches = 0;
+		ItemStack first = ItemStack.EMPTY;
 		for (int i = 0; i < input.size(); i++) {
 			ItemStack stack = input.getItem(i);
 			if (stack.isEmpty()) continue;
 			if (stack.getItem() != targetItem) return false;
-			matches++;
+			// LP1 matched one meta per recipe: no mixing orderer colours
+			if (first.isEmpty()) first = stack;
+			else if (!java.util.Objects.equals(first.get(DataComponents.CUSTOM_MODEL_DATA), stack.get(DataComponents.CUSTOM_MODEL_DATA))) return false;
 		}
-		return matches > 0;
+		return !first.isEmpty();
 	}
 
 	@Override
 	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
 		// LP1: one clean item per matching stack in the grid
-		return new ItemStack(targetItem, input.ingredientCount());
+		ItemStack result = new ItemStack(targetItem, input.ingredientCount());
+		for (int i = 0; i < input.size(); i++) {
+			ItemStack stack = input.getItem(i);
+			if (!stack.isEmpty()) {
+				// keeps the orderer colour, like LP1's meta-preserving reset
+				if (stack.has(DataComponents.CUSTOM_MODEL_DATA)) result.set(DataComponents.CUSTOM_MODEL_DATA, stack.get(DataComponents.CUSTOM_MODEL_DATA));
+				break;
+			}
+		}
+		return result;
 	}
 
 	@Override

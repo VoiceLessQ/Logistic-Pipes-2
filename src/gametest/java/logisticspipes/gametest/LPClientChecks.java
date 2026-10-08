@@ -72,6 +72,7 @@ public final class LPClientChecks {
 					checkQuickSort(mc);
 					checkInputBar(mc);
 					checkSolidSides(mc);
+					checkOrdererColours(mc);
 					startParticleCheck(mc);
 				}
 				case SETTLE_TICKS + 3 -> finishParticleCheck(mc);
@@ -111,6 +112,18 @@ public final class LPClientChecks {
 		boolean afterClose = qs.isActivated();
 		result("quicksort.chestKeepsMarkers", afterOpen && afterSwap, "open=" + afterOpen + " swap=" + afterSwap);
 		result("quicksort.closeClears", !afterClose, "activated after close=" + afterClose);
+	}
+
+	/** Each orderer colour (CUSTOM_MODEL_DATA 0..16) resolves to its own texture via the model overrides. */
+	private static void checkOrdererColours(Minecraft mc) {
+		StringBuilder bad = new StringBuilder();
+		for (int v = 0; v <= 16; v++) {
+			net.minecraft.world.item.ItemStack stack = new net.minecraft.world.item.ItemStack(logisticspipes.LPItems.remoteOrderer.get());
+			if (v > 0) stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA, new net.minecraft.world.item.component.CustomModelData(v));
+			String tex = mc.getItemRenderer().getModel(stack, mc.level, mc.player, 0).getParticleIcon().contents().name().getPath();
+			if (!tex.equals("items/remote_orderer/" + v)) bad.append(v).append("->").append(tex).append(' ');
+		}
+		result("orderer.colourModels", bad.length() == 0, bad.length() == 0 ? "17 variants" : bad.toString());
 	}
 
 	/** Worklog item 6: click inside focuses, editing keys work, click outside unfocuses. */

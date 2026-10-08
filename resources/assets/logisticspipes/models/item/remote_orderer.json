@@ -1,4 +1,104 @@
 {
   "parent": "item/generated",
-  "textures": { "layer0": "logisticspipes:items/remote_orderer/0" }
+  "textures": {
+    "layer0": "logisticspipes:items/remote_orderer/0"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "logisticspipes:item/remote_orderer/1"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "logisticspipes:item/remote_orderer/2"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "logisticspipes:item/remote_orderer/3"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "logisticspipes:item/remote_orderer/4"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "logisticspipes:item/remote_orderer/5"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 6
+      },
+      "model": "logisticspipes:item/remote_orderer/6"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 7
+      },
+      "model": "logisticspipes:item/remote_orderer/7"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 8
+      },
+      "model": "logisticspipes:item/remote_orderer/8"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 9
+      },
+      "model": "logisticspipes:item/remote_orderer/9"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 10
+      },
+      "model": "logisticspipes:item/remote_orderer/10"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 11
+      },
+      "model": "logisticspipes:item/remote_orderer/11"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 12
+      },
+      "model": "logisticspipes:item/remote_orderer/12"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 13
+      },
+      "model": "logisticspipes:item/remote_orderer/13"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 14
+      },
+      "model": "logisticspipes:item/remote_orderer/14"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 15
+      },
+      "model": "logisticspipes:item/remote_orderer/15"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 16
+      },
+      "model": "logisticspipes:item/remote_orderer/16"
+    }
+  ]
 }

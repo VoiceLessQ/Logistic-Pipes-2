@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [Semantic Versioning](https://semver.org/) where practical.
 
+## [Unreleased]
+
+### Added
+- Coloured remote orderers are back: craft an orderer with any dye. The
+  orderer keeps its link, and resetting it keeps the colour.
+
 ## [0.0.3] - 2026-10-08
 
 First release for Minecraft 1.21.1 (NeoForge 21.1). Requires Kotlin for Forge 5

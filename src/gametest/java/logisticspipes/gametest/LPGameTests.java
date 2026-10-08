@@ -129,6 +129,37 @@ public class LPGameTests {
 		});
 	}
 
+	/** Orderer + dye keeps the link and gets LP1's colour variant; reset keeps the colour. */
+	@GameTest(template = "empty")
+	public static void ordererDyeKeepsLinkAndColour(GameTestHelper helper) {
+		ServerLevel level = helper.getLevel();
+		ItemStack orderer = new ItemStack(LPItems.remoteOrderer.get());
+		CompoundTag tag = new CompoundTag();
+		tag.putInt("lpgametest", 7);
+		orderer.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+
+		CraftingInput dyeInput = CraftingInput.of(2, 1, List.of(orderer, new ItemStack(Items.BLACK_DYE)));
+		RecipeHolder<CraftingRecipe> dye = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, dyeInput, level)
+				.orElseThrow(() -> new net.minecraft.gametest.framework.GameTestAssertException("no orderer dye recipe"));
+		ItemStack black = dye.value().assemble(dyeInput, level.registryAccess());
+		var model = black.get(DataComponents.CUSTOM_MODEL_DATA);
+		helper.assertTrue(model != null && model.value() == 1, "black dye -> " + model + " via " + dye.id());
+		helper.assertTrue(black.has(DataComponents.CUSTOM_DATA), "dyed orderer lost its link");
+
+		CraftingInput resetInput = CraftingInput.of(1, 1, List.of(black));
+		RecipeHolder<CraftingRecipe> reset = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, resetInput, level)
+				.orElseThrow(() -> new net.minecraft.gametest.framework.GameTestAssertException("no reset for a dyed orderer"));
+		ItemStack clean = reset.value().assemble(resetInput, level.registryAccess());
+		helper.assertTrue(!clean.has(DataComponents.CUSTOM_DATA), "reset kept the link");
+		helper.assertTrue(java.util.Objects.equals(clean.get(DataComponents.CUSTOM_MODEL_DATA), model), "reset lost the colour: " + clean);
+
+		ItemStack white = black.copy();
+		white.set(DataComponents.CUSTOM_MODEL_DATA, new net.minecraft.world.item.component.CustomModelData(16));
+		CraftingInput mixed = CraftingInput.of(2, 1, List.of(black, white));
+		helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, mixed, level).isEmpty(), "mixed colours matched a recipe");
+		helper.succeed();
+	}
+
 	/** Worklog item 5 (server half): recipe list comes from the level's recipe manager. */
 	@GameTest(template = "empty")
 	public static void recipeListFromLevel(GameTestHelper helper) {
