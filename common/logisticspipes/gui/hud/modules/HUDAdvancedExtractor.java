@@ -40,15 +40,16 @@ public class HUDAdvancedExtractor implements IHUDModuleRenderer {
 		if (selected == 0) {
 			Direction d = module.getSneakyDirection();
 			if (gg != null) {
-				String label = "Sneaky: " + (d == null ? "Default" : d.getName());
-				gg.drawString(mc.font, label, -mc.font.width(label) / 2, -30, 0xff404040, false);
+				gg.drawString(mc.font, "Extract", -22, -22, 0xff404040, false);
+				gg.drawString(mc.font, "from:", -22, -9, 0xff404040, false);
+				gg.drawString(mc.font, d == null ? "DEFAULT" : d.name(), -22, 18, 0xff404040, false);
 			}
 		} else {
 			ItemStackRenderer.renderItemIdentifierStackListIntoGui(
 					ItemIdentifierStack.getListFromInventory(module.getFilterInventory()), null, 0, -25, -32, 3, 9, 18,
 					18, 100.0F, DisplayAmount.NEVER, false, shifted);
 			if (gg != null) {
-				gg.drawString(mc.font, "Filter", -mc.font.width("Filter") / 2, 25, 0xff404040, false);
+				gg.drawString(mc.font, module.getItemsIncluded().getValue() ? "Included" : "Excluded", -22, 25, 0xff404040, false);
 			}
 		}
 	}

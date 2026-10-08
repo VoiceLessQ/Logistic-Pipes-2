@@ -8,7 +8,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.level.Level;
 
 import logisticspipes.api.IHUDArmor;
@@ -55,12 +54,6 @@ public class ItemHUDArmor extends ArmorItem implements IHUDArmor, ILogisticsItem
 	@Override
 	public boolean isEnabled(@Nonnull ItemStack item) {
 		return true;
-	}
-
-	@Nonnull
-	@Override
-	public net.minecraft.network.chat.Component getName(@Nonnull ItemStack itemstack) {
-		return net.minecraft.network.chat.Component.literal(I18n.get(getDescriptionId(itemstack) + ".name").trim());
 	}
 
 }

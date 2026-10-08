@@ -40,7 +40,7 @@ public class NormalMk2GuiOrderer extends NormalGuiOrderer implements IDiskProvid
 		macroButton = new SmallGuiButton(12, right - 55, bottom - 60, 50, 10, "Disk");
 		macroButton.setPressListener(b -> {
 			MainProxy.sendPacketToServer(PacketHandler.getPacket(DiskRequestConectPacket.class).setPosX(pipe.getX()).setPosY(pipe.getY()).setPosZ(pipe.getZ()));
-			minecraft.setScreen(new GuiDiskPopup(this));
+			setSubGui(new GuiDiskPopup(this));
 		});
 		addRenderableWidget(macroButton);
 		macroButton.active = false;

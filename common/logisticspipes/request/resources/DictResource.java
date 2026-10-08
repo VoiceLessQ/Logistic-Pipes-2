@@ -30,7 +30,7 @@ public class DictResource implements IResource {
 	public DictResource(LPDataInput input) {
 		stack = input.readItemIdentifierStack();
 		requester = null;
-		fuzzyFlags = input.readBitSet().get(0, 3);
+		fuzzyFlags = input.readBitSet().get(0, 4);
 	}
 
 	@Override
@@ -163,7 +163,7 @@ public class DictResource implements IResource {
 	}
 
 	public BitSet getBitSet() {
-		return fuzzyFlags.get(0, 3);
+		return fuzzyFlags.get(0, 4);
 	}
 
 	public Identifier getIdentifier() {

@@ -16,9 +16,9 @@ import java.util.TreeSet;
 import javax.annotation.Nonnull;
 
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.nbt.CompoundTag;
 
 
@@ -138,7 +138,7 @@ public class ModuleOreDictItemSink extends LogisticsModule
 			if (!stackForHud.isEmpty()) {
 				oreHudList.add(new ItemIdentifierStack(ItemIdentifier.get(stackForHud), 1));
 			} else {
-				oreHudList.add(new ItemIdentifierStack(ItemIdentifier.get(Item.BY_BLOCK.get(Blocks.FIRE), 0, null), 1));
+				oreHudList.add(new ItemIdentifierStack(ItemIdentifier.get(Items.AIR, 0, null), 1));
 			}
 		}
 	}

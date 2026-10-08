@@ -63,7 +63,9 @@ public class GuiLogisticsSettings extends LogisticsBaseTabGuiScreen {
 
 		@Override
 		public void renderIcon(int x, int y) {
-			// Deferred: tab icon requires an LP item texture selection; left blank for now.
+			if (logisticspipes.utils.gui.SimpleGraphics.guiGraphics != null) {
+				logisticspipes.utils.gui.SimpleGraphics.guiGraphics.renderItem(new net.minecraft.world.item.ItemStack(LPItems.pipeBasic.get()), x, y);
+			}
 		}
 
 		@Override

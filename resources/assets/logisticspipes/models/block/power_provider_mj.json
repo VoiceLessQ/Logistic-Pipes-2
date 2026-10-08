@@ -1,1 +1,21 @@
-{ "parent": "block/cube_all", "textures": { "all": "logisticspipes:solid_block/power_provider_mj" } }
+{
+  "parent": "block/block",
+  "textures": {
+    "particle": "logisticspipes:solid_block/power_provider_mj",
+    "all": "logisticspipes:solid_block/power_provider_mj"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "up":    { "uv": [4, 0, 8, 4],   "texture": "#all" },
+        "down":  { "uv": [4, 8, 8, 12],  "texture": "#all" },
+        "north": { "uv": [0, 4, 4, 8],   "texture": "#all", "cullface": "north" },
+        "east":  { "uv": [4, 4, 8, 8],   "texture": "#all", "cullface": "east" },
+        "south": { "uv": [8, 4, 12, 8],  "texture": "#all", "cullface": "south" },
+        "west":  { "uv": [12, 4, 16, 8], "texture": "#all", "cullface": "west" }
+      }
+    }
+  ]
+}

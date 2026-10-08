@@ -139,7 +139,10 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 
 		@Override
 		public void renderIcon(int x, int y) {
-			// Deferred: tab icon requires an LP item texture selection; left blank for now.
+			if (logisticspipes.utils.gui.SimpleGraphics.guiGraphics != null) {
+				ItemStack stack = new ItemStack(logisticspipes.items.ItemUpgrade.getAndCheckUpgrade(LPItems.upgrades.get(SneakyUpgradeConfig.getName())));
+				logisticspipes.utils.gui.SimpleGraphics.guiGraphics.renderItem(stack, x, y);
+			}
 		}
 
 		@Override

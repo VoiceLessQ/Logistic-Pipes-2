@@ -386,6 +386,15 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 			targetType = ItemIdentifier
 					.get(ItemStackLoader.loadAndFixItemStackFromNBT(par1nbtTagCompound.getCompound("targetType")));
 		}
+		// Chunk loads run this before the level is set; onLoad caches then.
+		if (level != null) {
+			cacheRecipe();
+		}
+	}
+
+	@Override
+	public void onLoad() {
+		super.onLoad();
 		cacheRecipe();
 	}
 

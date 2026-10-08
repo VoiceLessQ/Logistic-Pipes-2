@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "logisticspipes:frame",
+    "logisticspipes:power_junction",
+    "logisticspipes:security_station",
+    "logisticspipes:crafting_table",
+    "logisticspipes:crafting_table_fuzzy",
+    "logisticspipes:statistics_table",
+    "logisticspipes:power_provider_rf",
+    "logisticspipes:power_provider_eu",
+    "logisticspipes:power_provider_mj",
+    "logisticspipes:program_compiler"
+  ]
+}
