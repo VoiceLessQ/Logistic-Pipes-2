@@ -109,18 +109,27 @@ class LabelWidget(
 
     override fun draw(mouseX: Float, mouseY: Float, delta: Float, visibleArea: IRectangle) {
         val gg = SimpleGraphics.guiGraphics ?: return
-        if (backgroundColor != 0) {
-            gg.fill(absoluteBody.roundedLeft, absoluteBody.roundedTop, absoluteBody.roundedRight, absoluteBody.roundedBottom, backgroundColor)
+        // LP1: overflowing labels go left-aligned and expand only while hovered
+        val expanded = overflowing && extendable && isMouseHovering(mouseX, mouseY)
+        val (alignment, drawText) = if (overflowing) {
+            HorizontalAlignment.LEFT to if (expanded) text else trimmedText
+        } else {
+            textAlignment to text
         }
-        val drawText = if (extendable) text else trimmedText
         val textWidth = GuiDrawer.mcFontRenderer.width(drawText)
         val textY = absoluteBody.roundedTop + (absoluteBody.roundedHeight - GuiDrawer.mcFontRenderer.lineHeight) / 2
-        val textX = when (textAlignment) {
+        if (expanded) {
+            gg.pose().pushPose()
+            gg.pose().translate(0f, 0f, 100f)
+            gg.fill(absoluteBody.roundedLeft, absoluteBody.roundedTop, absoluteBody.roundedLeft + textWidth + 4, absoluteBody.roundedBottom, backgroundColor)
+        }
+        val textX = when (alignment) {
             HorizontalAlignment.LEFT -> absoluteBody.roundedLeft + 2
             HorizontalAlignment.CENTER -> absoluteBody.roundedLeft + (absoluteBody.roundedWidth - textWidth) / 2
             HorizontalAlignment.RIGHT -> absoluteBody.roundedRight - textWidth - 2
         }
         gg.drawString(GuiDrawer.mcFontRenderer, drawText, textX, textY, textColor, false)
+        if (expanded) gg.pose().popPose()
     }
 
     private fun trimText(text: String): String {

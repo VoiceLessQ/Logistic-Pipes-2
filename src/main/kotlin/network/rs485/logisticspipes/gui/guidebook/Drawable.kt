@@ -39,6 +39,8 @@ package network.rs485.logisticspipes.gui.guidebook
 
 import logisticspipes.utils.MinecraftColor
 import net.minecraft.client.Minecraft
+import net.minecraft.client.resources.sounds.SimpleSoundInstance
+import net.minecraft.client.sounds.SoundManager
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.sounds.SoundEvent
 import network.rs485.logisticspipes.gui.GuiDrawer
@@ -85,10 +87,10 @@ interface MouseInteractable : MouseHoverable {
 
     /**
      * Always call this method when mouse clicked is successful.
-     * @param soundHandler minecraft's sound handler (unused — TODO: migrate to 1.20.1 SoundManager API)
+     * @param soundManager minecraft's sound manager
      */
-    fun playPressedSound(soundHandler: Any?, sound: SoundEvent = SoundEvents.UI_BUTTON_CLICK.value()) {
-        // TODO: deferred — migrate to net.minecraft.client.sounds.SoundManager in 1.20.1
+    fun playPressedSound(soundManager: SoundManager, sound: SoundEvent = SoundEvents.UI_BUTTON_CLICK.value()) {
+        soundManager.play(SimpleSoundInstance.forUI(sound, 1.0f))
     }
 
 }

@@ -39,7 +39,10 @@ package network.rs485.logisticspipes.gui.widget
 
 import logisticspipes.utils.gui.SimpleGraphics
 import net.minecraft.client.Minecraft
+import network.rs485.logisticspipes.gui.GuiDrawer
+import network.rs485.logisticspipes.util.Rectangle
 import network.rs485.logisticspipes.util.TextUtil
+import network.rs485.logisticspipes.util.opaque
 import network.rs485.logisticspipes.util.math.MutableRectangle
 
 open class Label(fullText: String, internal val x: Int, internal val y: Int, internal val maxLength: Int, internal val textColor: Int, internal val backgroundColor: Int) {
@@ -64,10 +67,19 @@ open class Label(fullText: String, internal val x: Int, internal val y: Int, int
         hovered = hovered(mouseX, mouseY)
         val rect = if (hovered) fullRect else trimmedRect
         val text = if (hovered) fullText else trimmedText
-        if (backgroundColor != 0) {
-            gg.fill(rect.roundedLeft - 1, rect.roundedTop - 1, rect.roundedRight + 1, rect.roundedBottom + 1, backgroundColor)
+        if (overflows && hovered) {
+            drawOverflowBox(rect.roundedLeft, rect.roundedTop, rect.roundedWidth, rect.roundedHeight)
         }
         gg.drawString(fontRenderer, text, rect.roundedLeft, rect.roundedTop, textColor, false)
+    }
+
+    /** LP1: background plus a fading outline while the expanded full text shows. */
+    protected fun drawOverflowBox(x: Int, y: Int, w: Int, h: Int) {
+        val gg = SimpleGraphics.guiGraphics ?: return
+        gg.fill(x, y - 1, x + w, y + h + 1, backgroundColor)
+        gg.fill(x + w, y - 2, x + w + 1, y + h + 1, textColor.opaque())
+        GuiDrawer.drawHorizontalGradientRect(Rectangle(x, y - 2, w, 1), 0x0, textColor.opaque())
+        GuiDrawer.drawHorizontalGradientRect(Rectangle(x, y + h, w, 1), 0x0, textColor.opaque())
     }
 
     open fun setText(newFullText: String) {

@@ -97,7 +97,11 @@ open class TextButton(
         super.draw(mouseX, mouseY, delta, visibleArea)
         val gg = SimpleGraphics.guiGraphics ?: return
         if (!visible) return
-        val color = if (enabled) Color.WHITE.value else 0xFFA0A0A0.toInt()
+        val color = when {
+            !enabled -> Color.TEXT_DISABLED
+            isMouseHovering(mouseX, mouseY) -> Color.TEXT_HOVERED
+            else -> Color.TEXT_WHITE
+        }.value
         val textWidth = helper.mcFontRenderer.width(trimmedText)
         val cx = absoluteBody.roundedLeft + absoluteBody.roundedWidth / 2 - textWidth / 2
         val yOffset: Int = ((relativeBody.roundedHeight - helper.mcFontRenderer.lineHeight) / 2) + 1
