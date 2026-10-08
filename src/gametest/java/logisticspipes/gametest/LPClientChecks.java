@@ -18,6 +18,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.BlockHitResult;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -231,6 +232,9 @@ public final class LPClientChecks {
 		}
 		particleBaseline = Integer.parseInt(mc.particleEngine.countParticles());
 		BlockState state = level.getBlockState(particlePos);
+		BlockHitResult hit = new BlockHitResult(particlePos.getCenter(), Direction.UP, particlePos, false);
+		result("particles.hitEffects", IClientBlockExtensions.of(state).addHitEffects(state, level, hit, mc.particleEngine),
+				"pipe-icon crack particles at " + particlePos);
 		boolean handled = IClientBlockExtensions.of(state).addDestroyEffects(state, level, particlePos, mc.particleEngine);
 		if (!handled) {
 			result("particles.destroyEffects", false, "addDestroyEffects returned false at " + particlePos);

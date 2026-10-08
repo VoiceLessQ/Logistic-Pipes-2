@@ -195,8 +195,6 @@ public class LogisticsSolidBlock extends Block implements EntityBlock {
 		connectionPropertys.values().forEach(builder::add);
 	}
 
-	// TODO: getActualState (dynamic state per neighbor) removed in 1.20.1.
-	// Reimplement as a ticker that calls setChanged() + requestModelDataUpdate(),
-	// or encode connection state in blockstate updates via neighborChanged().
+	// LP1 getActualState only applied to TE types; LogisticsSolidBlockRenderer reads those values from the TE
 
 }

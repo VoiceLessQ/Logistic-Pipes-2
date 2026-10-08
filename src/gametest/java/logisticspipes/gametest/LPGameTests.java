@@ -38,7 +38,10 @@ import logisticspipes.config.Configs;
 import logisticspipes.pipes.basic.CoreUnroutedPipe;
 import logisticspipes.pipes.basic.LogisticsBlockGenericPipe;
 import logisticspipes.pipes.basic.LogisticsTileGenericPipe;
+import logisticspipes.routing.channels.ChannelInformation;
+import logisticspipes.routing.channels.ChannelManager;
 import logisticspipes.utils.CraftingUtil;
+import logisticspipes.utils.PlayerIdentifier;
 import logisticspipes.utils.item.ItemIdentifier;
 import network.rs485.logisticspipes.util.LPDataIOWrapper;
 
@@ -193,6 +196,20 @@ public class LPGameTests {
 				helper.assertTrue(ItemStack.isSameItemSameComponents(stack, read), "network stack " + read.getComponentsPatch() + " != " + stack.getComponentsPatch());
 			});
 		}
+		helper.succeed();
+	}
+
+	/** Channels live in one store for every dimension, as in LP1's global map storage. */
+	@GameTest(template = "empty")
+	public static void channelsSharedAcrossDimensions(GameTestHelper helper) {
+		ServerLevel nether = helper.getLevel().getServer().getLevel(net.minecraft.world.level.Level.NETHER);
+		helper.assertTrue(nether != null, "no nether level");
+		ChannelInformation channel = new ChannelManager(nether).createNewChannel("lpgametest",
+				PlayerIdentifier.get("lpgametest", java.util.UUID.randomUUID()), ChannelInformation.AccessRights.PUBLIC, null);
+		ChannelManager overworld = new ChannelManager(helper.getLevel());
+		boolean found = overworld.getChannels().stream().anyMatch(c -> c.getChannelIdentifier().equals(channel.getChannelIdentifier()));
+		overworld.removeChannel(channel.getChannelIdentifier());
+		helper.assertTrue(found, "channel made in the nether is missing from the overworld manager");
 		helper.succeed();
 	}
 

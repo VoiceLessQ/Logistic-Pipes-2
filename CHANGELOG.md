@@ -13,6 +13,11 @@ follows [Semantic Versioning](https://semver.org/) where practical.
 ### Fixed
 - The slot finder works again: the hovered slot shows red, and clicking it
   picks that slot.
+- Hitting a pipe shows particles in the pipe's own texture instead of a
+  jumble of pipe parts.
+- Routing channels no longer go missing when the first one was made outside
+  the overworld. Channels saved in another dimension's data folder before this
+  fix need to be made again.
 
 ## [0.0.3] - 2026-10-08
 

@@ -828,11 +828,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 		return true;
 	}
 
-	// TODO: addHitEffects rendering — migrate to NeoForge IBlockExtension.addHitEffects with ParticleEngine (deferred)
-	// @OnlyIn(Dist.CLIENT)
-	// @Override
-	// public boolean addHitEffects(BlockState state, Level world, HitResult target, ParticleEngine effectRenderer) { ... }
-
+	// LP1 addHitEffects: crack particles textured with the pipe's item icon
 	// LP1 addDestroyEffects: the pipe model breaks into shards (LogisticsNewRenderPipe.renderDestruction)
 	@Override
 	public void initializeClient(java.util.function.Consumer<net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions> consumer) {
@@ -843,6 +839,36 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	private static final class ClientExtensionsHolder {
 		static final net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions EXTENSIONS =
 			new net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions() {
+				@Override
+				public boolean addHitEffects(BlockState state, Level level, net.minecraft.world.phys.HitResult target, net.minecraft.client.particle.ParticleEngine manager) {
+					if (!(target instanceof BlockHitResult hit) || !(level instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel)) return false;
+					BlockPos pos = hit.getBlockPos();
+					CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(level, pos);
+					if (pipe == null) return false;
+					net.minecraft.client.renderer.texture.TextureAtlasSprite icon = pipe.getIconProvider().getIcon(pipe.getIconIndexForItem());
+					if (icon == null) return false;
+					// same placement as vanilla ParticleEngine.crack
+					net.minecraft.world.phys.AABB box = state.getShape(level, pos).bounds();
+					net.minecraft.util.RandomSource rand = level.getRandom();
+					double px = pos.getX() + rand.nextDouble() * (box.maxX - box.minX - 0.2) + 0.1 + box.minX;
+					double py = pos.getY() + rand.nextDouble() * (box.maxY - box.minY - 0.2) + 0.1 + box.minY;
+					double pz = pos.getZ() + rand.nextDouble() * (box.maxZ - box.minZ - 0.2) + 0.1 + box.minZ;
+					switch (hit.getDirection()) {
+						case DOWN -> py = pos.getY() + box.minY - 0.1;
+						case UP -> py = pos.getY() + box.maxY + 0.1;
+						case NORTH -> pz = pos.getZ() + box.minZ - 0.1;
+						case SOUTH -> pz = pos.getZ() + box.maxZ + 0.1;
+						case WEST -> px = pos.getX() + box.minX - 0.1;
+						case EAST -> px = pos.getX() + box.maxX + 0.1;
+					}
+					manager.add(new net.minecraft.client.particle.TerrainParticle(clientLevel, px, py, pz, 0, 0, 0, state, pos) {
+						{
+							setSprite(icon);
+						}
+					}.setPower(0.2F).scale(0.6F));
+					return true;
+				}
+
 				@Override
 				public boolean addDestroyEffects(BlockState state, Level level, BlockPos pos, net.minecraft.client.particle.ParticleEngine manager) {
 					CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(level, pos);
