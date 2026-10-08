@@ -11,6 +11,10 @@ were lost in the 1.12.2 → 1.20.1 port. Verified in-game (ghost pipe, machine
 rotation/cover plates, HS tubes, HUD glasses panels).
 
 ### Fixed
+- **Client crash when joining a world saved with items in pipes.** The chunk
+  data sent to clients carried the server's in-transit items, which the
+  client loaded as server objects and then failed to cast on its next tick.
+  That data stays on the server now, as in 1.12.2.
 - **HUD glasses showed nothing in the world.** The in-world HUD panels
   (provider, satellite, crafting and chassis displays shown while wearing HUD
   glasses) were drawn without the camera transform: in 1.12 the GL matrix
