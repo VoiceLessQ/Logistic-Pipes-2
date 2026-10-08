@@ -23,6 +23,8 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   filter slot opens the fuzzy flag list.
 - The sneaky and disconnection upgrade side pickers show pipes, chests and
   other animated blocks again.
+- Collapsed crafting pipe tabs (fluid, byproduct, cleanup) and the statistics
+  crafting tab show their icons again.
 - Routing channels no longer go missing when the first one was made outside
   the overworld. Channels saved in another dimension's data folder before this
   fix need to be made again.

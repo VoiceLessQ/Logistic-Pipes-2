@@ -90,7 +90,10 @@ public final class LPClientChecks {
 				}
 				case SETTLE_TICKS + 11 -> Screenshot.grab(mc.gameDirectory, "lpcheck_sideconfig.png", mc.getMainRenderTarget(),
 						msg -> logisticspipes.LogisticsPipes.log.info("LPCHECK INFO side config screenshot: {}", msg.getString()));
-				case SETTLE_TICKS + 12 -> {
+				case SETTLE_TICKS + 12 -> openCraftingExtensions(mc);
+				case SETTLE_TICKS + 14 -> Screenshot.grab(mc.gameDirectory, "lpcheck_crafting.png", mc.getMainRenderTarget(),
+						msg -> logisticspipes.LogisticsPipes.log.info("LPCHECK INFO crafting screenshot: {}", msg.getString()));
+				case SETTLE_TICKS + 15 -> {
 					mc.setScreen(null);
 					drawHud = false;
 					logisticspipes.LogisticsPipes.log.info("LPCHECK DONE failures={}", failures);
@@ -241,6 +244,17 @@ public final class LPClientChecks {
 			}
 		}
 		result("sideConfig", false, "no routed pipe loaded");
+	}
+
+	/** Crafting GUI with fluid x3, byproduct and cleanup extensions; the screenshot should show their collapsed icons. */
+	private static void openCraftingExtensions(Minecraft mc) {
+		for (LogisticsTileGenericPipe pipe : loadedPipes(mc)) {
+			if (pipe.pipe instanceof logisticspipes.pipes.PipeItemsCraftingLogistics crafting) {
+				mc.setScreen(new logisticspipes.gui.GuiCraftingPipe(mc.player, crafting.getLogisticsModule(), false, 3, new int[3], true, false, 1, false));
+				return;
+			}
+		}
+		result("craftingGui", false, "no crafting pipe loaded");
 	}
 
 	private static List<LogisticsTileGenericPipe> loadedPipes(Minecraft mc) {

@@ -443,7 +443,14 @@ public class GuiCraftingPipe extends ModuleBaseGui {
 		@Override
 		public void renderForeground(int left, int top) {
 			if (!isFullyExtended()) {
-				// Collapsed: visual icon omitted (placeholder drawing deferred — not gameplay-critical).
+				renderUpgradeIcon(FluidCraftingUpgrade.getName(), left, top);
+				if (!isAdvancedSat && liquidCrafter > 1) {
+					String s = Integer.toString(liquidCrafter);
+					guiGraphics.pose().pushPose();
+					guiGraphics.pose().translate(0, 0, 200);
+					guiGraphics.drawString(minecraft.font, s, left + 22 - minecraft.font.width(s), top + 14, 0xFFFFFF, true);
+					guiGraphics.pose().popPose();
+				}
 			}
 			if (isFullyExtended()) {
 				if (liquidCrafter > 1 && !isAdvancedSat) {
@@ -524,6 +531,10 @@ public class GuiCraftingPipe extends ModuleBaseGui {
 		}
 	}
 
+	private void renderUpgradeIcon(String upgradeName, int left, int top) {
+		guiGraphics.renderItem(new ItemStack(ItemUpgrade.getAndCheckUpgrade(LPItems.upgrades.get(upgradeName))), left + 5, top + 5);
+	}
+
 	private final class ByproductExtension extends GuiExtension {
 
 		@Override
@@ -538,6 +549,9 @@ public class GuiCraftingPipe extends ModuleBaseGui {
 
 		@Override
 		public void renderForeground(int left, int top) {
+			if (!isFullyExtended()) {
+				renderUpgradeIcon(CraftingByproductUpgrade.getName(), left, top);
+			}
 			if (isFullyExtended()) {
 				LPGuiGraphics.drawBigSlotBackground(minecraft, left + 9, top + 20);
 			}
@@ -558,6 +572,9 @@ public class GuiCraftingPipe extends ModuleBaseGui {
 
 		@Override
 		public void renderForeground(int left, int top) {
+			if (!isFullyExtended()) {
+				renderUpgradeIcon(CraftingCleanupUpgrade.getName(), left, top);
+			}
 			if (isFullyExtended()) {
 				for (int y = 0; y < cleanupSize; y++) {
 					for (int x = 0; x < 3; x++) {
