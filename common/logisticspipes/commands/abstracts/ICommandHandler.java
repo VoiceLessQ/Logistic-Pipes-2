@@ -1,15 +1,14 @@
 package logisticspipes.commands.abstracts;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
 
 public interface ICommandHandler {
 
 	String[] getNames();
 
-	boolean isCommandUsableBy(Player sender);
+	boolean isCommandUsableBy(CommandSourceStack sender);
 
 	String[] getDescription();
 
-	void executeCommand(Player sender, String[] args);
+	void executeCommand(CommandSourceStack sender, String[] args);
 }

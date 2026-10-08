@@ -63,7 +63,7 @@ public class LPChatListener {
 					MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), player);
 					event.setCanceled(true);
 				} else {
-					if (LPChatListener.morePageDisplays.get(playerName).handleChat(chatMessage, player)) {
+					if (LPChatListener.morePageDisplays.get(playerName).handleChat(chatMessage, player.createCommandSourceStack())) {
 						event.setCanceled(true);
 					}
 				}

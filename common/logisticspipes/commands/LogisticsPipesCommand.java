@@ -3,7 +3,6 @@ package logisticspipes.commands;
 import java.util.Arrays;
 import java.util.Locale;
 
-import net.minecraft.world.entity.player.Player;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -58,9 +57,7 @@ public class LogisticsPipesCommand {
 		);
 	}
 
-	private void executeForSource(CommandSourceStack source, String[] arguments) {
-		Player sender = source.getPlayer();
-		if (sender == null) return;
+	private void executeForSource(CommandSourceStack sender, String[] arguments) {
 		if (arguments.length <= 0) {
 			sender.sendSystemMessage(net.minecraft.network.chat.Component.literal("Type '/logisticspipes help' for help."));
 			return;
@@ -78,8 +75,12 @@ public class LogisticsPipesCommand {
 		}
 	}
 
-	public static boolean isOP(Player sender) {
+	public static boolean isOP(CommandSourceStack sender) {
+		if (sender.getPlayer() == null) {
+			// console and RCON; command blocks and functions stay at level 2
+			return sender.hasPermission(4);
+		}
 		return Arrays.asList(ServerLifecycleHooks.getCurrentServer().getPlayerList().getOps().getUserList())
-				.contains(sender.getName().getString().toLowerCase(Locale.US)) || (MainProxy.proxy.checkSinglePlayerOwner(sender.getName().getString()));
+				.contains(sender.getTextName().toLowerCase(Locale.US)) || (MainProxy.proxy.checkSinglePlayerOwner(sender.getTextName()));
 	}
 }

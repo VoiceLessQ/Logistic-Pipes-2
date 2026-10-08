@@ -126,6 +126,10 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   enchanted sword counted as the same item as a fresh one. Identity and
   rebuilt stacks now keep every component, and so do items sent to clients.
   Network item stacks also keep their damage value again.
+- `/logisticspipes` (and `/lp`) works from the server console and RCON again;
+  it silently did nothing for anything but a player. Player-only debug
+  commands still refuse other senders, and OP-only commands accept the
+  console (permission level 4) but not command blocks.
 - Item names use the 1.21 translation keys; the fluid container shows its
   fluid; the AE2 integration looks for mod id `ae2`.
 

@@ -1,6 +1,6 @@
 package logisticspipes.commands.commands.debug;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
@@ -15,8 +15,8 @@ public class HandCommand implements ICommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
-		return sender instanceof Player;
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
+		return sender.getPlayer() != null;
 	}
 
 	@Override
@@ -25,8 +25,8 @@ public class HandCommand implements ICommandHandler {
 	}
 
 	@Override
-	public void executeCommand(Player sender, String[] args) {
-		Player player = (Player) sender;
+	public void executeCommand(CommandSourceStack sender, String[] args) {
+		Player player = sender.getPlayer();
 		ItemStack item = player.getInventory().items.get(player.getInventory().selected);
 		if (!item.isEmpty()) {
 			DebugGuiController.instance().startWatchingOf(item, player);

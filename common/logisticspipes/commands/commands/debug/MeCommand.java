@@ -1,7 +1,6 @@
 package logisticspipes.commands.commands.debug;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
 import logisticspipes.commands.abstracts.ICommandHandler;
@@ -14,8 +13,8 @@ public class MeCommand implements ICommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
-		return sender instanceof Player;
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
+		return sender.getPlayer() != null;
 	}
 
 	@Override
@@ -24,8 +23,8 @@ public class MeCommand implements ICommandHandler {
 	}
 
 	@Override
-	public void executeCommand(Player sender, String[] args) {
-		DebugGuiController.instance().startWatchingOf(sender, (Player) sender);
+	public void executeCommand(CommandSourceStack sender, String[] args) {
+		DebugGuiController.instance().startWatchingOf(sender, sender.getPlayer());
 		sender.sendSystemMessage(Component.literal("Starting SelfDebugging"));
 	}
 }

@@ -1,7 +1,6 @@
 package logisticspipes.commands.commands;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
 
 import logisticspipes.commands.abstracts.SubCommandHandler;
 import logisticspipes.commands.commands.wrapper.EnableCommand;
@@ -16,7 +15,7 @@ public class WrapperCommand extends SubCommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
 		return true;
 	}
 

@@ -1,7 +1,6 @@
 package logisticspipes.commands.commands;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
 import net.minecraft.network.chat.Component;
 
 import logisticspipes.commands.abstracts.ICommandHandler;
@@ -15,7 +14,7 @@ public class ClearCommand implements ICommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
 		return true;
 	}
 
@@ -25,7 +24,7 @@ public class ClearCommand implements ICommandHandler {
 	}
 
 	@Override
-	public void executeCommand(Player sender, String[] args) {
+	public void executeCommand(CommandSourceStack sender, String[] args) {
 		if (args.length <= 0 || !args[0].equalsIgnoreCase("all")) {
 			sender.sendSystemMessage(Component.literal("%LPSTORESENDMESSAGE%"));
 			sender.sendSystemMessage(Component.literal("%LPCLEARCHAT%"));

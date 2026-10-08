@@ -3,6 +3,8 @@ package logisticspipes.gametest;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
@@ -10,6 +12,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -157,6 +161,39 @@ public class LPGameTests {
 				ItemStack read = in.readItemStack();
 				helper.assertTrue(ItemStack.isSameItemSameComponents(stack, read), "network stack " + read.getComponentsPatch() + " != " + stack.getComponentsPatch());
 			});
+		}
+		helper.succeed();
+	}
+
+	/** /logisticspipes runs from non-player sources (console, RCON); OP commands need level 4 there. */
+	@GameTest(template = "empty")
+	public static void commandsRunFromConsole(GameTestHelper helper) {
+		ServerLevel level = helper.getLevel();
+		for (int permission : new int[] { 4, 2 }) {
+			List<String> output = new ArrayList<>();
+			CommandSource capture = new CommandSource() {
+				@Override
+				public void sendSystemMessage(Component component) { output.add(component.getString()); }
+
+				@Override
+				public boolean acceptsSuccess() { return true; }
+
+				@Override
+				public boolean acceptsFailure() { return true; }
+
+				@Override
+				public boolean shouldInformAdmins() { return false; }
+			};
+			CommandSourceStack source = new CommandSourceStack(capture, Vec3.ZERO, Vec2.ZERO, level, permission, "Server",
+					Component.literal("Server"), level.getServer(), null);
+			level.getServer().getCommands().performPrefixedCommand(source, "logisticspipes rt");
+			helper.assertTrue(output.stream().anyMatch(line -> line.startsWith("RoutingTableUpdateThread: Queued")),
+					"level " + permission + " rt output " + output);
+			output.clear();
+			level.getServer().getCommands().performPrefixedCommand(source, "logisticspipes help");
+			helper.assertTrue(output.stream().anyMatch(line -> line.contains("version")), "level " + permission + " help output " + output);
+			boolean op = logisticspipes.commands.LogisticsPipesCommand.isOP(source);
+			helper.assertTrue(op == (permission == 4), "isOP at level " + permission + " = " + op);
 		}
 		helper.succeed();
 	}

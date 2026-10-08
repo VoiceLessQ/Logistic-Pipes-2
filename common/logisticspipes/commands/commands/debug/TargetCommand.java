@@ -1,7 +1,6 @@
 package logisticspipes.commands.commands.debug;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
 import logisticspipes.commands.abstracts.ICommandHandler;
@@ -17,8 +16,8 @@ public class TargetCommand implements ICommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
-		return sender instanceof Player;
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
+		return sender.getPlayer() != null;
 	}
 
 	@Override
@@ -27,8 +26,8 @@ public class TargetCommand implements ICommandHandler {
 	}
 
 	@Override
-	public void executeCommand(Player sender, String[] args) {
-		MainProxy.sendPacketToPlayer(PacketHandler.getPacket(DebugAskForTarget.class), (Player) sender);
+	public void executeCommand(CommandSourceStack sender, String[] args) {
+		MainProxy.sendPacketToPlayer(PacketHandler.getPacket(DebugAskForTarget.class), sender.getPlayer());
 		sender.sendSystemMessage(Component.literal("Asking for Target."));
 	}
 }

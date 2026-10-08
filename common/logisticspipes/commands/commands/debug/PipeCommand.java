@@ -1,7 +1,6 @@
 package logisticspipes.commands.commands.debug;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
 import logisticspipes.commands.abstracts.ICommandHandler;
@@ -18,8 +17,8 @@ public class PipeCommand implements ICommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
-		return sender instanceof Player;
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
+		return sender.getPlayer() != null;
 	}
 
 	@Override
@@ -28,7 +27,7 @@ public class PipeCommand implements ICommandHandler {
 	}
 
 	@Override
-	public void executeCommand(Player sender, String[] args) {
+	public void executeCommand(CommandSourceStack sender, String[] args) {
 		if (args.length != 1) {
 			sender.sendSystemMessage(Component.literal("Wrong amount of arguments"));
 			return;
@@ -36,15 +35,15 @@ public class PipeCommand implements ICommandHandler {
 		if (args[0].equalsIgnoreCase("help")) {
 			sender.sendSystemMessage(Component.literal("client, server, both or console"));
 		} else if (args[0].equalsIgnoreCase("both")) {
-			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(PipeDebugAskForTarget.class).setServer(true), (Player) sender);
-			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(PipeDebugAskForTarget.class).setServer(false), (Player) sender);
+			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(PipeDebugAskForTarget.class).setServer(true), sender.getPlayer());
+			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(PipeDebugAskForTarget.class).setServer(false), sender.getPlayer());
 			sender.sendSystemMessage(Component.literal("Asking for Target."));
 		} else if (args[0].equalsIgnoreCase("console") || args[0].equalsIgnoreCase("c")) {
-			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(PipeDebugLogAskForTarget.class), (Player) sender);
+			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(PipeDebugLogAskForTarget.class), sender.getPlayer());
 			sender.sendSystemMessage(Component.literal("Asking for Target."));
 		} else {
 			boolean isClient = args[0].equalsIgnoreCase("client");
-			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(PipeDebugAskForTarget.class).setServer(!isClient), (Player) sender);
+			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(PipeDebugAskForTarget.class).setServer(!isClient), sender.getPlayer());
 			sender.sendSystemMessage(Component.literal("Asking for Target."));
 		}
 	}
