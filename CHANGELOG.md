@@ -108,6 +108,10 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   1728 routers with items flowing, breaking one pipe cost 21 s of worker CPU
   and about 300 ms of inline rebuilds on the server thread; now 5 s and 15 to
   25 ms. The 1.12.2 code had the same loop.
+- A router waiting for a new routing table queues one rebuild per change,
+  not one per tick. On the same grid a pipe break now queues about 1700 to
+  2800 rebuilds instead of about 100,000, and worker CPU drops to 4.5 to
+  4.8 s.
 - Item names use the 1.21 translation keys; the fluid container shows its
   fluid; the AE2 integration looks for mod id `ae2`.
 
