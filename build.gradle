@@ -62,10 +62,17 @@ sourceSets {
         compileClasspath += api.output
         runtimeClasspath  += api.output
     }
+    // dev-only checks (GameTests + client check driver); never in the jar
+    gametest {
+        compileClasspath += main.output + api.output
+        runtimeClasspath  += main.output + api.output
+    }
 }
 
 configurations {
     testCompileOnly.extendsFrom compileOnly
+    gametestImplementation.extendsFrom implementation
+    gametestCompileOnly.extendsFrom compileOnly
     ktlint
 }
 
@@ -80,6 +87,7 @@ neoForge {
     // onto it too (MDG only adds it to main by default).
     addModdingDependenciesTo sourceSets.api
     addModdingDependenciesTo sourceSets.test
+    addModdingDependenciesTo sourceSets.gametest
 
     accessTransformers {
         from rootProject.file('resources/META-INF/lp_at.cfg')
@@ -89,6 +97,7 @@ neoForge {
         logisticspipes {
             sourceSet sourceSets.main
             sourceSet sourceSets.api
+            sourceSet sourceSets.gametest
         }
     }
 
@@ -106,6 +115,23 @@ neoForge {
             systemProperty 'forge.logging.markers',       'REGISTRIES'
             systemProperty 'forge.logging.console.level', 'debug'
             programArgument '--nogui'
+            jvmArgument '-ea'
+        }
+        // ./gradlew runGameTestServer: runs every @GameTestHolder("logisticspipes") test, exits non-zero on failure
+        gameTestServer {
+            type = 'gameTestServer'
+            sourceSet = sourceSets.gametest
+            gameDirectory = project.file('run-gametest')
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'logisticspipes'
+            jvmArgument '-ea'
+        }
+        // ./gradlew runClientCheck: joins "LP Testbed", runs the client checks, logs LPCHECK lines, quits
+        clientCheck {
+            client()
+            sourceSet = sourceSets.gametest
+            gameDirectory = project.file('run')
+            systemProperty 'lp.clientcheck', 'true'
+            programArguments.addAll('--quickPlaySingleplayer', 'LP Testbed')
             jvmArgument '-ea'
         }
     }
