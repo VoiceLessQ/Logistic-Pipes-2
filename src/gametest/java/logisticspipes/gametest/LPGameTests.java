@@ -104,6 +104,20 @@ public class LPGameTests {
 		helper.succeed();
 	}
 
+	/** Phase 5 item: a creative power source fills an adjacent RF power provider. */
+	@GameTest(template = "empty", timeoutTicks = 100)
+	public static void creativeSourceFillsRFProvider(GameTestHelper helper) {
+		BlockPos provider = new BlockPos(1, 2, 2);
+		helper.setBlock(provider, LPBlocks.powerProviderRF.get());
+		helper.setBlock(new BlockPos(2, 2, 2), logisticspipes.LPRegistries.CREATIVE_POWER_SOURCE.get());
+		helper.succeedWhen(() -> {
+			if (!(helper.getBlockEntity(provider) instanceof logisticspipes.blocks.powertile.LogisticsPowerProviderTileEntity tile)) {
+				throw new net.minecraft.gametest.framework.GameTestAssertException("no power provider block entity");
+			}
+			helper.assertTrue(tile.getPowerLevel() > 0, "provider power level " + tile.getPowerLevel());
+		});
+	}
+
 	/** Worklog item 5 (server half): recipe list comes from the level's recipe manager. */
 	@GameTest(template = "empty")
 	public static void recipeListFromLevel(GameTestHelper helper) {
