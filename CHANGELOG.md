@@ -63,6 +63,48 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   logged an unknown mod version; the fluid manager could throw on an empty
   fluid stack. Guide book word widths ignore scale no longer; the power level
   HUD shows its stored energy text again.
+- **Machine blocks dropped nothing.** The solid blocks (Power Junction,
+  providers, crafting tables, security station and others) have loot tables
+  and the pickaxe tag again.
+- **A dedicated server could not exit.** A routing worker thread was not a
+  daemon, so `stop` left the JVM running.
+- **Changing the config while the game runs had no effect.** Settings are
+  re-read when the file reloads; `powerUsageDisabled` now applies without a
+  restart.
+- Fresh Sneaky and Connection upgrades stopped stacking after their tooltip
+  was read: the getter wrote an empty data tag into the item.
+- **`chassisSlots` config restored** (MK1 to MK5, default 1, 2, 3, 4, 8;
+  needs a restart). Changing it on an existing world no longer crashes the
+  server or wipes the chassis: lists are padded on load, and modules in
+  removed slots are logged when the value is lowered. LogisticsPipes 1.12.2
+  crashed here too.
+- Pipe break time follows the `pipeDurability` config again (default 0.25,
+  as in 1.12.2; it was a fixed 1.5). `threadCount` accepts 0 for synchronous
+  routing again.
+- A pipe block saved without its pipe id is removed with a warning instead of
+  staying as an invisible ghost.
+- The reset recipe takes several of the same item and returns that many.
+- Quick-sort markers only show for chest screens, not the player inventory,
+  and turn off when the chest closes.
+- Clicking a text field gives it focus again; Backspace and the arrow keys
+  work in the request amount field.
+- End caps against solid blocks appear after a world load, chunk borders
+  included.
+- The request table and crafting table show their output when connected to
+  a dedicated server (they read the client's synced recipes now).
+- The Logistics Programmer stacks to 64 again.
+- Breaking a pipe shows the 1.12.2 model shard particles.
+- HUD glasses use their own texture and give no armour; they rendered as a
+  brown leather cap.
+- Pipes can be placed into grass, snow and other replaceable blocks, and not
+  inside entities.
+- Opening a crafter's attached GUI passes the held item to the block first,
+  as 1.12.2 did.
+- Guide book: the hover marker and the click sound are back, and word widths
+  match the font that draws them. Overflowing labels expand on hover with
+  their outline, and text buttons have hover and disabled colours again.
+- Item names use the 1.21 translation keys; the fluid container shows its
+  fluid; the AE2 integration looks for mod id `ae2`.
 
 
 Client rendering parity batch — restores the last of the visual features that
