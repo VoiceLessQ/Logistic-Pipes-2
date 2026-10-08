@@ -156,6 +156,11 @@ repositories {
     maven { url = 'https://maven.removeco.de/' }
     maven { url = 'https://thedarkcolour.github.io/KotlinForForge/' }
     maven { url = 'https://maven.blamejared.com' }
+    // Storage Drawers publishes no maven of its own
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
 }
 
 dependencies {
@@ -201,6 +206,11 @@ dependencies {
 
     // AE2 API for the ME interface handler; runtime AE2 is optional.
     compileOnly("org.appliedenergistics:appliedenergistics2:19.2.18:api") {
+        transitive = false
+    }
+
+    // Storage Drawers 1.21.1-13.11.4 (NeoForge file id) for the drawer handler; runtime Storage Drawers is optional.
+    compileOnly("maven.modrinth:storagedrawers:px0CCB06") {
         transitive = false
     }
 

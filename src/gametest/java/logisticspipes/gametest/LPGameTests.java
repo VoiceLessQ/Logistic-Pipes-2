@@ -291,6 +291,48 @@ public class LPGameTests {
 				.thenSucceed();
 	}
 
+	@GameTest(template = "empty")
+	public static void storageDrawersHandlerMovesItems(GameTestHelper helper) {
+		if (!net.neoforged.fml.ModList.get().isLoaded(LPConstants.storagedrawersModID)) {
+			helper.succeed();
+			return;
+		}
+		BlockPos pos = new BlockPos(1, 2, 1);
+		helper.setBlock(pos, net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(
+				net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(LPConstants.storagedrawersModID, "oak_full_drawers_2")).defaultBlockState());
+		logisticspipes.interfaces.IInventoryUtil util = aeUtil(helper, pos, network.rs485.logisticspipes.inventory.ProviderMode.DEFAULT);
+		helper.assertTrue(util instanceof network.rs485.logisticspipes.proxy.StorageDrawersInventoryHandler, "handler " + util);
+		ItemStack cobble = new ItemStack(Items.COBBLESTONE, 10);
+		ItemIdentifier ident = ItemIdentifier.get(cobble);
+		logisticspipes.utils.transactor.ITransactor transactor = (logisticspipes.utils.transactor.ITransactor) util;
+		helper.assertTrue(util.getItemsAndCount().isEmpty(), "empty drawer reports " + util.getItemsAndCount());
+		helper.assertTrue(transactor.add(cobble, null, false).getCount() == 10, "simulated add");
+		helper.assertTrue(util.itemCount(ident) == 0, "simulated add stored items");
+		helper.assertTrue(transactor.add(cobble, null, true).getCount() == 10, "add");
+		helper.assertTrue(util.itemCount(ident) == 10, "count after add " + util.itemCount(ident));
+		helper.assertTrue(util.getItems().contains(ident), "getItems " + util.getItems());
+		helper.assertTrue(util.getContainerSize() == 2, "size " + util.getContainerSize());
+		ItemStack slot0 = util.getItem(0);
+		helper.assertTrue(slot0.is(Items.COBBLESTONE) && slot0.getCount() == 10, "slot 0 " + slot0);
+		ItemStack fromSlot = util.removeItem(0, 3);
+		helper.assertTrue(fromSlot.is(Items.COBBLESTONE) && fromSlot.getCount() == 3, "removeItem " + fromSlot);
+		ItemStack taken = util.getMultipleItems(ident, 4);
+		helper.assertTrue(taken.is(Items.COBBLESTONE) && taken.getCount() == 4, "extracted " + taken);
+		helper.assertTrue(util.itemCount(ident) == 3, "count after extract " + util.itemCount(ident));
+		logisticspipes.interfaces.IInventoryUtil hiding = aeUtil(helper, pos, network.rs485.logisticspipes.inventory.ProviderMode.LEAVE_ONE_PER_TYPE);
+		helper.assertTrue(hiding.itemCount(ident) == 2, "hide one per type count " + hiding.itemCount(ident));
+		ItemStack hiddenTake = hiding.removeItem(0, 64);
+		helper.assertTrue(hiddenTake.getCount() == 2 && util.itemCount(ident) == 1, "hide one removeItem " + hiddenTake);
+		// drawers already holding the item fill before empty ones
+		util.removeItem(0, 64);
+		transactor.add(new ItemStack(Items.DIRT, 2), null, true);
+		transactor.add(new ItemStack(Items.COBBLESTONE, 5), null, true);
+		util.removeItem(0, 64);
+		transactor.add(new ItemStack(Items.COBBLESTONE, 5), null, true);
+		helper.assertTrue(util.getItem(0).isEmpty() && util.getItem(1).getCount() == 10, "fill order " + util.getItem(0) + " " + util.getItem(1));
+		helper.succeed();
+	}
+
 	private static BlockState aeBlock(String path) {
 		return net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(
 				net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(LPConstants.appliedenergisticsModID, path)).defaultBlockState();

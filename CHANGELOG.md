@@ -11,6 +11,8 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   orderer keeps its link, and resetting it keeps the colour.
 - AE2 support is back: a pipe next to an ME interface reaches the whole ME
   network (or only the interface's own slots once it has config set).
+- Storage Drawers support is back: pipes see each drawer's full count and fill
+  drawers already holding an item before empty ones.
 
 ### Fixed
 - The slot finder works again: the hovered slot shows red, and clicking it
