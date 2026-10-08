@@ -21,6 +21,8 @@ follows [Semantic Versioning](https://semver.org/) where practical.
 - ItemSink and Provider module screens show item tooltips again. Shift-clicking
   an item fills the next free filter slot, and with a fuzzy upgrade, hovering a
   filter slot opens the fuzzy flag list.
+- The sneaky and disconnection upgrade side pickers show pipes, chests and
+  other animated blocks again.
 - Routing channels no longer go missing when the first one was made outside
   the overworld. Channels saved in another dimension's data folder before this
   fix need to be made again.

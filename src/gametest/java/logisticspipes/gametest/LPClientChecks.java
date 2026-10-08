@@ -84,7 +84,14 @@ public final class LPClientChecks {
 				case SETTLE_TICKS + 4 -> startHud();
 				case SETTLE_TICKS + 8 -> Screenshot.grab(mc.gameDirectory, "lpcheck_hud.png", mc.getMainRenderTarget(),
 						msg -> logisticspipes.LogisticsPipes.log.info("LPCHECK INFO hud screenshot: {}", msg.getString()));
+				case SETTLE_TICKS + 9 -> {
+					drawHud = false;
+					openSideConfig(mc);
+				}
+				case SETTLE_TICKS + 11 -> Screenshot.grab(mc.gameDirectory, "lpcheck_sideconfig.png", mc.getMainRenderTarget(),
+						msg -> logisticspipes.LogisticsPipes.log.info("LPCHECK INFO side config screenshot: {}", msg.getString()));
 				case SETTLE_TICKS + 12 -> {
+					mc.setScreen(null);
 					drawHud = false;
 					logisticspipes.LogisticsPipes.log.info("LPCHECK DONE failures={}", failures);
 					mc.stop();
@@ -222,6 +229,18 @@ public final class LPClientChecks {
 		result("inputbar.clickFocuses", focusedIn, "focused after inside click=" + focusedIn);
 		result("inputbar.editingKeys", "a".equals(text), "text after a,b,backspace='" + text + "'");
 		result("inputbar.clickOutsideUnfocuses", !focusedOut, "focused after outside click=" + focusedOut);
+	}
+
+	/** Disconnection popup over a routed pipe; the screenshot should show the pipe model. */
+	private static void openSideConfig(Minecraft mc) {
+		for (LogisticsTileGenericPipe pipe : loadedPipes(mc)) {
+			if (pipe.pipe instanceof logisticspipes.pipes.basic.CoreRoutedPipe routed) {
+				mc.setScreen(new logisticspipes.gui.popup.DisconnectionConfigurationPopup(routed, null));
+				logisticspipes.LogisticsPipes.log.info("LPCHECK INFO side config opened at {}", pipe.getBlockPos());
+				return;
+			}
+		}
+		result("sideConfig", false, "no routed pipe loaded");
 	}
 
 	private static List<LogisticsTileGenericPipe> loadedPipes(Minecraft mc) {
