@@ -103,6 +103,11 @@ follows [Semantic Versioning](https://semver.org/) where practical.
 - Guide book: the hover marker and the click sound are back, and word widths
   match the font that draws them. Overflowing labels expand on hover with
   their outline, and text buttons have hover and disabled colours again.
+- **Routing table rebuilds are about 4x cheaper.** Each Dijkstra step reset a
+  debug-only flag on every queued candidate. Measured on a 12x12x12 grid of
+  1728 routers with items flowing, breaking one pipe cost 21 s of worker CPU
+  and about 300 ms of inline rebuilds on the server thread; now 5 s and 15 to
+  25 ms. The 1.12.2 code had the same loop.
 - Item names use the 1.21 translation keys; the fluid container shows its
   fluid; the AE2 integration looks for mod id `ae2`.
 

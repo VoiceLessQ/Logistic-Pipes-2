@@ -707,8 +707,11 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 				ServerRouter.SharedLSADatabasereadLock.lock();
 			}
 
-			for (ExitRoute e : candidatesCost) {
-				e.debug.isNewlyAddedCanidate = false;
+			// Only the routing debug view reads this flag; resetting it per pop was O(pops x queue)
+			if (debug.isDebug()) {
+				for (ExitRoute e : candidatesCost) {
+					e.debug.isNewlyAddedCanidate = false;
+				}
 			}
 
 			//if the node does not have any flags not in the closed set, check it
