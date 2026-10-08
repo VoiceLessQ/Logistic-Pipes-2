@@ -31,6 +31,7 @@ import org.lwjgl.glfw.GLFW;
 
 import logisticspipes.LPConstants;
 import logisticspipes.interfaces.IHUDModuleRenderer;
+import logisticspipes.pipefxhandlers.EntitySparkleFX;
 import logisticspipes.pipes.basic.LogisticsTileGenericPipe;
 import logisticspipes.utils.QuickSortChestMarkerStorage;
 import logisticspipes.utils.gui.InputBar;
@@ -74,6 +75,7 @@ public final class LPClientChecks {
 					checkInputBar(mc);
 					checkSolidSides(mc);
 					checkOrdererColours(mc);
+					checkFluidContainerModel(mc);
 					checkSlotFinder(mc);
 					startParticleCheck(mc);
 				}
@@ -126,6 +128,17 @@ public final class LPClientChecks {
 			if (!tex.equals("items/remote_orderer/" + v)) bad.append(v).append("->").append(tex).append(' ');
 		}
 		result("orderer.colourModels", bad.length() == 0, bad.length() == 0 ? "17 variants" : bad.toString());
+	}
+
+	/** Filled fluid container bakes the fluid's still sprite through the stencil, like LP1. */
+	private static void checkFluidContainerModel(Minecraft mc) {
+		var water = logisticspipes.utils.FluidIdentifierStack.getFromStack(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 1000));
+		net.minecraft.world.item.ItemStack filled = logisticspipes.proxy.SimpleServiceLocator.logisticsFluidManager.getFluidContainer(water).makeNormalStack();
+		net.minecraft.world.item.ItemStack empty = new net.minecraft.world.item.ItemStack(logisticspipes.LPItems.fluidContainer.get());
+		String filledTex = mc.getItemRenderer().getModel(filled, mc.level, mc.player, 0).getParticleIcon().contents().name().getPath();
+		String emptyTex = mc.getItemRenderer().getModel(empty, mc.level, mc.player, 0).getParticleIcon().contents().name().getPath();
+		result("fluidContainer.model", filledTex.equals("block/water_still") && emptyTex.equals("items/liquids/empty"),
+				"filled=" + filledTex + " empty=" + emptyTex);
 	}
 
 	/** Slot finder: a left click on a slot is consumed, picks it and closes; a click off-slot is consumed only. */
@@ -216,6 +229,7 @@ public final class LPClientChecks {
 	}
 
 	private static BlockPos particlePos;
+	private static EntitySparkleFX sparkle;
 
 	/** Worklog item 7: breaking a rendered pipe spawns LP model shards via addDestroyEffects. */
 	private static void startParticleCheck(Minecraft mc) {
@@ -230,6 +244,11 @@ public final class LPClientChecks {
 			result("particles.destroyEffects", false, "no rendered pipe in range");
 			return;
 		}
+		// textured sparkle sheet: a broken vertex format or texture throws during the next frames
+		// placed in view so frustum culling does not skip render()
+		var eye = mc.gameRenderer.getMainCamera().getPosition().add(mc.player.getLookAngle().scale(2));
+		sparkle = new EntitySparkleFX(level, eye.x, eye.y, eye.z, 1F, 1F, 0.5F, 0F, 6);
+		mc.particleEngine.add(sparkle);
 		particleBaseline = Integer.parseInt(mc.particleEngine.countParticles());
 		BlockState state = level.getBlockState(particlePos);
 		BlockHitResult hit = new BlockHitResult(particlePos.getCenter(), Direction.UP, particlePos, false);
@@ -244,6 +263,7 @@ public final class LPClientChecks {
 
 	private static void finishParticleCheck(Minecraft mc) {
 		if (particlePos == null) return;
+		result("particles.sparkle", sparkle.isAlive(), "sparkle in view rendered for 3 ticks");
 		int now = Integer.parseInt(mc.particleEngine.countParticles());
 		result("particles.destroyEffects", now > particleBaseline, "particles " + particleBaseline + " -> " + now + " at " + particlePos);
 	}

@@ -15,6 +15,9 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   picks that slot.
 - Hitting a pipe shows particles in the pipe's own texture instead of a
   jumble of pipe parts.
+- Item and power sparkles on pipes are glowing stars again instead of flat
+  coloured squares.
+- Filled fluid containers show the fluid's own texture in the window again.
 - Routing channels no longer go missing when the first one was made outside
   the overworld. Channels saved in another dimension's data folder before this
   fix need to be made again.

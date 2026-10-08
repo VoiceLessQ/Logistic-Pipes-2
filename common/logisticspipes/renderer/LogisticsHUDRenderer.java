@@ -328,7 +328,7 @@ public class LogisticsHUDRenderer {
 				progress = Math.max(progress - (2 * Math.max(1, (int) Math.floor((System.currentTimeMillis() - last) / 50.0D))), 0);
 			}
 			if (progress != 0) {
-				// HUD world-space info panel — requires NEI/info provider not yet ported to 1.20.1
+				// LP1 drew neiProxy info here; its NEI proxy was disabled, so the list was always empty
 			}
 		} else if (!Screen.hasControlDown()) {
 			progress = 0;

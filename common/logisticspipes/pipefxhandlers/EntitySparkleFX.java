@@ -1,8 +1,8 @@
 package logisticspipes.pipefxhandlers;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -18,11 +18,14 @@ import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-
+import logisticspipes.LPConstants;
 
 public class EntitySparkleFX extends Particle {
+
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "textures/particles/particles.png");
 
 	public int multiplier;
 	public boolean shrink;
@@ -48,17 +51,16 @@ public class EntitySparkleFX extends Particle {
 		hasPhysics = false;
 	}
 
-	// Custom render type: plain colour quads, no texture atlas needed.
-	// Owns the buffer lifecycle (begin/end) so that render() can safely write
-	// into the VertexConsumer it receives without touching the Tessellator itself.
+	// LP1: own sheet, additive blend (SRC_ALPHA, ONE), no depth write
 	private static final ParticleRenderType SPARKLE_RENDER_TYPE = new ParticleRenderType() {
 		@Override
 		public BufferBuilder begin(Tesselator tesselator, TextureManager textureManager) {
 			RenderSystem.enableBlend();
-			RenderSystem.defaultBlendFunc();
+			RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
 			RenderSystem.depthMask(false);
-			RenderSystem.setShader(GameRenderer::getPositionColorShader);
-			return tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+			RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+			RenderSystem.setShaderTexture(0, TEXTURE);
+			return tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 		}
 
 		@Override
@@ -78,10 +80,6 @@ public class EntitySparkleFX extends Particle {
 		double py = Mth.lerp(partialTicks, yo, y) - camera.getPosition().y;
 		double pz = Mth.lerp(partialTicks, zo, z) - camera.getPosition().z;
 
-		float ageRatio = lifetime > 0 ? (float) age / lifetime : 1.0f;
-		float alpha = 0.75f * (1.0f - ageRatio);
-		if (alpha <= 0.01f) return;
-
 		org.joml.Quaternionf rot = camera.rotation();
 		org.joml.Vector3f right = new org.joml.Vector3f(1, 0, 0);
 		org.joml.Vector3f up    = new org.joml.Vector3f(0, 1, 0);
@@ -91,24 +89,30 @@ public class EntitySparkleFX extends Particle {
 		// LP1: half-extent = 0.1 * particleScale * lifeFade (always shrinking).
 		// bbWidth = 0.2 * scalemult here, so 0.1 * bbWidth ~ LP1's 0.02 * scalemult.
 		float s = 0.1f * this.bbWidth * ((float) (lifetime - age + 1) / (float) lifetime);
+		// LP1 animation: one 8x8 sheet cell per `multiplier` ticks
+		int frame = particle + age / multiplier;
+		float u0 = frame % 8 / 8.0F;
+		float u1 = u0 + 0.124875F;
+		float v0 = frame / 8 / 8.0F;
+		float v1 = v0 + 0.124875F;
 		int r = (int) (rCol * 255);
 		int g = (int) (gCol * 255);
 		int b = (int) (bCol * 255);
-		int a = (int) (alpha * 255);
 
-		billboardVertex(buffer, px, py, pz, right, up,  s,  s, r, g, b, a);
-		billboardVertex(buffer, px, py, pz, right, up, -s,  s, r, g, b, a);
-		billboardVertex(buffer, px, py, pz, right, up, -s, -s, r, g, b, a);
-		billboardVertex(buffer, px, py, pz, right, up,  s, -s, r, g, b, a);
+		billboardVertex(buffer, px, py, pz, right, up, -s, -s, u1, v1, r, g, b);
+		billboardVertex(buffer, px, py, pz, right, up, -s,  s, u1, v0, r, g, b);
+		billboardVertex(buffer, px, py, pz, right, up,  s,  s, u0, v0, r, g, b);
+		billboardVertex(buffer, px, py, pz, right, up,  s, -s, u0, v1, r, g, b);
 	}
 
 	private static void billboardVertex(VertexConsumer buf, double cx, double cy, double cz,
 			org.joml.Vector3f right, org.joml.Vector3f up, float rs, float us,
-			int r, int g, int b, int a) {
+			float u, float v, int r, int g, int b) {
 		buf.addVertex((float) (cx + right.x * rs + up.x * us),
 		           (float) (cy + right.y * rs + up.y * us),
 		           (float) (cz + right.z * rs + up.z * us))
-		   .setColor(r, g, b, a);
+		   .setUv(u, v)
+		   .setColor(r, g, b, 255);
 	}
 
 	/**
