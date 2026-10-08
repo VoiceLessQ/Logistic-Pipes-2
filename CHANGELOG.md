@@ -9,6 +9,8 @@ follows [Semantic Versioning](https://semver.org/) where practical.
 ### Added
 - Coloured remote orderers are back: craft an orderer with any dye. The
   orderer keeps its link, and resetting it keeps the colour.
+- AE2 support is back: a pipe next to an ME interface reaches the whole ME
+  network (or only the interface's own slots once it has config set).
 
 ### Fixed
 - The slot finder works again: the hovered slot shows red, and clicking it

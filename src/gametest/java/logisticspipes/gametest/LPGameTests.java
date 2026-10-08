@@ -245,4 +245,61 @@ public class LPGameTests {
 		}
 		helper.succeed();
 	}
+
+	/** AE2 compat: an unconfigured ME interface exposes the network storage to LP (LP1 AEInterfaceInventoryHandler). */
+	@GameTest(template = "empty", timeoutTicks = 200)
+	public static void aeInterfaceExposesNetworkStorage(GameTestHelper helper) {
+		if (!net.neoforged.fml.ModList.get().isLoaded(LPConstants.appliedenergisticsModID)) {
+			helper.succeed();
+			return;
+		}
+		BlockPos cell = new BlockPos(0, 2, 1), drive = new BlockPos(1, 2, 1), iface = new BlockPos(2, 2, 1);
+		helper.setBlock(cell, aeBlock("creative_energy_cell"));
+		helper.setBlock(drive, aeBlock("drive"));
+		helper.setBlock(iface, aeBlock("interface"));
+		net.neoforged.neoforge.items.IItemHandler driveInv = helper.getLevel().getCapability(
+				net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK, helper.absolutePos(drive), null);
+		helper.assertTrue(driveInv != null, "drive has no item handler");
+		ItemStack storageCell = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+				net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(LPConstants.appliedenergisticsModID, "item_storage_cell_1k")));
+		helper.assertTrue(driveInv.insertItem(0, storageCell, false).isEmpty(), "drive refused the 1k cell");
+
+		ItemStack cobble = new ItemStack(Items.COBBLESTONE, 10);
+		ItemIdentifier ident = ItemIdentifier.get(cobble);
+		helper.startSequence()
+				.thenWaitUntil(() -> {
+					// until the grid boots the interface falls back to its own item handler
+					logisticspipes.interfaces.IInventoryUtil util = aeUtil(helper, iface, network.rs485.logisticspipes.inventory.ProviderMode.DEFAULT);
+					helper.assertTrue(util instanceof logisticspipes.proxy.specialinventoryhandler.AEInterfaceInventoryHandler, "handler " + util);
+					helper.assertTrue(util.roomForItem(cobble) == 10, "network not ready");
+				})
+				.thenExecute(() -> {
+					logisticspipes.interfaces.IInventoryUtil util = aeUtil(helper, iface, network.rs485.logisticspipes.inventory.ProviderMode.DEFAULT);
+					logisticspipes.utils.transactor.ITransactor transactor = (logisticspipes.utils.transactor.ITransactor) util;
+					helper.assertTrue(transactor.add(cobble, null, false).getCount() == 10, "simulated add");
+					helper.assertTrue(util.itemCount(ident) == 0, "simulated add stored items");
+					helper.assertTrue(transactor.add(cobble, null, true).getCount() == 10, "add");
+					helper.assertTrue(util.itemCount(ident) == 10, "count after add " + util.itemCount(ident));
+					helper.assertTrue(util.getItems().contains(ident), "getItems " + util.getItems());
+					ItemStack taken = util.getMultipleItems(ident, 4);
+					helper.assertTrue(taken.is(Items.COBBLESTONE) && taken.getCount() == 4, "extracted " + taken);
+					helper.assertTrue(util.getMultipleItems(ident, 7).isEmpty(), "extracted more than stored");
+					helper.assertTrue(util.itemCount(ident) == 6, "count after extract " + util.itemCount(ident));
+					int hidden = aeUtil(helper, iface, network.rs485.logisticspipes.inventory.ProviderMode.LEAVE_ONE_PER_TYPE).itemCount(ident);
+					helper.assertTrue(hidden == 5, "hide one per type count " + hidden);
+				})
+				.thenSucceed();
+	}
+
+	private static BlockState aeBlock(String path) {
+		return net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(
+				net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(LPConstants.appliedenergisticsModID, path)).defaultBlockState();
+	}
+
+	private static logisticspipes.interfaces.IInventoryUtil aeUtil(GameTestHelper helper, BlockPos pos, network.rs485.logisticspipes.inventory.ProviderMode mode) {
+		logisticspipes.interfaces.IInventoryUtil util = logisticspipes.proxy.SimpleServiceLocator.inventoryUtilFactory.getHidingInventoryUtil(
+				helper.getLevel().getBlockEntity(helper.absolutePos(pos)), net.minecraft.core.Direction.WEST, mode);
+		helper.assertTrue(util != null, "no inventory util for the interface");
+		return util;
+	}
 }

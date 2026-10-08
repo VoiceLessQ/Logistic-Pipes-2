@@ -199,6 +199,11 @@ dependencies {
     compileOnly "mezz.jei:jei-1.21.1-common-api:19.21.1.312"
     compileOnly "mezz.jei:jei-1.21.1-neoforge-api:19.21.1.312"
 
+    // AE2 API for the ME interface handler; runtime AE2 is optional.
+    compileOnly("org.appliedenergistics:appliedenergistics2:19.2.18:api") {
+        transitive = false
+    }
+
     ktlint("com.pinterest:ktlint:0.50.0") {
         attributes {
             attribute(Bundling.BUNDLING_ATTRIBUTE, getObjects().named(Bundling, Bundling.EXTERNAL))
