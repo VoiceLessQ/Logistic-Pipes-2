@@ -12,7 +12,7 @@ plugins {
 
 archivesBaseName = 'logisticspipes'
 group = 'network.rs485'
-version = '0.0.2'
+version = '0.0.3'
 ext.vendor = 'unknown'
 
 // MC 1.21.1 runs on Java 21.
