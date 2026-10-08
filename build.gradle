@@ -225,6 +225,8 @@ jar {
 shadowJar {
     from sourceSets.api.output
     archiveClassifier.set('')             // no classifier: this is the shippable jar
+    // MDG puts Minecraft/NeoForge on runtimeClasspath as files the include filter can't match; nothing is shaded
+    configurations = []
 
     dependencies {
         include(dependency("com.charleskorn.kaml:kaml:${kaml_version}"))
