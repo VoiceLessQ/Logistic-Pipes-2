@@ -36,6 +36,11 @@ public class LogisticsBlockGenericSubMultiBlock extends Block implements EntityB
 	}
 
 	@Override
+	protected float getDestroyProgress(@Nonnull BlockState state, @Nonnull Player player, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
+		return LogisticsBlockGenericPipe.pipeDestroyProgress(state, player, level, pos);
+	}
+
+	@Override
 	@Nonnull
 	public net.minecraft.world.level.block.RenderShape getRenderShape(@Nonnull BlockState state) {
 		// Sub-multiblocks are invisible helpers; main pipe BER renders the visible geometry.

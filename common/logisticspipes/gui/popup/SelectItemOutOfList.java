@@ -117,6 +117,9 @@ public class SelectItemOutOfList extends SubGuiScreen implements IItemSearch {
 
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (itemDisplay.keyPressed(keyCode, scanCode, modifiers)) {
+			return true;
+		}
 		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_A && net.minecraft.client.gui.screens.Screen.hasControlDown()) {
 			itemDisplay.setMaxAmount();
 			return true;

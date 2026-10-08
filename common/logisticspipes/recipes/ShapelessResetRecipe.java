@@ -18,7 +18,7 @@ import logisticspipes.LPConstants;
 
 /**
  * A crafting recipe that produces a clean (NBT-stripped) copy of a specific item.
- * Matches a crafting grid containing exactly one instance of the target item.
+ * Matches a crafting grid holding only the target item, one or more slots.
  * Used to reset module/orderer state.
  */
 public class ShapelessResetRecipe extends CustomRecipe {
@@ -56,24 +56,20 @@ public class ShapelessResetRecipe extends CustomRecipe {
 
 	@Override
 	public boolean matches(CraftingInput input, Level level) {
-		boolean found = false;
+		int matches = 0;
 		for (int i = 0; i < input.size(); i++) {
 			ItemStack stack = input.getItem(i);
-			if (!stack.isEmpty()) {
-				if (stack.getItem() == targetItem) {
-					if (found) return false; // only one allowed
-					found = true;
-				} else {
-					return false; // no other items allowed
-				}
-			}
+			if (stack.isEmpty()) continue;
+			if (stack.getItem() != targetItem) return false;
+			matches++;
 		}
-		return found;
+		return matches > 0;
 	}
 
 	@Override
 	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-		return new ItemStack(targetItem);
+		// LP1: one clean item per matching stack in the grid
+		return new ItemStack(targetItem, input.ingredientCount());
 	}
 
 	@Override

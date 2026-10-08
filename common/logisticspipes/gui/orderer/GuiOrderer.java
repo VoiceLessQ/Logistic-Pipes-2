@@ -281,6 +281,9 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 		if (search.isFocused() && !search.isEmpty() && search.keyPressed(keyCode, scanCode, modifiers)) {
 			return true;
 		}
+		if (itemDisplay.keyPressed(keyCode, scanCode, modifiers)) {
+			return true;
+		}
 		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_A && Screen.hasControlDown()) {
 			itemDisplay.setMaxAmount();
 			return true;

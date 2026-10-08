@@ -42,6 +42,7 @@ public class Configs {
 	static final ModConfigSpec.IntValue     MIN_JOB_TICK_LENGTH_V;
 	static final ModConfigSpec.EnumValue<PowerSourceMode> POWER_SOURCE_MODE_V;
 	static final ModConfigSpec.BooleanValue BETA_UPGRADE_RECIPES_V;
+	static final ModConfigSpec.ConfigValue<java.util.List<? extends Integer>> CHASSIS_SLOTS_V;
 
 	static {
 		ModConfigSpec.Builder b = new ModConfigSpec.Builder();
@@ -81,6 +82,8 @@ public class Configs {
 		CHECK_FOR_UPDATES_V      = b.comment("Check for mod updates on startup").define("checkForUpdates", true);
 		EASTER_EGGS_V            = b.comment("Enable easter eggs").define("easterEggs", true);
 		MAX_ROBOT_DISTANCE_V     = b.comment("Max robot operation distance in blocks").defineInRange("maxRobotDistance", 64, 1, 512);
+		CHASSIS_SLOTS_V          = b.comment("The number of slots in a chassis pipe starting from MK1 to MK5. Because there are 5 tiers, there need to be 5 values (positive integers, zero is allowed).")
+				.gameRestart().defineList("chassisSlots", java.util.List.of(1, 2, 3, 4, 8), () -> 1, o -> o instanceof Integer i && i >= 0);
 		b.pop();
 
 		b.comment("Multithreading settings").push(CATEGORY_MULTITHREAD);
@@ -148,6 +151,7 @@ public class Configs {
 	public static int MAX_ROBOT_DISTANCE = 64;
 
 	private static boolean loaded = false;
+	private static boolean chassisSlotsLoaded = false;
 
 	public static void load() {
 		if (Configs.loaded) {
@@ -182,6 +186,17 @@ public class Configs {
 		MINIMUM_INVENTORY_SLOT_ACCESS_PER_TICK = MIN_SLOT_ACCESS_V.get();
 		MAXIMUM_INVENTORY_SLOT_ACCESS_PER_TICK = MAX_SLOT_ACCESS_V.get();
 		MINIMUM_JOB_TICK_LENGTH                = MIN_JOB_TICK_LENGTH_V.get();
+		if (!chassisSlotsLoaded) {
+			// Read once: live chassis inventories are sized from these values
+			chassisSlotsLoaded = true;
+			int[] slots = CHASSIS_SLOTS_V.get().stream().mapToInt(Integer::intValue).toArray();
+			if (slots.length == 5) {
+				java.util.Arrays.sort(slots);
+				CHASSIS_SLOTS_ARRAY = slots;
+			} else {
+				logisticspipes.LogisticsPipes.log.error("chassisSlots needs 5 values (MK1 to MK5), got " + slots.length + "; using defaults");
+			}
+		}
 	}
 
 	/** Re-reads the statics when the config file changes while the game runs. */

@@ -275,7 +275,7 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 			craftInv.setItem(i, matrix.getItem(i));
 		}
 		List<Recipe> list = new ArrayList<>();
-		for (Recipe r : CraftingUtil.getRecipeList()) {
+		for (Recipe r : CraftingUtil.getRecipeList(getWorld())) {
 			if (r.matches(craftInv.asCraftInput(), getWorld())) {
 				list.add(r);
 			}
@@ -324,7 +324,7 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 			craftInv.setItem(i, matrix.getItem(i));
 		}
 		List<Recipe> list = new ArrayList<>();
-		for (Recipe r : CraftingUtil.getRecipeList()) {
+		for (Recipe r : CraftingUtil.getRecipeList(getWorld())) {
 			if (r.matches(craftInv.asCraftInput(), getWorld())) {
 				list.add(r);
 			}

@@ -684,7 +684,17 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 		System.arraycopy(Direction.values(), 0, DIR_VALUES, 1, Direction.values().length);
 	}
 
-	// getBlockHardness removed in 1.20.1 — set via BlockBehaviour.Properties.strength() in constructor
+	@Override
+	protected float getDestroyProgress(@Nonnull BlockState state, @Nonnull Player player, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
+		return pipeDestroyProgress(state, player, level, pos);
+	}
+
+	/** LP1 getBlockHardness: break time follows Configs.pipeDurability, read after config load. */
+	public static float pipeDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+		int divisor = net.neoforged.neoforge.event.EventHooks.doPlayerHarvestCheck(player, state, level, pos) ? 30 : 100;
+		return player.getDigSpeed(state, pos) / Configs.pipeDurability / divisor;
+	}
+
 	// getRenderType removed in 1.20.1 — MODEL is the default
 	// getRenderLayer removed in 1.20.1 — use ItemBlockRenderTypes.setRenderLayer in client setup
 	// isFullBlock / isFullCube / isNormalCube / isOpaqueCube / isTopSolid — all removed in 1.20.1

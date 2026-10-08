@@ -67,8 +67,11 @@ public class InputBar extends EditBox implements LogisticsBaseGuiScreen.EventLis
 	 * @return Boolean, true if click was handled.
 	 */
 	public boolean handleClick(double x, double y, int k) {
-		if (k == 1 && x >= getX() && x < getX() + width && y >= getY() && y < getY() + height)
+		boolean inside = x >= getX() && x < getX() + width && y >= getY() && y < getY() + height;
+		if (k == 1 && inside)
 			setValue("");
+		// LP1 GuiTextField focused on click; EditBox leaves focus to the parent screen
+		setFocused(inside);
 		return mouseClicked(x, y, k);
 	}
 

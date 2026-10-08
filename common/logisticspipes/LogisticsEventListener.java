@@ -12,7 +12,6 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -234,6 +233,9 @@ public class LogisticsEventListener {
 	@Getter(lazy = true)
 	private static final Queue<GuiEntry> guiPos = new LinkedList<>();
 
+	// Opening fires before Closing on a screen swap; Closing must not undo it
+	private static boolean screenSwapPending = false;
+
 	// Handle GuiReopen — Opening event (screen becoming visible)
 	@SubscribeEvent
 	@OnlyIn(Dist.CLIENT)
@@ -246,7 +248,9 @@ public class LogisticsEventListener {
 			GuiEntry part = LogisticsEventListener.getGuiPos().peek();
 			part.setActive(true);
 		}
-		if (event.getScreen() instanceof AbstractContainerScreen) {
+		screenSwapPending = event.getCurrentScreen() != null;
+		// LP1 matched GuiChest only, not every container (player inventory included)
+		if (event.getNewScreen() instanceof net.minecraft.client.gui.screens.inventory.ContainerScreen) {
 			MainProxy.sendPacketToServer(PacketHandler.getPacket(ChestGuiOpened.class));
 		} else {
 			QuickSortChestMarkerStorage.getInstance().disable();
@@ -271,6 +275,13 @@ public class LogisticsEventListener {
 			}
 		}
 		GuiOverlay.getInstance().setOverlaySlotActive(false);
+		if (screenSwapPending) {
+			screenSwapPending = false;
+		} else {
+			// LP1 got a null-screen GuiOpenEvent here; NeoForge only fires Closing
+			QuickSortChestMarkerStorage.getInstance().disable();
+			MainProxy.sendPacketToServer(PacketHandler.getPacket(ChestGuiClosed.class));
+		}
 	}
 
 	@OnlyIn(Dist.CLIENT)

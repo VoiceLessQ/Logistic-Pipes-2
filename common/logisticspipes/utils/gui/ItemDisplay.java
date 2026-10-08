@@ -491,6 +491,11 @@ public class ItemDisplay {
 		return false;
 	}
 
+	/** Editing keys (backspace, arrows) for the amount field; chars arrive via keyTyped. */
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		return requestCountBar.isFocused() && requestCountBar.keyPressed(keyCode, scanCode, modifiers);
+	}
+
 	public boolean keyTyped(char c, int i) {
 		if (!requestCountBar.handleKey(c, i)) {
 			if (i == 30 && Screen.hasControlDown()) { //Ctrl-a
