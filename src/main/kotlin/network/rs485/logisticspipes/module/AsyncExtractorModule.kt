@@ -311,7 +311,10 @@ class AsyncExtractorModule(
             val mc = Minecraft.getInstance()
 
             val d: Direction? = module.sneakyDirection
-            // TODO: deferred — migrate Font.drawString to GuiGraphics.drawString in 1.20.1
+            val gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics ?: return
+            gg.drawString(mc.font, "Extract", -22, -22, 0xff404040.toInt(), false)
+            gg.drawString(mc.font, "from:", -22, -9, 0xff404040.toInt(), false)
+            gg.drawString(mc.font, d?.name ?: "DEFAULT", -22, 18, 0xff404040.toInt(), false)
         }
 
         override fun getButtons(): MutableList<IHUDButton>? = null

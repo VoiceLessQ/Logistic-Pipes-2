@@ -112,6 +112,14 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   not one per tick. On the same grid a pipe break now queues about 1700 to
   2800 rebuilds instead of about 100,000, and worker CPU drops to 4.5 to
   4.8 s.
+- **Client crash when joining a world saved with items in pipes.** The chunk
+  data sent to clients carried the server's in-transit items, which the
+  client loaded as server objects and then failed to cast on its next tick.
+  That data stays on the server now, as in 1.12.2.
+- A failing async module job no longer reaches for client classes on a
+  dedicated server to check whether the game is paused.
+- The extractor module HUD shows "Extract from:" and the side again instead
+  of an empty panel.
 - Item names use the 1.21 translation keys; the fluid container shows its
   fluid; the AE2 integration looks for mod id `ae2`.
 

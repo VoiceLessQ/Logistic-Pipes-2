@@ -292,6 +292,9 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 	public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
 		sendInitPacket = true;
 		CompoundTag nbt = saveWithoutMetadata(registries);
+		// server-only transit state; the client would load it as server items (LP1 never sent it)
+		nbt.remove("travelingEntities");
+		nbt.remove("buffercontents");
 		try {
 			PacketHandler.addPacketToNBT(getLPDescriptionPacket(), nbt);
 		} catch (Exception e) {
