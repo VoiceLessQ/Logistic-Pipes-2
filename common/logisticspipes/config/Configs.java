@@ -69,7 +69,7 @@ public class Configs {
 		b.comment("Power settings").push("power");
 		PIPE_DURABILITY_V            = b.comment("Pipe block durability").defineInRange("pipeDurability", 0.25, 0.0, 1.0);
 		POWER_USAGE_DISABLED_V       = b.comment("Disable power usage entirely").define("powerUsageDisabled", false);
-		POWER_USAGE_MULTIPLIER_V     = b.comment("Power usage multiplier").defineInRange("powerUsageMultiplier", 1.0, 0.0, 100.0);
+		POWER_USAGE_MULTIPLIER_V     = b.comment("Power usage multiplier").defineInRange("powerUsageMultiplier", 1.0, 0.01, 100.0);
 		CRAFTING_TABLE_POWER_USAGE_V = b.comment("Power used per crafting operation (RF)").defineInRange("craftingTablePowerUsage", 250, 0, Integer.MAX_VALUE);
 		POWER_SOURCE_MODE_V          = b.comment("How the RF power junction acquires FE. ADJACENT: pulls from any neighbouring IEnergyStorage each tick. CABLE: passive — FE cables push into the junction.").defineEnum("powerSourceMode", PowerSourceMode.ADJACENT);
 		b.pop();
@@ -87,7 +87,7 @@ public class Configs {
 		b.pop();
 
 		b.comment("Multithreading settings").push(CATEGORY_MULTITHREAD);
-		MULTI_THREAD_NUMBER_V   = b.comment("Number of routing worker threads").defineInRange("threadCount", 4, 1, 32);
+		MULTI_THREAD_NUMBER_V   = b.comment("Number of routing table update threads, 0 to disable").defineInRange("threadCount", 4, 0, 32);
 		MULTI_THREAD_PRIORITY_V = b.comment("Worker thread priority").defineInRange("threadPriority", Thread.NORM_PRIORITY, Thread.MIN_PRIORITY, Thread.MAX_PRIORITY);
 		b.pop();
 

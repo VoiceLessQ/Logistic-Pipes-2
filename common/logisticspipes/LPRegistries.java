@@ -137,6 +137,20 @@ public final class LPRegistries {
 	public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
 			DeferredRegister.create(Registries.RECIPE_SERIALIZER, LPConstants.LP_MOD_ID);
 
+	public static final DeferredRegister<net.minecraft.world.item.ArmorMaterial> ARMOR_MATERIALS =
+			DeferredRegister.create(Registries.ARMOR_MATERIAL, LPConstants.LP_MOD_ID);
+
+	/** LP1 HUD glasses: no armour points, not dyeable (leather tinted the texture brown). */
+	public static final DeferredHolder<net.minecraft.world.item.ArmorMaterial, net.minecraft.world.item.ArmorMaterial> HUD_ARMOR_MATERIAL =
+			ARMOR_MATERIALS.register("hud", () -> new net.minecraft.world.item.ArmorMaterial(
+					java.util.Map.of(net.minecraft.world.item.ArmorItem.Type.HELMET, 0),
+					0,
+					net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_LEATHER,
+					() -> net.minecraft.world.item.crafting.Ingredient.EMPTY,
+					java.util.List.of(new net.minecraft.world.item.ArmorMaterial.Layer(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "hud"))),
+					0f,
+					0f));
+
 	public static final DeferredRegister<net.neoforged.neoforge.common.crafting.IngredientType<?>> INGREDIENT_TYPES =
 			DeferredRegister.create(net.neoforged.neoforge.registries.NeoForgeRegistries.INGREDIENT_TYPES, LPConstants.LP_MOD_ID);
 
@@ -354,6 +368,7 @@ public final class LPRegistries {
 		BLOCK_ENTITIES.register(modEventBus);
 		CREATIVE_TABS.register(modEventBus);
 		RECIPE_SERIALIZERS.register(modEventBus);
+		ARMOR_MATERIALS.register(modEventBus);
 		INGREDIENT_TYPES.register(modEventBus);
 		RECIPE_CONDITIONS.register(modEventBus);
 		// Capability exposure: LPCapabilities.register on RegisterCapabilitiesEvent (NeoForge 21.x).

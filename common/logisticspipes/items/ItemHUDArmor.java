@@ -17,7 +17,12 @@ import logisticspipes.proxy.MainProxy;
 public class ItemHUDArmor extends ArmorItem implements IHUDArmor, ILogisticsItem {
 
 	public ItemHUDArmor() {
-		super(net.minecraft.world.item.ArmorMaterials.LEATHER, ArmorItem.Type.HELMET, new Properties());
+		super(logisticspipes.LPRegistries.HUD_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Properties());
+	}
+
+	@Override
+	public net.minecraft.resources.ResourceLocation getArmorTexture(@Nonnull ItemStack stack, net.minecraft.world.entity.Entity entity, net.minecraft.world.entity.EquipmentSlot slot, net.minecraft.world.item.ArmorMaterial.Layer layer, boolean innerModel) {
+		return net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(logisticspipes.LPConstants.LP_MOD_ID, "textures/armor/logisticshud_1.png");
 	}
 
 	@Nonnull

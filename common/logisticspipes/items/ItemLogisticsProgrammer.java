@@ -21,7 +21,7 @@ public class ItemLogisticsProgrammer extends LogisticsItem {
 	public static final String RECIPE_TARGET = "LogisticsRecipeTarget";
 
 	public ItemLogisticsProgrammer() {
-		super(new Item.Properties().stacksTo(1));
+		super(new Item.Properties());
 	}
 
 	// LP1 setContainerItem(this): the programmer stays in the grid, program included.

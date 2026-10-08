@@ -833,10 +833,28 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	// @Override
 	// public boolean addHitEffects(BlockState state, Level world, HitResult target, ParticleEngine effectRenderer) { ... }
 
-	// TODO: addDestroyEffects rendering — migrate to NeoForge IBlockExtension.addDestroyEffects with ParticleEngine (deferred)
-	// @OnlyIn(Dist.CLIENT)
-	// @Override
-	// public boolean addDestroyEffects(BlockState state, Level world, BlockPos pos, ParticleEngine effectRenderer) { ... }
+	// LP1 addDestroyEffects: the pipe model breaks into shards (LogisticsNewRenderPipe.renderDestruction)
+	@Override
+	public void initializeClient(java.util.function.Consumer<net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions> consumer) {
+		consumer.accept(ClientExtensionsHolder.EXTENSIONS);
+	}
+
+	/** Client-only references, loaded lazily so dedicated servers never touch them. */
+	private static final class ClientExtensionsHolder {
+		static final net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions EXTENSIONS =
+			new net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions() {
+				@Override
+				public boolean addDestroyEffects(BlockState state, Level level, BlockPos pos, net.minecraft.client.particle.ParticleEngine manager) {
+					CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(level, pos);
+					if (pipe == null || pipe.container == null || pipe.container.renderState.cachedRenderer == null
+							|| !(level instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel)) {
+						return false;
+					}
+					logisticspipes.renderer.newpipe.LogisticsNewRenderPipe.renderDestruction(pipe, clientLevel, pos.getX(), pos.getY(), pos.getZ(), manager);
+					return true;
+				}
+			};
+	}
 
 private void checkForRenderChanges(BlockGetter worldIn, BlockPos blockPos) {
 		BlockEntity tile = new DoubleCoordinates(blockPos).getTileEntity(worldIn);

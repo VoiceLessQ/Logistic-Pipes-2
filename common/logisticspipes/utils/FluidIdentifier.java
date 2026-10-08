@@ -90,6 +90,8 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 	}
 
 	public static FluidIdentifier get(Fluid fluid, CompoundTag tag, FluidIdentifier proposal) {
+		// StackTag drops empty fluid tags, so {} and null must be the same identifier
+		if (tag != null && tag.isEmpty()) tag = null;
 		String fluidID = getFluidName(fluid);
 		if (tag == null) {
 			if (proposal != null) {

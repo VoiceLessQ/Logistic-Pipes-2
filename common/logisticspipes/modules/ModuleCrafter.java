@@ -816,11 +816,15 @@ public class ModuleCrafter extends LogisticsModule
 					.anyMatch(provider -> provider.canOpenGui(neighbor.getTileEntity()))) {
 				final BlockPos pos = neighbor.getTileEntity().getBlockPos();
 				BlockState blockState = worldProvider.getWorld().getBlockState(pos);
-				return !blockState.isAir() && blockState.useWithoutItem(worldProvider.getWorld(), player,
-								new net.minecraft.world.phys.BlockHitResult(
-										net.minecraft.world.phys.Vec3.atCenterOf(pos),
-										net.minecraft.core.Direction.UP, pos, false))
-						!= net.minecraft.world.InteractionResult.PASS;
+				if (blockState.isAir()) return false;
+				final net.minecraft.world.phys.BlockHitResult hit = new net.minecraft.world.phys.BlockHitResult(
+						net.minecraft.world.phys.Vec3.atCenterOf(pos), net.minecraft.core.Direction.UP, pos, false);
+				// LP1 onBlockActivated saw the held item; 1.21 splits it like ServerPlayerGameMode.useItemOn
+				final net.minecraft.world.ItemInteractionResult itemResult = blockState.useItemOn(player.getMainHandItem(),
+						worldProvider.getWorld(), player, net.minecraft.world.InteractionHand.MAIN_HAND, hit);
+				if (itemResult.consumesAction()) return true;
+				return itemResult == net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
+						&& blockState.useWithoutItem(worldProvider.getWorld(), player, hit) != net.minecraft.world.InteractionResult.PASS;
 			} else {
 				return false;
 			}
