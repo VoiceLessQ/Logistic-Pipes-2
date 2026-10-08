@@ -120,6 +120,12 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   dedicated server to check whether the game is paused.
 - The extractor module HUD shows "Extract from:" and the side again instead
   of an empty panel.
+- **Items lost enchantments, names and potion effects in the network.** Item
+  identity only covered the item, its damage and custom data, so a stack
+  rebuilt in transit, in a buffer or after a save came back plain, and an
+  enchanted sword counted as the same item as a fresh one. Identity and
+  rebuilt stacks now keep every component, and so do items sent to clients.
+  Network item stacks also keep their damage value again.
 - Item names use the 1.21 translation keys; the fluid container shows its
   fluid; the AE2 integration looks for mod id `ae2`.
 

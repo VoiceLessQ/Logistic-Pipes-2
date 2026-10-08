@@ -56,6 +56,7 @@ import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.NbtIo; // was CompressedStreamTools
@@ -346,6 +347,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 			writeInt(itemstack.getCount());
 			writeInt(itemstack.getDamageValue());
 			writeCompoundTag(logisticspipes.utils.item.StackTag.getTag(itemstack));
+			writeCompoundTag(ItemIdentifier.encodeComponents(ItemIdentifier.extraComponents(itemstack)));
 		}
 	}
 
@@ -357,6 +359,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 			writeInt(net.minecraft.core.registries.BuiltInRegistries.ITEM.getId(item.item));
 			writeInt(item.itemDamage);
 			writeCompoundTag(item.tag);
+			writeCompoundTag(ItemIdentifier.encodeComponents(item.components));
 		}
 	}
 
@@ -611,7 +614,8 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 
 		int damage = readInt();
 		CompoundTag tag = readCompoundTag();
-		return ItemIdentifier.get(net.minecraft.core.registries.BuiltInRegistries.ITEM.byId(itemId), damage, tag);
+		DataComponentPatch components = ItemIdentifier.decodeComponents(readCompoundTag());
+		return ItemIdentifier.get(net.minecraft.core.registries.BuiltInRegistries.ITEM.byId(itemId), damage, tag, components);
 	}
 
 	@Nullable
@@ -643,6 +647,9 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 		ItemStack stack = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.byId(itemId), stackSize);
 		// may be null, see code
 		logisticspipes.utils.item.StackTag.setTag(stack, readCompoundTag());
+		DataComponentPatch components = ItemIdentifier.decodeComponents(readCompoundTag());
+		if (components != null) stack.applyComponents(components);
+		if (damage != 0) stack.setDamageValue(damage);
 		return stack;
 	}
 

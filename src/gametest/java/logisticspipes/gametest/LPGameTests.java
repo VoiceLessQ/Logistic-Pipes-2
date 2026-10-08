@@ -8,9 +8,14 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -30,6 +35,8 @@ import logisticspipes.pipes.basic.CoreUnroutedPipe;
 import logisticspipes.pipes.basic.LogisticsBlockGenericPipe;
 import logisticspipes.pipes.basic.LogisticsTileGenericPipe;
 import logisticspipes.utils.CraftingUtil;
+import logisticspipes.utils.item.ItemIdentifier;
+import network.rs485.logisticspipes.util.LPDataIOWrapper;
 
 /** Server-side checks for fixes that compile but had no runtime proof. Run with runGameTestServer. */
 @GameTestHolder(LPConstants.LP_MOD_ID)
@@ -123,6 +130,34 @@ public class LPGameTests {
 	public static void recipeListFromLevel(GameTestHelper helper) {
 		int size = CraftingUtil.getRecipeList(helper.getLevel()).size();
 		helper.assertTrue(size > 0, "getRecipeList(level) is empty");
+		helper.succeed();
+	}
+
+	/** ItemIdentifier keeps every component (enchantments, names, potions), not just custom data. */
+	@GameTest(template = "empty")
+	public static void itemIdentifierKeepsComponents(GameTestHelper helper) {
+		var registries = helper.getLevel().registryAccess();
+		ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
+		sword.enchant(registries.holderOrThrow(Enchantments.SHARPNESS), 3);
+		sword.set(DataComponents.CUSTOM_NAME, Component.literal("lpgametest"));
+		sword.setDamageValue(5);
+		ItemStack potion = PotionContents.createItemStack(Items.POTION, Potions.SWIFTNESS);
+		for (ItemStack stack : new ItemStack[] { sword, potion }) {
+			ItemIdentifier ident = ItemIdentifier.get(stack);
+			helper.assertTrue(ident != ItemIdentifier.get(new ItemStack(stack.getItem())), stack + " identifies as the plain item");
+			helper.assertTrue(ident == ItemIdentifier.get(stack.copy()), stack + " copy gets a different identifier");
+			ItemStack rebuilt = ident.makeNormalStack(1);
+			helper.assertTrue(ItemStack.isSameItemSameComponents(stack, rebuilt), "rebuilt " + rebuilt.getComponentsPatch() + " != " + stack.getComponentsPatch());
+			byte[] data = LPDataIOWrapper.collectData(out -> {
+				out.writeItemIdentifier(ident);
+				out.writeItemStack(stack);
+			});
+			LPDataIOWrapper.provideData(data, in -> {
+				helper.assertTrue(in.readItemIdentifier() == ident, stack + " identifier changed over the network");
+				ItemStack read = in.readItemStack();
+				helper.assertTrue(ItemStack.isSameItemSameComponents(stack, read), "network stack " + read.getComponentsPatch() + " != " + stack.getComponentsPatch());
+			});
+		}
 		helper.succeed();
 	}
 }

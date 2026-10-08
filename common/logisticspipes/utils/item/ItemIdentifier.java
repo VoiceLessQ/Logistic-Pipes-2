@@ -8,6 +8,8 @@
 
 package logisticspipes.utils.item;
 
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import logisticspipes.LogisticsPipes;
@@ -20,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.Lock;
@@ -44,6 +47,7 @@ import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.ShortTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.resources.ResourceLocation;
@@ -71,17 +75,19 @@ import logisticspipes.utils.ReflectionHelper;
  */
 public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTypeHolder {
 
-	//a key to look up a ItemIdentifier by Item:damage:tag
+	//a key to look up a ItemIdentifier by Item:damage:tag:components
 	private static class ItemKey {
 
 		public final Item item;
 		public final int itemDamage;
 		public final FinalCompoundTag tag;
+		public final DataComponentPatch components;
 
-		public ItemKey(Item i, int d, FinalCompoundTag t) {
+		public ItemKey(Item i, int d, FinalCompoundTag t, DataComponentPatch c) {
 			item = i;
 			itemDamage = d;
 			tag = t;
+			components = c;
 		}
 
 		@Override
@@ -90,12 +96,12 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 				return false;
 			}
 			ItemKey i = (ItemKey) that;
-			return item == i.item && itemDamage == i.itemDamage && tag.equals(i.tag);
+			return item == i.item && itemDamage == i.itemDamage && Objects.equals(tag, i.tag) && Objects.equals(components, i.components);
 		}
 
 		@Override
 		public int hashCode() {
-			return item.hashCode() ^ itemDamage ^ tag.hashCode();
+			return item.hashCode() ^ itemDamage ^ Objects.hashCode(tag) ^ Objects.hashCode(components);
 		}
 	}
 
@@ -231,16 +237,20 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 	private static final ItemIdentifierCleanupThread cleanupThread = new ItemIdentifierCleanupThread();
 
 	//Hide default constructor
-	private ItemIdentifier(Item item, int itemDamage, FinalCompoundTag tag, int uniqueID) {
+	private ItemIdentifier(Item item, int itemDamage, FinalCompoundTag tag, DataComponentPatch components, int uniqueID) {
 		this.item = item;
 		this.itemDamage = itemDamage;
 		this.tag = tag;
+		this.components = components;
 		this.uniqueID = uniqueID;
 	}
 
 	public final Item item;
 	public final int itemDamage;
 	public final FinalCompoundTag tag;
+	// every other component the stack changes (enchantments, name, potion, ...); null when none
+	@Nullable
+	public final DataComponentPatch components;
 	public final int uniqueID;
 
 	private int maxStackSize = 0;
@@ -255,7 +265,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 
 	private static ItemIdentifier getOrCreateSimple(Item item, ItemIdentifier proposal) {
 		if (proposal != null) {
-			if (proposal.item == item && proposal.itemDamage == 0 && proposal.tag == null) {
+			if (proposal.item == item && proposal.itemDamage == 0 && proposal.tag == null && proposal.components == null) {
 				return proposal;
 			}
 		}
@@ -264,14 +274,14 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		if (ret != null) {
 			return ret;
 		}
-		ret = new ItemIdentifier(item, 0, null, 0);
+		ret = new ItemIdentifier(item, 0, null, null, 0);
 		ItemIdentifier.simpleIdentifiers.put(item, ret);
 		return ret;
 	}
 
 	private static ItemIdentifier getOrCreateDamage(Item item, int damage, ItemIdentifier proposal) {
 		if (proposal != null) {
-			if (proposal.item == item && proposal.itemDamage == damage && proposal.tag == null) {
+			if (proposal.item == item && proposal.itemDamage == damage && proposal.tag == null && proposal.components == null) {
 				return proposal;
 			}
 		}
@@ -291,13 +301,13 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		if (ret != null) {
 			return ret;
 		}
-		ret = new ItemIdentifier(item, damage, null, 0);
+		ret = new ItemIdentifier(item, damage, null, null, 0);
 		damages.set(damage, ret);
 		return ret;
 	}
 
-	private static ItemIdentifier getOrCreateTag(Item item, int damage, FinalCompoundTag tag) {
-		ItemKey k = new ItemKey(item, damage, tag);
+	private static ItemIdentifier getOrCreateTag(Item item, int damage, FinalCompoundTag tag, DataComponentPatch components) {
+		ItemKey k = new ItemKey(item, damage, tag, components);
 		ItemIdentifier.keyRefRlock.lock();
 		IDReference r = ItemIdentifier.keyRefMap.get(k);
 		if (r != null) {
@@ -327,32 +337,68 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		} else {
 			nextUniqueID = r.uniqueID;
 		}
-		FinalCompoundTag finaltag = new FinalCompoundTag(tag);
-		ItemKey realKey = new ItemKey(item, damage, finaltag);
-		ItemIdentifier ret = new ItemIdentifier(item, damage, finaltag, nextUniqueID);
-		ItemIdentifier.keyRefMap.put(realKey, new IDReference(realKey, nextUniqueID, ret));
+		ItemIdentifier ret = new ItemIdentifier(item, damage, tag, components, nextUniqueID);
+		ItemIdentifier.keyRefMap.put(k, new IDReference(k, nextUniqueID, ret));
 		ItemIdentifier.keyRefWlock.unlock();
 		return ret;
 	}
 
 	public static ItemIdentifier get(Item item, int itemUndamagableDamage, CompoundTag tag) {
-		return get(item, itemUndamagableDamage, tag, null);
+		return get(item, itemUndamagableDamage, tag, null, null);
 	}
 
-	private static ItemIdentifier get(Item item, int itemUndamagableDamage, CompoundTag tag, ItemIdentifier proposal) {
+	public static ItemIdentifier get(Item item, int itemUndamagableDamage, CompoundTag tag, @Nullable DataComponentPatch components) {
+		return get(item, itemUndamagableDamage, tag, components, null);
+	}
+
+	private static ItemIdentifier get(Item item, int itemUndamagableDamage, CompoundTag tag, DataComponentPatch components, ItemIdentifier proposal) {
 		if (itemUndamagableDamage < 0) {
 			throw new IllegalArgumentException("Item Damage out of range");
 		}
-		if (tag == null && itemUndamagableDamage == 0) {
+		if (components != null && components.isEmpty()) {
+			components = null;
+		}
+		if (tag == null && components == null && itemUndamagableDamage == 0) {
 			//no tag, no damage
 			return ItemIdentifier.getOrCreateSimple(item, proposal);
-		} else if (tag == null) {
+		} else if (tag == null && components == null) {
 			//no tag, damage
 			return ItemIdentifier.getOrCreateDamage(item, itemUndamagableDamage, proposal);
 		} else {
-			//tag
-			return ItemIdentifier.getOrCreateTag(item, itemUndamagableDamage, new FinalCompoundTag(tag));
+			//tag or components
+			FinalCompoundTag finalTag = tag == null || tag instanceof FinalCompoundTag ? (FinalCompoundTag) tag : new FinalCompoundTag(tag);
+			return ItemIdentifier.getOrCreateTag(item, itemUndamagableDamage, finalTag, components);
 		}
+	}
+
+	/** The stack's component patch without damage and custom data (those have their own fields), or null. */
+	@Nullable
+	public static DataComponentPatch extraComponents(@Nonnull ItemStack stack) {
+		if (stack.isComponentsPatchEmpty()) {
+			return null;
+		}
+		DataComponentPatch patch = stack.getComponentsPatch().forget(type -> type == DataComponents.DAMAGE || type == DataComponents.CUSTOM_DATA);
+		return patch.isEmpty() ? null : patch;
+	}
+
+	@Nullable
+	public static CompoundTag encodeComponents(@Nullable DataComponentPatch components) {
+		if (components == null || components.isEmpty()) {
+			return null;
+		}
+		return DataComponentPatch.CODEC.encodeStart(logisticspipes.utils.RegistryAccessUtil.registries().createSerializationContext(NbtOps.INSTANCE), components)
+				.resultOrPartial(err -> LogisticsPipes.log.warn("Could not encode item components: {}", err))
+				.filter(CompoundTag.class::isInstance).map(CompoundTag.class::cast).orElse(null);
+	}
+
+	@Nullable
+	public static DataComponentPatch decodeComponents(@Nullable CompoundTag nbt) {
+		if (nbt == null || nbt.isEmpty()) {
+			return null;
+		}
+		return DataComponentPatch.CODEC.parse(logisticspipes.utils.RegistryAccessUtil.registries().createSerializationContext(NbtOps.INSTANCE), nbt)
+				.resultOrPartial(err -> LogisticsPipes.log.warn("Could not decode item components: {}", err))
+				.orElse(null);
 	}
 
 	@AllArgsConstructor
@@ -366,15 +412,17 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 	public static ItemIdentifier get(@Nonnull ItemStack itemStack) {
 		ItemIdentifier proposal = null;
 		IAddInfoProvider prov = null;
-		if (((Object) itemStack) instanceof IAddInfoProvider && !logisticspipes.utils.item.StackTag.hasTag(itemStack)) {
+		DataComponentPatch components = ItemIdentifier.extraComponents(itemStack);
+		boolean plain = components == null && !logisticspipes.utils.item.StackTag.hasTag(itemStack);
+		if (((Object) itemStack) instanceof IAddInfoProvider && plain) {
 			prov = (IAddInfoProvider) (Object) itemStack;
 			ItemStackAddInfo info = prov.getLogisticsPipesAddInfo(ItemStackAddInfo.class);
 			if (info != null) {
 				proposal = info.ident;
 			}
 		}
-		ItemIdentifier ident = ItemIdentifier.get(itemStack.getItem(), itemStack.getDamageValue(), logisticspipes.utils.item.StackTag.getTag(itemStack), proposal);
-		if (ident != proposal && prov != null && !logisticspipes.utils.item.StackTag.hasTag(itemStack)) {
+		ItemIdentifier ident = ItemIdentifier.get(itemStack.getItem(), itemStack.getDamageValue(), logisticspipes.utils.item.StackTag.getTag(itemStack), components, proposal);
+		if (ident != proposal && prov != null && plain) {
 			prov.setLogisticsPipesAddInfo(new ItemStackAddInfo(ident));
 		}
 		return ident;
@@ -411,10 +459,10 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 
 	public ItemIdentifier getIgnoringNBT() {
 		if (_IDIgnoringNBT == null) {
-			if (tag == null) {
+			if (tag == null && components == null) {
 				_IDIgnoringNBT = this;
 			} else {
-				_IDIgnoringNBT = ItemIdentifier.get(item, itemDamage, null, null);
+				_IDIgnoringNBT = ItemIdentifier.get(item, itemDamage, null, null, null);
 			}
 		}
 		return _IDIgnoringNBT;
@@ -425,7 +473,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 			if (itemDamage == 0) {
 				_IDIgnoringData = this;
 			} else {
-				_IDIgnoringData = ItemIdentifier.get(item, 0, tag, null);
+				_IDIgnoringData = ItemIdentifier.get(item, 0, tag, components, null);
 			}
 		}
 		return _IDIgnoringData;
@@ -535,6 +583,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 	@Nonnull
 	public ItemStack unsafeMakeNormalStack(int stackSize) {
 		ItemStack stack = new ItemStack(item, stackSize);
+		if (components != null) stack.applyComponents(components);
 		if (itemDamage != 0) stack.setDamageValue(itemDamage);
 		logisticspipes.utils.item.StackTag.setTag(stack, tag);
 		return stack;
@@ -543,6 +592,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 	@Nonnull
 	public ItemStack makeNormalStack(int stackSize) {
 		ItemStack stack = new ItemStack(item, stackSize);
+		if (components != null) stack.applyComponents(components);
 		if (itemDamage != 0) stack.setDamageValue(itemDamage);
 		if (tag != null) {
 			logisticspipes.utils.item.StackTag.setTag(stack, tag.copy());
@@ -708,10 +758,10 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 
 	@Override
 	public int hashCode() {
-		if (tag == null) {
+		if (tag == null && components == null) {
 			return item.hashCode() + itemDamage;
 		} else {
-			return (item.hashCode() + itemDamage) ^ tag.hashCode();
+			return (item.hashCode() + itemDamage) ^ Objects.hashCode(tag) ^ Objects.hashCode(components);
 		}
 	}
 
@@ -752,6 +802,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		sb.append("Tag: ");
 		debugDumpTag(tag, sb);
 		sb.append('\n');
+		sb.append("Components: ").append(components).append('\n');
 		sb.append("Damageable: ").append(isDamageable()).append('\n');
 		sb.append("MaxStackSize: ").append(getMaxStackSize()).append('\n');
 		if (getUndamaged() == this) {
