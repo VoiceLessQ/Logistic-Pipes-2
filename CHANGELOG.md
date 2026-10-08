@@ -18,6 +18,9 @@ follows [Semantic Versioning](https://semver.org/) where practical.
 - Item and power sparkles on pipes are glowing stars again instead of flat
   coloured squares.
 - Filled fluid containers show the fluid's own texture in the window again.
+- ItemSink and Provider module screens show item tooltips again. Shift-clicking
+  an item fills the next free filter slot, and with a fuzzy upgrade, hovering a
+  filter slot opens the fuzzy flag list.
 - Routing channels no longer go missing when the first one was made outside
   the overworld. Channels saved in another dimension's data folder before this
   fix need to be made again.

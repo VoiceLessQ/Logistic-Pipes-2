@@ -76,6 +76,7 @@ public final class LPClientChecks {
 					checkSolidSides(mc);
 					checkOrdererColours(mc);
 					checkFluidContainerModel(mc);
+					checkModuleGuis(mc);
 					checkSlotFinder(mc);
 					startParticleCheck(mc);
 				}
@@ -139,6 +140,41 @@ public final class LPClientChecks {
 		String emptyTex = mc.getItemRenderer().getModel(empty, mc.level, mc.player, 0).getParticleIcon().contents().name().getPath();
 		result("fluidContainer.model", filledTex.equals("block/water_still") && emptyTex.equals("items/liquids/empty"),
 				"filled=" + filledTex + " empty=" + emptyTex);
+	}
+
+	/** Kotlin module GUIs: shift-click fills a filter slot, hovering a fuzzy slot opens the flag popup, a click flips a flag. */
+	private static void checkModuleGuis(Minecraft mc) throws ReflectiveOperationException {
+		var inv = mc.player.getInventory();
+		net.minecraft.world.item.ItemStack saved = inv.getItem(9);
+		inv.setItem(9, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND));
+		var provider = network.rs485.logisticspipes.gui.module.ProviderGui.create(inv, new logisticspipes.modules.ModuleProvider(), net.minecraft.world.item.ItemStack.EMPTY);
+		mc.setScreen(provider);
+		var container = (network.rs485.logisticspipes.inventory.container.ProviderContainer) provider.getMenu();
+		net.minecraft.world.inventory.Slot from = container.slots.stream().filter(s -> s.container == inv && s.getContainerSlot() == 9).findFirst().orElseThrow();
+		var slotClicked = net.minecraft.client.gui.screens.inventory.AbstractContainerScreen.class.getDeclaredMethod("slotClicked",
+				net.minecraft.world.inventory.Slot.class, int.class, int.class, net.minecraft.world.inventory.ClickType.class);
+		slotClicked.setAccessible(true);
+		slotClicked.invoke(provider, from, from.index, 0, net.minecraft.world.inventory.ClickType.QUICK_MOVE);
+		net.minecraft.world.item.ItemStack filter = container.getFilterSlots().get(0).getItem();
+		mc.setScreen(null);
+		inv.setItem(9, saved);
+		result("moduleGui.shiftClickFilter", filter.is(net.minecraft.world.item.Items.DIAMOND), "filter0=" + filter);
+
+		var sink = network.rs485.logisticspipes.gui.module.ItemSinkGui.create(inv, new logisticspipes.modules.ModuleItemSink(), net.minecraft.world.item.ItemStack.EMPTY, true, false);
+		mc.setScreen(sink);
+		var fuzzySlot = (network.rs485.logisticspipes.gui.widget.FuzzyItemSlot) sink.getMenu().slots.stream()
+				.filter(s -> s instanceof network.rs485.logisticspipes.gui.widget.FuzzyItemSlot).findFirst().orElseThrow();
+		GuiGraphics graphics = new GuiGraphics(mc, mc.renderBuffers().bufferSource());
+		sink.render(graphics, sink.getGuiLeft() + fuzzySlot.x + 8, sink.getGuiTop() + fuzzySlot.y + 8, 0F);
+		graphics.flush();
+		var selector = sink.getFuzzySelector();
+		boolean opened = selector.getActive() && selector.getCurrentSlot() == fuzzySlot;
+		var flag = fuzzySlot.getUsedFlags().iterator().next();
+		var body = selector.getRelativeBody();
+		boolean clicked = sink.mouseClicked(body.getRoundedLeft() + 7, body.getRoundedTop() + 10 + 10 * flag.ordinal(), 0);
+		boolean flipped = network.rs485.logisticspipes.util.FuzzyUtil.INSTANCE.get(fuzzySlot.getFlagGetter().invoke(), flag);
+		mc.setScreen(null);
+		result("moduleGui.fuzzySelector", opened && clicked && flipped, "opened=" + opened + " clicked=" + clicked + " flipped " + flag + "=" + flipped);
 	}
 
 	/** Slot finder: a left click on a slot is consumed, picks it and closes; a click off-slot is consumed only. */
