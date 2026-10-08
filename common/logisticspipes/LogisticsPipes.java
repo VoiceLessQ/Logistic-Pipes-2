@@ -224,6 +224,7 @@ public class LogisticsPipes {
 			VERSION = modContainer.getModInfo().getVersion().toString();
 		}
 		modContainer.registerConfig(ModConfig.Type.COMMON, Configs.SPEC);
+		modEventBus.addListener(Configs::onReload);
 		LPRegistries.register(modEventBus);
 		modEventBus.addListener(LPCapabilities::register);
 

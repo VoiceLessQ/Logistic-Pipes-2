@@ -701,6 +701,10 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		}
 
 		initialized = true;
+		// Fluid handler exists only once the pipe is set; drop neighbours' cached null.
+		if (level != null) {
+			level.invalidateCapabilities(getBlockPos());
+		}
 	}
 
 	private void bindPipe() {

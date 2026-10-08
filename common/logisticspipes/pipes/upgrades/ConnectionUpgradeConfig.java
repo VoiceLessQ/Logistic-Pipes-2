@@ -1,7 +1,6 @@
 package logisticspipes.pipes.upgrades;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -80,10 +79,8 @@ public class ConnectionUpgradeConfig implements IConfigPipeUpgrade {
 	@Nonnull
 	public Stream<Direction> getSides(@Nonnull ItemStack stack) {
 		if (stack.isEmpty()) return Stream.empty();
-		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
-			logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
-		}
-		final CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
+		final CompoundTag tag = logisticspipes.utils.item.StackTag.getTag(stack);
+		if (tag == null) return Stream.empty();
 		return Arrays.stream(Sides.values()).filter(side -> tag.getBoolean(side.getLpName())).map(Sides::getDir);
 	}
 }

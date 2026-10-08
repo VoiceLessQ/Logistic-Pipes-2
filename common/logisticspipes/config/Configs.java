@@ -184,6 +184,14 @@ public class Configs {
 		MINIMUM_JOB_TICK_LENGTH                = MIN_JOB_TICK_LENGTH_V.get();
 	}
 
+	/** Re-reads the statics when the config file changes while the game runs. */
+	public static void onReload(net.neoforged.fml.event.config.ModConfigEvent.Reloading event) {
+		if (event.getConfig().getSpec() == SPEC) {
+			loaded = false;
+			load();
+		}
+	}
+
 	public static void savePopupState() {
 		// Mirror LP1: write the current popup preference back to the config file and persist it
 		// immediately so the toggle survives a restart.

@@ -1,7 +1,6 @@
 package logisticspipes.pipes.upgrades;
 
 import java.util.Arrays;
-import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -88,10 +87,8 @@ public class SneakyUpgradeConfig implements IConfigPipeUpgrade {
 	@Nullable
 	public Direction getSide(@Nonnull ItemStack stack) {
 		if (stack.isEmpty()) return null;
-		if (!logisticspipes.utils.item.StackTag.hasTag(stack)) {
-			logisticspipes.utils.item.StackTag.setTag(stack, new CompoundTag());
-		}
-		CompoundTag tag = Objects.requireNonNull(logisticspipes.utils.item.StackTag.getTag(stack));
+		CompoundTag tag = logisticspipes.utils.item.StackTag.getTag(stack);
+		if (tag == null) return null;
 		String sideString = tag.getString(SIDE_KEY);
 		return Arrays.stream(Sides.values())
 				.filter(side -> side.getLpName().equals(sideString))
