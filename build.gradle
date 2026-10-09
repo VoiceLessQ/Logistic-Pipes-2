@@ -159,6 +159,11 @@ repositories {
         url = 'https://maven.k-4u.nl'
         content { includeGroup 'mcjty.theoneprobe' }
     }
+    // Storage Drawers publishes no maven of its own
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
 }
 
 dependencies {
@@ -193,6 +198,11 @@ dependencies {
     }
     // The One Probe API for the pipe info provider; runtime TOP is optional.
     compileOnly("mcjty.theoneprobe:theoneprobe:1.20.1-10.0.1-3:api") {
+        transitive = false
+    }
+
+    // Storage Drawers 1.20.1-12.15.1 (Forge file id) for the drawer handler; runtime Storage Drawers is optional.
+    compileOnly("maven.modrinth:storagedrawers:53npfO5m") {
         transitive = false
     }
 
