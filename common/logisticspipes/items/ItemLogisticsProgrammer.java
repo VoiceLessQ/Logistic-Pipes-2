@@ -50,13 +50,13 @@ public class ItemLogisticsProgrammer extends LogisticsItem {
 					Item targetItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new ResourceLocation(target));
 					if (targetItem instanceof ItemModule) {
 						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate("tooltip.programmerForModule")));
-						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate(targetItem.getDescriptionId() + ".name")));
+						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate(targetItem.getDescriptionId())));
 					} else if (targetItem instanceof ItemUpgrade) {
 						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate("tooltip.programmerForUpgrade")));
-						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate(targetItem.getDescriptionId() + ".name")));
+						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate(targetItem.getDescriptionId())));
 					} else if (targetItem instanceof ItemLogisticsPipe) {
 						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate("tooltip.programmerForPipe")));
-						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate(targetItem.getDescriptionId() + ".name")));
+						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate(targetItem.getDescriptionId())));
 					} else {
 						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate("tooltip.programmerForUnknown.1")));
 						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate("tooltip.programmerForUnknown.2")));

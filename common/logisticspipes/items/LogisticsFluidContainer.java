@@ -8,7 +8,6 @@ import javax.annotation.Nullable;
 
 // net.minecraft.world.item.CreativeModeTab removed — use CreativeModeTab
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.level.Level;
 
 import net.minecraftforge.api.distmarker.Dist;
@@ -56,11 +55,11 @@ public class LogisticsFluidContainer extends LogisticsItem implements IItemAdvan
 	@Override
 	@Nonnull
 	public net.minecraft.network.chat.Component getName(@Nonnull ItemStack itemstack) {
-		// getUnlocalizedNameInefficiently removed in 1.20.1; use getDescriptionId() for base key
-		String translationKey = getDescriptionId(itemstack);
-		String baseKey = getDescriptionId();
-		return net.minecraft.network.chat.Component.literal(
-				I18n.get(translationKey + (translationKey.equals(baseKey) ? ".name" : "")).trim());
+		FluidIdentifierStack fluidStack = SimpleServiceLocator.logisticsFluidManager.getFluidFromContainer(ItemIdentifierStack.getFromStack(itemstack));
+		if (fluidStack != null) {
+			return fluidStack.makeFluidStack().getDisplayName();
+		}
+		return super.getName(itemstack);
 	}
 
 	@Override

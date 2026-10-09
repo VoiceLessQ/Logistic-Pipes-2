@@ -32,7 +32,7 @@ public class NormalGuiOrderer extends GuiOrderer {
 		SmallGuiButton refreshBtn = new SmallGuiButton(3, leftPos + 10, bottom - 15, 46, 10, "Refresh");
 		refreshBtn.setPressListener(b -> refreshItems());
 		addRenderableWidget(refreshBtn);
-		addRenderableWidget(new SmallGuiButton(13, leftPos + 10, bottom - 28, 46, 10, "Content"));
+		addRenderableWidget(wire(new SmallGuiButton(13, leftPos + 10, bottom - 28, 46, 10, "Content"), 13));
 		SmallGuiButton modeBtn = new SmallGuiButton(9, leftPos + 10, bottom - 41, 46, 10, "Both");
 		modeBtn.setPressListener(b -> {
 			String displayString = "";

@@ -100,6 +100,7 @@ open class TextButton(
         val color = if (enabled) Color.WHITE.value else 0xFFA0A0A0.toInt()
         val textWidth = helper.mcFontRenderer.width(trimmedText)
         val cx = absoluteBody.roundedLeft + absoluteBody.roundedWidth / 2 - textWidth / 2
+        val yOffset: Int = ((relativeBody.roundedHeight - helper.mcFontRenderer.lineHeight) / 2) + 1
         val cy = absoluteBody.roundedTop + yOffset
         gg.drawString(helper.mcFontRenderer, trimmedText, cx, cy, color, true)
     }

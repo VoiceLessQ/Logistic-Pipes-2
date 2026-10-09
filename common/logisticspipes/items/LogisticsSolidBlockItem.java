@@ -4,7 +4,6 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.client.resources.language.I18n;
 
 import lombok.Getter;
 
@@ -24,11 +23,6 @@ public class LogisticsSolidBlockItem extends BlockItem implements ILogisticsItem
 		super(block, new net.minecraft.world.item.Item.Properties());
 		type = block.getType();
 		updateItemMap.put(type.getMeta(), this);
-	}
-
-	@Nonnull
-	public net.minecraft.network.chat.Component getHoverName(@Nonnull ItemStack itemstack) {
-		return net.minecraft.network.chat.Component.literal(I18n.get(getDescriptionId(itemstack) + ".name"));
 	}
 
 	@Override

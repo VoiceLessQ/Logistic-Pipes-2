@@ -18,7 +18,6 @@ import javax.annotation.Nullable;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.level.Level;
 
 import net.minecraftforge.api.distmarker.Dist;
@@ -85,11 +84,5 @@ public class LogisticsItem extends Item implements ILogisticsItem {
 
 	public boolean addShiftInfo() {
 		return true;
-	}
-
-	@Nonnull
-	public String getHoverName(@Nonnull ItemStack itemstack) {
-		// getHoverName(ItemStack) removed from Item in 1.20.1; kept as custom method for internal use
-		return I18n.get(getDescriptionId(itemstack) + ".name").trim();
 	}
 }

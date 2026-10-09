@@ -226,7 +226,7 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 
 	private GuiCheckBox popupCheck;
 
-	private SmallGuiButton wire(SmallGuiButton btn, int id) {
+	protected SmallGuiButton wire(SmallGuiButton btn, int id) {
 		btn.setPressListener(b -> handleBtn(id, b));
 		return btn;
 	}
