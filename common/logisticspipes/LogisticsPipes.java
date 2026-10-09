@@ -237,6 +237,7 @@ public class LogisticsPipes {
 			modEventBus.addListener(this::clientSetup);
 			modEventBus.addListener(this::registerRenderers);
 			modEventBus.register(logisticspipes.textures.TextureRegistrar.class);
+			modEventBus.register(logisticspipes.renderer.FluidContainerRenderer.class);
 		}
 		LPDataFixer.INSTANCE.init();
 		// Networking is registered during preInit via PacketHandler.registerMessages().
@@ -384,9 +385,6 @@ public class LogisticsPipes {
 				safeLoadModels("LineTubeRenderer",             LineTubeRenderer::loadModels);
 				safeLoadModels("SpeedupTubeRenderer",          SpeedupTubeRenderer::loadModels);
 				safeLoadModels("SCurveTubeRenderer",           SCurveTubeRenderer::loadModels);
-
-				// Fluid container "filled" model predicate (client-only class, stays in the guard).
-				logisticspipes.renderer.FluidContainerRenderer.registerItemProperties();
 			}
 		});
 
