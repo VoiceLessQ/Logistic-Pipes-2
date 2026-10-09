@@ -114,6 +114,8 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 	public List<Pair<ILogisticsPowerProvider, List<IFilter>>> _LPPowerTable = Collections.unmodifiableList(new ArrayList<>());
 	public List<Pair<ISubSystemPowerProvider, List<IFilter>>> _SubSystemPowerTable = Collections.unmodifiableList(new ArrayList<>());
 	protected int _LSAVersion = 0;
+	// highest version already queued for a worker, so stale routers enqueue once per version
+	private volatile int _queuedLSAVersion = 0;
 	int ticksUntillNextInventoryCheck = 0;
 	private EnumSet<Direction> _routedExits = EnumSet.noneOf(Direction.class);
 	private EnumMap<Direction, Integer> _subPowerExits = new EnumMap<>(Direction.class);
@@ -333,7 +335,10 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 	private void lazyUpdateRoutingTable() {
 		if (_LSAVersion > ServerRouter._lastLSAVersion[simpleID]) {
 			if (Configs.MULTI_THREAD_NUMBER > 0) {
-				RoutingTableUpdateThread.add(new UpdateRouterRunnable(this));
+				if (_queuedLSAVersion < _LSAVersion) {
+					_queuedLSAVersion = _LSAVersion;
+					RoutingTableUpdateThread.add(new UpdateRouterRunnable(this));
+				}
 			} else {
 				CreateRouteTable(_LSAVersion);
 			}
@@ -707,8 +712,11 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 				ServerRouter.SharedLSADatabasereadLock.lock();
 			}
 
-			for (ExitRoute e : candidatesCost) {
-				e.debug.isNewlyAddedCanidate = false;
+			// Only the routing debug view reads this flag; resetting it per pop was O(pops x queue)
+			if (debug.isDebug()) {
+				for (ExitRoute e : candidatesCost) {
+					e.debug.isNewlyAddedCanidate = false;
+				}
 			}
 
 			//if the node does not have any flags not in the closed set, check it
@@ -1382,6 +1390,11 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 				CreateRouteTable(newVersion);
 			} catch (Exception e) {
 				LogisticsPipes.log.error("Exception during route table update", e);
+			} finally {
+				// dropped or failed: let the next tick queue this version again
+				if (_queuedLSAVersion == newVersion && ServerRouter._lastLSAVersion[simpleID] < newVersion) {
+					_queuedLSAVersion = 0;
+				}
 			}
 			run = false;
 		}
