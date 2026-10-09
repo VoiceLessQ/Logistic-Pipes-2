@@ -37,8 +37,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -184,7 +182,6 @@ import logisticspipes.utils.RoutedItemHelper;
 import logisticspipes.utils.StaticResolverUtil;
 import logisticspipes.utils.tuples.Pair;
 import network.rs485.grow.ServerTickDispatcher;
-import network.rs485.logisticspipes.compat.TheOneProbeIntegration;
 import network.rs485.logisticspipes.config.ClientConfiguration;
 import network.rs485.logisticspipes.config.ServerConfigurationManager;
 import network.rs485.logisticspipes.gui.font.LPFontRenderer;
@@ -331,11 +328,6 @@ public class LogisticsPipes {
 
 		SimpleServiceLocator.setPipeInformationManager(new PipeInformationManager());
 		SimpleServiceLocator.setLogisticsFluidManager(new LogisticsFluidManager());
-
-		if (ModList.get().isLoaded(LPConstants.theOneProbeModID)) {
-			InterModComms.sendTo(LPConstants.theOneProbeModID, "getTheOneProbe",
-					TheOneProbeIntegration.class::getName);
-		}
 
 		MainProxy.proxy.initModelLoader();
 	}

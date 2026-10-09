@@ -11,6 +11,9 @@ were lost in the 1.12.2 → 1.20.1 port. Verified in-game (ghost pipe, machine
 rotation/cover plates, HS tubes, HUD glasses panels).
 
 ### Fixed
+- **Game failed to start with The One Probe installed.** Logistics Pipes no
+  longer registers with The One Probe on 1.20.1 (pipe info in the probe is not
+  ported yet).
 - **Client crash when joining a world saved with items in pipes.** The chunk
   data sent to clients carried the server's in-transit items, which the
   client loaded as server objects and then failed to cast on its next tick.
