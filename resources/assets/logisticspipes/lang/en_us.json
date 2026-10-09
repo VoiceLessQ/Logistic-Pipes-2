@@ -236,6 +236,7 @@
   "block.logisticspipes.power_provider_rf": "Logistics RF Power Provider",
   "block.logisticspipes.statistics_table": "Logistics Statistics Table",
   "block.logisticspipes.program_compiler": "Logistics Program Compiler",
+  "block.logisticspipes.creative_power_source": "Creative Power Source",
   "itemGroup.Logistics_Pipes": "Logistics Pipes",
   "misc.holdshift": "<Hold $YELLOW$ITALICShift$RESET$GRAY for details>",
   "misc.extractionmode.Normal": "Normal",

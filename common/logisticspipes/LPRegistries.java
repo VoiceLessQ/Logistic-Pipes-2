@@ -183,6 +183,7 @@ public final class LPRegistries {
 	public static final RegistryObject<LogisticsSolidBlock>           POWER_PROVIDER_EU   = BLOCKS.register("power_provider_eu",  () -> new LogisticsSolidBlock(LogisticsSolidBlock.Type.LOGISTICS_IC2_POWERPROVIDER));
 	public static final RegistryObject<LogisticsSolidBlock>           POWER_PROVIDER_MJ   = BLOCKS.register("power_provider_mj",  () -> new LogisticsSolidBlock(LogisticsSolidBlock.Type.LOGISTICS_BC_POWERPROVIDER));
 	public static final RegistryObject<LogisticsSolidBlock>           PROGRAM_COMPILER = BLOCKS.register("program_compiler", () -> new LogisticsSolidBlock(LogisticsSolidBlock.Type.LOGISTICS_PROGRAM_COMPILER));
+	public static final RegistryObject<logisticspipes.blocks.powertile.CreativePowerSourceBlock> CREATIVE_POWER_SOURCE = BLOCKS.register("creative_power_source", logisticspipes.blocks.powertile.CreativePowerSourceBlock::new);
 	public static final RegistryObject<LogisticsBlockGenericPipe>     PIPE             = BLOCKS.register("pipe",             LogisticsBlockGenericPipe::new);
 	public static final RegistryObject<LogisticsBlockGenericSubMultiBlock> SUB_MULTIBLOCK = BLOCKS.register("sub_multiblock", LogisticsBlockGenericSubMultiBlock::new);
 
@@ -215,6 +216,7 @@ public final class LPRegistries {
 	public static final RegistryObject<LogisticsSolidBlockItem> ITEM_CRAFTER           = ITEMS.register("crafting_table",    () -> new LogisticsSolidBlockItem(LPBlocks.crafter.get()));
 	public static final RegistryObject<LogisticsSolidBlockItem> ITEM_CRAFTER_FUZZY     = ITEMS.register("crafting_table_fuzzy", () -> new LogisticsSolidBlockItem(LPBlocks.crafterFuzzy.get()));
 	public static final RegistryObject<LogisticsSolidBlockItem> ITEM_STATISTICS_TABLE  = ITEMS.register("statistics_table",  () -> new LogisticsSolidBlockItem(LPBlocks.statisticsTable.get()));
+	public static final RegistryObject<Item> ITEM_CREATIVE_POWER_SOURCE = ITEMS.register("creative_power_source", () -> new net.minecraft.world.item.BlockItem(CREATIVE_POWER_SOURCE.get(), new Item.Properties()));
 	public static final RegistryObject<LogisticsSolidBlockItem> ITEM_POWER_PROVIDER_RF = ITEMS.register("power_provider_rf", () -> new LogisticsSolidBlockItem(LPBlocks.powerProviderRF.get()));
 	public static final RegistryObject<LogisticsSolidBlockItem> ITEM_POWER_PROVIDER_EU = ITEMS.register("power_provider_eu", () -> new LogisticsSolidBlockItem(LPBlocks.powerProviderEU.get()));
 	public static final RegistryObject<LogisticsSolidBlockItem> ITEM_POWER_PROVIDER_MJ = ITEMS.register("power_provider_mj", () -> new LogisticsSolidBlockItem(LPBlocks.powerProviderMJ.get()));
@@ -332,6 +334,8 @@ public final class LPRegistries {
 			() -> BlockEntityType.Builder.of(LogisticsSecurityTileEntity::new,         LPBlocks.securityStation.get()).build(null));
 	public static final RegistryObject<BlockEntityType<LogisticsCraftingTableTileEntity>>     BE_CRAFTING_TABLE    = BLOCK_ENTITIES.register("logistics_crafting_table",
 			() -> BlockEntityType.Builder.of(LogisticsCraftingTableTileEntity::new,    LPBlocks.crafter.get(), LPBlocks.crafterFuzzy.get()).build(null));
+	public static final RegistryObject<BlockEntityType<logisticspipes.blocks.powertile.CreativePowerSourceTileEntity>> BE_CREATIVE_POWER_SOURCE = BLOCK_ENTITIES.register("creative_power_source",
+			() -> BlockEntityType.Builder.of(logisticspipes.blocks.powertile.CreativePowerSourceTileEntity::new, CREATIVE_POWER_SOURCE.get()).build(null));
 	public static final RegistryObject<BlockEntityType<LogisticsTileGenericPipe>>             BE_PIPE              = BLOCK_ENTITIES.register("pipe",
 			() -> BlockEntityType.Builder.of(LogisticsTileGenericPipe::new,            LPBlocks.pipe.get()).build(null));
 	public static final RegistryObject<BlockEntityType<LogisticsTileGenericSubMultiBlock>>    BE_SUB_PIPE          = BLOCK_ENTITIES.register("sub_pipe",
