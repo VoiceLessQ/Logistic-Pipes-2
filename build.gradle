@@ -29,7 +29,7 @@ plugins {
 
 archivesBaseName = 'logisticspipes'
 group = 'network.rs485'
-version = '0.0.2'
+version = '0.0.3'
 ext.vendor = 'unknown'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)

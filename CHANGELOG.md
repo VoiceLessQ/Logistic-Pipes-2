@@ -4,11 +4,16 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [Semantic Versioning](https://semver.org/) where practical.
 
-## [Unreleased]
+## [0.0.3] - 2026-10-08
 
-Client rendering parity batch — restores the last of the visual features that
-were lost in the 1.12.2 → 1.20.1 port. Verified in-game (ghost pipe, machine
-rotation/cover plates, HS tubes, HUD glasses panels).
+Bug-fix release for Minecraft 1.20.1. Fixes a startup crash with The One Probe,
+a client crash on worlds saved with items in pipes, and a dedicated server that
+never shut down. Includes the community fixes from T0biasCZe (#1, #2, #4, #5).
+
+### Added
+- **Optional circuit-only upgrade recipes.** With `betaUpgradeRecipes` enabled
+  in the config (off by default), module upgrades are crafted without a
+  Logistics Programmer.
 
 ### Fixed
 - **Dedicated server never exited after `stop`.** It saved the world and then
@@ -51,12 +56,14 @@ rotation/cover plates, HS tubes, HUD glasses panels).
 - **Mod version check compared versions as strings.** `ModStatusHelper` used a
   lexicographic string compare that mis-ordered versions like 1.10 vs 1.9; it
   now uses a numeric-aware maven `DefaultArtifactVersion` compare.
-
-### Known issues
-- **HUD glasses are still rough.** The HUD renderer is a 1:1 port of LP1's
-  pipeline, but even at full parity the in-world displays have visual glitches
-  on 1.20.1 (layering and readability artifacts). Usable, not polished;
-  a dedicated HUD cleanup pass is planned.
+- **RF Power Provider stayed empty when fed by a conduit.** Energy pushed in
+  by cables or ducts now reaches the pipes in the default `ADJACENT` mode.
+- **Machine blocks dropped nothing when mined, and the Logistics Programmer
+  was used up in recipes** (#2, thanks T0biasCZe).
+- **Request pipe failed in single player** with a `noClientRouting` error
+  (#1, thanks T0biasCZe).
+- **High-speed tubes rendered with the wrong transform** (#1, #5, thanks
+  T0biasCZe).
 - **Item Sink and Provider module GUIs had their slots in the wrong place in
   release builds (#2).** The widget GUI layout repositions inventory slots
   reflectively, but it only looked up the field names used inside the
@@ -94,6 +101,13 @@ rotation/cover plates, HS tubes, HUD glasses panels).
   (blue for water, orange for lava, modded fluids via their own tint and still
   texture). LP1 drew the fluid's animated sprite inside the window; the window
   shows the fluid's dominant colour instead.
+
+### Known issues
+- **HUD glasses are still rough.** The HUD renderer is a 1:1 port of LP1's
+  pipeline, but even at full parity the in-world displays have visual glitches
+  on 1.20.1 (layering and readability artifacts). Usable, not polished;
+  a dedicated HUD cleanup pass is planned.
+- The One Probe shows no Logistics Pipes info on 1.20.1 yet.
 
 ## [0.0.2] - 2026-06-10
 
