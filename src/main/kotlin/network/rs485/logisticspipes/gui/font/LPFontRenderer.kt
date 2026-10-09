@@ -52,9 +52,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-// Drawing falls back to vanilla `Font` via `GuiGraphics.drawString` — BDF glyph metrics still used
-// for width/height measurements so guidebook layout stays self-consistent. A full BDF→atlas rewrite
-// with Blaze3D buffers is deferred; the fallback keeps the guidebook legible in the meantime.
+// Drawing falls back to vanilla `Font` via `GuiGraphics.drawString`, so widths are measured with it
+// too; only the line height still comes from the BDF font. A full BDF atlas rewrite with Blaze3D
+// buffers is deferred.
 
 class LPFontRenderer(private val fontName: String) {
     companion object Factory {
@@ -105,7 +105,7 @@ class LPFontRenderer(private val fontName: String) {
 
     /**
      * Draws the given string via vanilla `Font` (fallback until the BDF atlas pipeline is reimplemented).
-     * Width returned is BDF-derived so callers measuring our layout stay consistent.
+     * Width returned matches what vanilla `Font` draws.
      */
     fun drawString(string: String, x: Float, y: Float, color: Int, format: Set<TextFormat>, scale: Float): Int {
         val gg = SimpleGraphics.guiGraphics ?: return getStringWidth(string, format, scale)
@@ -128,7 +128,8 @@ class LPFontRenderer(private val fontName: String) {
     fun drawSpace(x: Float, y: Float, width: Int, color: Int, italic: Boolean, underline: Boolean, strikethrough: Boolean, shadow: Boolean, scale: Float): Int {
         if (!underline && !strikethrough) return width
         val gg = SimpleGraphics.guiGraphics ?: return width
-        val h = (wrapperPlain.fontHeight * scale).toInt()
+        // match the underline/strike rows vanilla Font draws for the words
+        val h = (Minecraft.getInstance().font.lineHeight * scale).toInt()
         if (underline) {
             gg.fill(x.toInt(), (y + h - 1).toInt(), (x + width).toInt(), (y + h).toInt(), color)
         }
@@ -158,11 +159,9 @@ class LPFontRenderer(private val fontName: String) {
     fun getFontHeight(scale: Float = 1f): Int = (wrapperPlain.fontHeight * scale).toInt()
 
     fun getStringWidth(string: String, italics: Boolean, bold: Boolean, scale: Float): Int {
+        val formatted = if (bold) "\u00a7l$string" else string
         val italicsOffset = if (italics) scale else 0f
-        return (string.fold(0.0) { currentX, char ->
-            val glyph = wrapperPlain.getGlyph(char)
-            currentX + ((glyph?.dWidthX ?: 0) * scale)
-        } + italicsOffset).toInt()
+        return (Minecraft.getInstance().font.width(formatted) * scale + italicsOffset).toInt()
     }
 
     fun getStringWidth(string: String, tags: Set<TextFormat>, scale: Float): Int =

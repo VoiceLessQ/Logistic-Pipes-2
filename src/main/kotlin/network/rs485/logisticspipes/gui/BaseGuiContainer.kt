@@ -148,7 +148,10 @@ abstract class BaseGuiContainer(
         }
         val hovered = widgetScreen.widgetContainer.getHovered(mouseX.toFloat(), mouseY.toFloat())
         if (hovered is MouseInteractable) {
-            if (hovered.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), button)) return true
+            if (hovered.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), button)) {
+                hovered.playPressedSound(Minecraft.getInstance().soundManager)
+                return true
+            }
         }
         return super.mouseClicked(mouseX, mouseY, button)
     }

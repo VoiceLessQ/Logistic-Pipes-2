@@ -171,7 +171,15 @@ object GuiDrawer {
     }
 
     fun drawInteractionIndicator(mouseX: Float, mouseY: Float) {
-        // TODO: guide book hover indicator — deferred.
+        val gg = SimpleGraphics.guiGraphics ?: return
+        val x = mouseX.toInt()
+        val y = mouseY.toInt()
+        gg.pose().pushPose()
+        gg.pose().translate(0.0f, 0.0f, 100f)
+        // LP1: a small white plus beside the cursor
+        gg.fill(x + 4, y - 5, x + 5, y - 2, MinecraftColor.WHITE.colorCode)
+        gg.fill(x + 3, y - 4, x + 6, y - 3, MinecraftColor.WHITE.colorCode)
+        gg.pose().popPose()
     }
 
     fun drawRect(area: IRectangle, color: Int) {

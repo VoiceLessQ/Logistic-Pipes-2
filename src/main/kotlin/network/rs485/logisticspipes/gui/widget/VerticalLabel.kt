@@ -54,8 +54,8 @@ class VerticalLabel(fullText: String, x: Int, y: Int, maxLength: Int, textColor:
         pose.pushPose()
         pose.translate(rect.x0, rect.y0 + rect.height, 0f)
         pose.mulPose(Axis.ZP.rotationDegrees(-90f))
-        if (backgroundColor != 0) {
-            gg.fill(-1, -1, fontRenderer.width(text) + 1, fontRenderer.lineHeight + 1, backgroundColor)
+        if (overflows && hovered) {
+            drawOverflowBox(0, 0, fontRenderer.width(text), fontRenderer.lineHeight)
         }
         gg.drawString(fontRenderer, text, 0, 0, textColor, false)
         pose.popPose()
