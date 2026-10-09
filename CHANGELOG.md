@@ -4,110 +4,106 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [Semantic Versioning](https://semver.org/) where practical.
 
-## [0.0.3] - 2026-10-08
+## [0.0.3] - 2026-10-09
 
-Bug-fix release for Minecraft 1.20.1. Fixes a startup crash with The One Probe,
-a client crash on worlds saved with items in pipes, and a dedicated server that
-never shut down. Includes the community fixes from T0biasCZe (#1, #2, #4, #5).
+Bug-fix and feature release for Minecraft 1.20.1 (Forge 47). Same features
+and fixes as 0.0.3 for 1.21.1. Includes the community fixes from T0biasCZe
+(#1, #2, #4, #5).
 
 ### Added
-- **Optional circuit-only upgrade recipes.** With `betaUpgradeRecipes` enabled
-  in the config (off by default), module upgrades are crafted without a
-  Logistics Programmer.
+- Coloured remote orderers are back: craft an orderer with any dye. The
+  orderer keeps its link, and resetting it keeps the colour.
+- AE2 support is back: a pipe next to an ME interface reaches the whole ME
+  network (or only the interface's own slots once it has config set).
+- Storage Drawers support is back: pipes see each drawer's full count and fill
+  drawers already holding an item before empty ones.
+- The One Probe support is back: probing a pipe shows its modules, filters,
+  satellite name and upgrades.
+- Creative Power Source block: endless Forge Energy for testing power setups
+  without a generator mod.
+- Recipes for the RF Power Provider and RF Power Supplier Upgrade (1.12.2 only
+  had them through Thermal Expansion).
+- Optional circuit-only upgrade recipes: with `betaUpgradeRecipes` on (off by
+  default), module upgrades are crafted without a Logistics Programmer.
 
-### Fixed
-- **Dedicated server never exited after `stop`.** It saved the world and then
-  hung; a Logistics Pipes worker thread kept the process alive.
-- **Game failed to start with The One Probe installed.** Logistics Pipes no
-  longer registers with The One Probe on 1.20.1 (pipe info in the probe is not
-  ported yet).
-- **Client crash when joining a world saved with items in pipes.** The chunk
-  data sent to clients carried the server's in-transit items, which the
-  client loaded as server objects and then failed to cast on its next tick.
-  That data stays on the server now, as in 1.12.2.
-- **HUD glasses showed nothing in the world.** The in-world HUD panels
-  (provider, satellite, crafting and chassis displays shown while wearing HUD
-  glasses) were drawn without the camera transform: in 1.12 the GL matrix
-  stack already carried it, but the ported renderer started from an identity
-  pose with player-feet offsets, so panels were positioned relative to a fixed
-  view direction instead of their pipes. The panels (and the routing debug
-  lasers, which sat one eye-height too high) are now composed onto the level
-  renderer's camera pose with camera-relative offsets. A follow-up pass
-  restored the panel content (item grids, counts, buttons, text), which the
-  GuiGraphics layering conventions placed far behind the panel plane instead
-  of on it. Deliberate deviation from LP1: panels render slightly smaller
-  (scale 0.008 instead of 0.01) and float 0.75 blocks toward the viewer
-  instead of 0.4, so they stay clear of the pipe's own block instead of
-  slicing into it; the cursor targeting math follows the new geometry.
-- **Popups did not receive mouse or keyboard input.** Sub-GUI popups (request
-  monitor, item search, disk popup) are modal in LP1, but the ported base
-  screen kept routing clicks, scroll, drag, key and char events to the parent
-  container's slots and buttons instead of the open popup. The base screen and
-  `SubGuiScreen` now forward every input event to the innermost open sub-GUI,
-  and ESC closes only that popup instead of the whole GUI.
-- **Request monitor "Save as Image" was disabled.** LP1 exported the request
-  tree by scanning the framebuffer with glReadPixels, which is gone in 1.20.1,
-  so the feature had been stubbed to a "use F2 instead" message. It now renders
-  the full tree into an offscreen framebuffer and writes a PNG to `screenshots/`
-  (named `*_tree.png`).
-- **Check boxes toggled twice per click.** `GuiCheckBox.onPress` flipped the
-  state and then handed off to a press listener that flipped it again, so every
-  click was a no-op. State is now owned by the listener only.
-- **Mod version check compared versions as strings.** `ModStatusHelper` used a
-  lexicographic string compare that mis-ordered versions like 1.10 vs 1.9; it
-  now uses a numeric-aware maven `DefaultArtifactVersion` compare.
-- **RF Power Provider stayed empty when fed by a conduit.** Energy pushed in
-  by cables or ducts now reaches the pipes in the default `ADJACENT` mode.
-- **Machine blocks dropped nothing when mined, and the Logistics Programmer
-  was used up in recipes** (#2, thanks T0biasCZe).
-- **Request pipe failed in single player** with a `noClientRouting` error
-  (#1, thanks T0biasCZe).
-- **High-speed tubes rendered with the wrong transform** (#1, #5, thanks
-  T0biasCZe).
-- **Item Sink and Provider module GUIs had their slots in the wrong place in
-  release builds (#2).** The widget GUI layout repositions inventory slots
-  reflectively, but it only looked up the field names used inside the
-  development environment; on the released (reobfuscated) jar the lookup failed
-  silently and every slot stayed at its raw container position, while the slot
-  grid was drawn at the intended layout position — so items, click targets and
-  the visible grid all disagreed. The lookup now falls back to the release
-  field names and logs an error instead of failing silently.
-- **HS tubes rendered with garbled rainbow textures.** The tube models sample
-  their own texture file, but the pipe renderer drew every model against the
-  block texture atlas, smearing unrelated sprites across the tube body. Models
-  that carry a standalone texture now get a matching render buffer.
-- **HS tube segments behaved as full invisible cubes.** Collision, the
-  selection outline, and middle-click pick-block on every block of a multiblock
-  tube now follow the tube's real curved geometry, restoring LP1's physical
-  "feel" (transport itself always worked).
-- **Ghost-pipe placement preview was never drawn.** Holding a pipe item shows
-  the translucent white placement preview at the targeted position again,
-  including rotated previews for multiblock tubes. Also fixes the underlying
-  alpha-override plumbing that the preview (and LP1's render pipeline) relies
-  on — it existed but was silently ignored when emitting geometry.
-- **Machine blocks ignored their placed rotation.** Power Junction, Security
-  Station, Auto/Fuzzy Crafting tables, Statistics Table and Program Compiler
-  now render with the rotation they were placed in, and hide their side cover
-  plates where a pipe connects so the pipe visually enters the machine.
-  Active-state texture switching is wired up for block types that declare one.
-- **HUD targeting crosshair was not drawn.** With HUD glasses on, the
-  crosshair darkens again when the HUD locks onto a target, as in LP1.
-- **Pipe powered/unpowered texture variants all resolved to the base sprite.**
-  LP1's pre-generated overlay composites (powered / unpowered / un-overlayed,
-  including all chassis marks) are stitched into the block atlas and bound to
-  their original icon indices again.
-- **Fluid containers showed no fluid.** The container item traveling through
-  fluid pipes now renders its window tinted with the contained fluid's colour
-  (blue for water, orange for lava, modded fluids via their own tint and still
-  texture). LP1 drew the fluid's animated sprite inside the window; the window
-  shows the fluid's dominant colour instead.
+### Fixed: crashes and lost items
+- Client crash when joining a world saved with items inside pipes.
+- The game failed to start with The One Probe installed.
+- A dedicated server hung on `stop`.
+- Breaking a pipe dropped nothing, and the items inside it were lost.
+- Machine blocks (Power Junction, providers, crafting tables, security station
+  and others) dropped nothing when mined.
+- The Logistics Crafting Table refunded every ingredient on each craft.
+- Changing `chassisSlots` on an existing world crashed the server or wiped
+  chassis contents.
+
+### Fixed: recipes
+- Fluid Basic and Fluid Terminus pipes are craftable again.
+- The Logistics Programmer is no longer used up in crafting, and stacks to 64.
+- The reset recipe accepts several items of the same kind at once.
+
+### Fixed: GUIs and controls
+- Keyboard shortcuts work again in most screens (Escape, arrows, Home, End,
+  Delete, Page Up/Down, Ctrl+V), and the mouse wheel works in five popups.
+- Popups receive mouse and keyboard input; Escape closes only the popup.
+- Text fields take focus on click; Backspace and arrows work in the amount field.
+- Check boxes toggle on the first click.
+- ItemSink and Provider module screens show item tooltips again. Shift-clicking
+  an item fills the next free filter slot, and with a fuzzy upgrade, hovering a
+  filter slot opens the fuzzy flag list.
+- The slot finder works again: the hovered slot shows red, and clicking it
+  picks that slot.
+- The sneaky and disconnection upgrade side pickers show pipes, chests and
+  other animated blocks again.
+- Collapsed crafting pipe tabs (fluid, byproduct, cleanup) and the statistics
+  crafting tab show their icons again.
+- Quick-sort markers show only for chests and clear when the chest closes.
+- Request monitor "Save as Image" works again (writes `screenshots/*_tree.png`).
+- 1.20.1: ItemSink and Provider module slots sat in the wrong place in release
+  builds (#2, thanks T0biasCZe).
+
+### Fixed: rendering
+- HUD glasses panels show up in the world, with their content and the target
+  crosshair. HUD glasses use their own texture and give no armour.
+- High-speed tubes render without garbled textures and have their real shape
+  for collision, selection and pick-block.
+- Ghost preview when holding a pipe.
+- Machine blocks keep their placed rotation and hide cover plates where a pipe
+  connects.
+- Powered and unpowered pipe textures, and end caps against solid blocks after
+  a world load.
+- Breaking or hitting a pipe shows particles in the pipe's own texture, and
+  item and power sparkles are glowing stars again.
+- Filled fluid containers show the fluid's own texture in the window.
+- Laser power particles no longer corrupt other translucent particles.
+
+### Fixed: server, config and commands
+- Config changes apply without a restart (for example `powerUsageDisabled`).
+- `chassisSlots` config restored (default 1, 2, 3, 4, 8; needs a restart).
+- `pipeDurability` controls break time again (default 0.25); `threadCount`
+  accepts 0 for synchronous routing.
+- `/logisticspipes` and `/lp` work from the server console and RCON.
+- NBT sent by clients is capped at 2 MiB, like vanilla packets.
+- A pipe saved without its type is removed with a warning instead of staying
+  as an invisible block.
+- Pipes can be placed into grass and snow, but not inside entities.
+- The RF Power Provider fills when fed by a cable or conduit.
+- Routing channels no longer go missing when the first one was made outside
+  the overworld. Channels saved in another dimension's data folder before this
+  fix need to be made again.
+- The "missing the current version information" chat line on login is gone.
+  The old update server is offline, so there is no version check.
+- 1.20.1: the request pipe failed in single player with a `noClientRouting`
+  error (#1, thanks T0biasCZe).
+
+### Performance
+- Routing table rebuilds are about 4x cheaper. On a 1728-router test grid,
+  breaking one pipe dropped from 21 s to under 5 s of routing thread time and
+  from about 300 ms to 15-25 ms on the server thread.
+- A router queues one rebuild per change instead of one per tick.
 
 ### Known issues
-- **HUD glasses are still rough.** The HUD renderer is a 1:1 port of LP1's
-  pipeline, but even at full parity the in-world displays have visual glitches
-  on 1.20.1 (layering and readability artifacts). Usable, not polished;
-  a dedicated HUD cleanup pass is planned.
-- The One Probe shows no Logistics Pipes info on 1.20.1 yet.
+- HUD glasses work but still have layering and readability glitches.
 
 ## [0.0.2] - 2026-06-10
 
