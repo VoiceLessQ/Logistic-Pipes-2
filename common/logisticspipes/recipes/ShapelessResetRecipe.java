@@ -53,24 +53,32 @@ public class ShapelessResetRecipe extends CustomRecipe {
 
 	@Override
 	public boolean matches(CraftingContainer input, Level level) {
-		int matches = 0;
+		ItemStack first = ItemStack.EMPTY;
 		for (int i = 0; i < input.getContainerSize(); i++) {
 			ItemStack stack = input.getItem(i);
 			if (stack.isEmpty()) continue;
 			if (stack.getItem() != targetItem) return false;
-			matches++;
+			// LP1 matched one meta per recipe: no mixing orderer colours
+			if (first.isEmpty()) first = stack;
+			else if (OrdererDyeRecipe.getVariant(first) != OrdererDyeRecipe.getVariant(stack)) return false;
 		}
-		return matches > 0;
+		return !first.isEmpty();
 	}
 
 	@Override
 	public ItemStack assemble(CraftingContainer input, RegistryAccess registry) {
 		// LP1: one clean item per matching stack in the grid
 		int count = 0;
+		int variant = 0;
 		for (int i = 0; i < input.getContainerSize(); i++) {
-			if (!input.getItem(i).isEmpty()) count++;
+			ItemStack stack = input.getItem(i);
+			if (stack.isEmpty()) continue;
+			if (count++ == 0) variant = OrdererDyeRecipe.getVariant(stack);
 		}
-		return new ItemStack(targetItem, count);
+		ItemStack result = new ItemStack(targetItem, count);
+		// keeps the orderer colour, like LP1's meta-preserving reset
+		if (variant != 0) result.getOrCreateTag().putInt(OrdererDyeRecipe.COLOR_TAG, variant);
+		return result;
 	}
 
 	@Override

@@ -30,11 +30,7 @@ public class CraftingRecipes implements IRecipeProvider {
 			}
 		}
 
-		// The 1.12.2 remote orderer used damage values 1..16 for 16 dye-coloured variants, plus
-		// matching dye recipes. Damage-as-variant was removed in 1.20.1: items are identified by
-		// id alone. Until/unless the coloured orderer is reintroduced as NBT-tagged state or as
-		// 16 separate items, there is only one canonical remote orderer — and a single reset
-		// recipe is enough.
+		// Orderer colours (LP1 meta 1..16) are the CustomModelData tag, dyed via OrdererDyeRecipe; reset keeps the colour
 		RecipeManager.craftingManager.addShapelessResetRecipe(LPItems.remoteOrderer.get(), 0);
 	}
 }
