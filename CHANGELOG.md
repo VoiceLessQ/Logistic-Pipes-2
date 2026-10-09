@@ -4,7 +4,12 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 follows [Semantic Versioning](https://semver.org/) where practical.
 
-## [Unreleased]
+## [0.0.3] - 2026-10-09
+
+First release for Minecraft 1.21.1 (NeoForge 21.1). Requires Kotlin for Forge 5
+or newer. Worlds from the 1.20.1 version are not migrated. There is no
+MinecraftForge build and none is planned. Same features and fixes as 0.0.3
+for 1.20.1.
 
 ### Added
 - Coloured remote orderers are back: craft an orderer with any dye. The
@@ -15,71 +20,48 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   drawers already holding an item before empty ones.
 - The One Probe support is back: probing a pipe shows its modules, filters,
   satellite name and upgrades.
-
-### Fixed
-- The game no longer fails to load when The One Probe is installed.
-- The slot finder works again: the hovered slot shows red, and clicking it
-  picks that slot.
-- Hitting a pipe shows particles in the pipe's own texture instead of a
-  jumble of pipe parts.
-- Item and power sparkles on pipes are glowing stars again instead of flat
-  coloured squares.
-- Filled fluid containers show the fluid's own texture in the window again.
-- ItemSink and Provider module screens show item tooltips again. Shift-clicking
-  an item fills the next free filter slot, and with a fuzzy upgrade, hovering a
-  filter slot opens the fuzzy flag list.
-- The sneaky and disconnection upgrade side pickers show pipes, chests and
-  other animated blocks again.
-- Collapsed crafting pipe tabs (fluid, byproduct, cleanup) and the statistics
-  crafting tab show their icons again.
-- Routing channels no longer go missing when the first one was made outside
-  the overworld. Channels saved in another dimension's data folder before this
-  fix need to be made again.
-
-## [0.0.3] - 2026-10-08
-
-First release for Minecraft 1.21.1 (NeoForge 21.1). Requires Kotlin for Forge 5
-or newer. Worlds from the 1.20.1 version are not migrated. There is no
-MinecraftForge build and none is planned.
-
-### Added
 - Creative Power Source block: endless Forge Energy for testing power setups
   without a generator mod.
 - Recipes for the RF Power Provider and RF Power Supplier Upgrade (1.12.2 only
   had them through Thermal Expansion).
+- Optional circuit-only upgrade recipes: with `betaUpgradeRecipes` on (off by
+  default), module upgrades are crafted without a Logistics Programmer.
 
 ### Fixed: crashes and lost items
 - Client crash when joining a world saved with items inside pipes.
-- Items lost enchantments, custom names and potion effects while in the
-  network, and enchanted items were treated as plain ones.
+- The game failed to start with The One Probe installed.
+- A dedicated server hung on `stop`.
 - Breaking a pipe dropped nothing, and the items inside it were lost.
 - Machine blocks (Power Junction, providers, crafting tables, security station
   and others) dropped nothing when mined.
 - The Logistics Crafting Table refunded every ingredient on each craft.
-- Remote orderer links, security card IDs, sneaky upgrade sides and disk names
-  were not saved.
 - Changing `chassisSlots` on an existing world crashed the server or wiped
   chassis contents.
-- A dedicated server hung on `stop`.
 
 ### Fixed: recipes
-- No LP recipe loaded on 1.21, and every recipe using a programmed Logistics
-  Programmer was missing.
 - Fluid Basic and Fluid Terminus pipes are craftable again.
 - The Logistics Programmer is no longer used up in crafting, and stacks to 64.
 - The reset recipe accepts several items of the same kind at once.
 
 ### Fixed: GUIs and controls
-- Keyboard shortcuts work again in fourteen screens (Escape, arrows, Home, End,
+- Keyboard shortcuts work again in most screens (Escape, arrows, Home, End,
   Delete, Page Up/Down, Ctrl+V), and the mouse wheel works in five popups.
 - Popups receive mouse and keyboard input; Escape closes only the popup.
 - Text fields take focus on click; Backspace and arrows work in the amount field.
 - Check boxes toggle on the first click.
-- The request table and crafting table show their output on dedicated servers.
-- Request monitor "Save as Image" works again (writes `screenshots/*_tree.png`).
+- ItemSink and Provider module screens show item tooltips again. Shift-clicking
+  an item fills the next free filter slot, and with a fuzzy upgrade, hovering a
+  filter slot opens the fuzzy flag list.
+- The slot finder works again: the hovered slot shows red, and clicking it
+  picks that slot.
+- The sneaky and disconnection upgrade side pickers show pipes, chests and
+  other animated blocks again.
+- Collapsed crafting pipe tabs (fluid, byproduct, cleanup) and the statistics
+  crafting tab show their icons again.
 - Quick-sort markers show only for chests and clear when the chest closes.
-- Guide book: hover marker, click sound and hover colours are back.
-- The extractor module HUD shows its side again.
+- Request monitor "Save as Image" works again (writes `screenshots/*_tree.png`).
+- 1.20.1: ItemSink and Provider module slots sat in the wrong place in release
+  builds (#2, thanks T0biasCZe).
 
 ### Fixed: rendering
 - HUD glasses panels show up in the world, with their content and the target
@@ -89,9 +71,11 @@ MinecraftForge build and none is planned.
 - Ghost preview when holding a pipe.
 - Machine blocks keep their placed rotation and hide cover plates where a pipe
   connects.
-- Powered and unpowered pipe textures, end caps against solid blocks after a
-  world load, and the break particles from 1.12.2.
-- Fluid containers show the colour of their fluid.
+- Powered and unpowered pipe textures, and end caps against solid blocks after
+  a world load.
+- Breaking or hitting a pipe shows particles in the pipe's own texture, and
+  item and power sparkles are glowing stars again.
+- Filled fluid containers show the fluid's own texture in the window.
 - Laser power particles no longer corrupt other translucent particles.
 
 ### Fixed: server, config and commands
@@ -104,7 +88,14 @@ MinecraftForge build and none is planned.
 - A pipe saved without its type is removed with a warning instead of staying
   as an invisible block.
 - Pipes can be placed into grass and snow, but not inside entities.
-- Item names use the 1.21 translation keys; AE2 integration looks for `ae2`.
+- The RF Power Provider fills when fed by a cable or conduit.
+- Routing channels no longer go missing when the first one was made outside
+  the overworld. Channels saved in another dimension's data folder before this
+  fix need to be made again.
+- The "missing the current version information" chat line on login is gone.
+  The old update server is offline, so there is no version check.
+- 1.20.1: the request pipe failed in single player with a `noClientRouting`
+  error (#1, thanks T0biasCZe).
 
 ### Performance
 - Routing table rebuilds are about 4x cheaper. On a 1728-router test grid,
@@ -114,7 +105,6 @@ MinecraftForge build and none is planned.
 
 ### Known issues
 - HUD glasses work but still have layering and readability glitches.
-- No integration yet for AE2, Storage Drawers or TheOneProbe.
 
 ## [0.0.2] - 2026-06-10
 
