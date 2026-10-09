@@ -1,7 +1,6 @@
 package logisticspipes.commands.commands;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
 import logisticspipes.commands.LogisticsPipesCommand;
@@ -18,8 +17,8 @@ public class NBTDebugCommand implements ICommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
-		return sender instanceof Player && LogisticsPipesCommand.isOP(sender);
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
+		return sender.getPlayer() != null && LogisticsPipesCommand.isOP(sender);
 	}
 
 	@Override
@@ -28,8 +27,8 @@ public class NBTDebugCommand implements ICommandHandler {
 	}
 
 	@Override
-	public void executeCommand(Player sender, String[] args) {
+	public void executeCommand(CommandSourceStack sender, String[] args) {
 		sender.sendSystemMessage(Component.literal("Trying to Enable NBTDebug"));
-		MainProxy.sendPacketToPlayer(PacketHandler.getPacket(ActivateNBTDebug.class), (Player) sender);
+		MainProxy.sendPacketToPlayer(PacketHandler.getPacket(ActivateNBTDebug.class), sender.getPlayer());
 	}
 }

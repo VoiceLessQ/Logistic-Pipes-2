@@ -1,9 +1,8 @@
 package logisticspipes.commands.commands;
 
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.entity.player.Player;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
 import net.minecraft.world.item.Item;
 import net.minecraft.network.chat.Component;
 
@@ -19,7 +18,7 @@ public class NameLookupCommand implements ICommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
 		return true;
 	}
 
@@ -29,7 +28,7 @@ public class NameLookupCommand implements ICommandHandler {
 	}
 
 	@Override
-	public void executeCommand(Player sender, String[] args) {
+	public void executeCommand(CommandSourceStack sender, String[] args) {
 		if (args.length < 2) {
 			throw new MissingArgumentException();
 		}

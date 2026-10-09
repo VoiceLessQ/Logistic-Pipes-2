@@ -1,9 +1,8 @@
 package logisticspipes.commands.commands;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 
 import java.util.Arrays;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.commands.abstracts.SubCommandHandler;
@@ -23,8 +22,8 @@ public class DebugCommand extends SubCommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
-		return LogisticsPipes.isDEBUG() || Arrays.asList(DebugCommand.allowedPlayers).contains(sender.getName());
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
+		return LogisticsPipes.isDEBUG() || Arrays.asList(DebugCommand.allowedPlayers).contains(sender.getTextName());
 	}
 
 	@Override

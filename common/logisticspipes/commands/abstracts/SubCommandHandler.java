@@ -1,11 +1,10 @@
 package logisticspipes.commands.abstracts;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
 
 import logisticspipes.commands.chathelper.MorePageDisplay;
 import logisticspipes.commands.exception.CommandNotFoundException;
@@ -36,7 +35,7 @@ public abstract class SubCommandHandler implements ICommandHandler {
 		subCommands.add(newHandler);
 	}
 
-	public final void displayHelp(Player sender) {
+	public final void displayHelp(CommandSourceStack sender) {
 		MorePageDisplay display = new MorePageDisplay(new String[] { "|< Help - " + getNames()[0] + " - Page: %/$ >|" }, sender);
 		for (ICommandHandler command : subCommands) {
 			if (!command.getDescription()[0].startsWith("#")) {
@@ -64,7 +63,7 @@ public abstract class SubCommandHandler implements ICommandHandler {
 	}
 
 	@Override
-	public final void executeCommand(Player sender, String[] args) {
+	public final void executeCommand(CommandSourceStack sender, String[] args) {
 		if (args.length < 1) {
 			throw new MissingArgumentException();
 		}

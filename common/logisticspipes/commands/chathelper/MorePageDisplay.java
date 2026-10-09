@@ -1,10 +1,9 @@
 package logisticspipes.commands.chathelper;
 
+import net.minecraft.commands.CommandSourceStack;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
 
 import logisticspipes.network.PacketHandler;
@@ -24,20 +23,20 @@ public class MorePageDisplay {
 	private int currentpagecount = 0;
 	private boolean terminated = false;
 
-	public MorePageDisplay(ArrayList<String> header, Player name) {
+	public MorePageDisplay(ArrayList<String> header, CommandSourceStack name) {
 		if (header.size() <= (row - 2)) {
 			this.header = header;
 		}
-		LPChatListener.register(this, name.getName().getString());
+		LPChatListener.register(this, name.getTextName());
 		name.sendSystemMessage(Component.literal("%LPSTORESENDMESSAGE%"));
 	}
 
-	public MorePageDisplay(String[] header, Player name) {
+	public MorePageDisplay(String[] header, CommandSourceStack name) {
 		if (header.length <= (row - 2)) {
 			this.header = new ArrayList<>();
 			this.header.addAll(Arrays.asList(header));
 		}
-		LPChatListener.register(this, name.getName().getString());
+		LPChatListener.register(this, name.getTextName());
 		name.sendSystemMessage(Component.literal("%LPSTORESENDMESSAGE%"));
 	}
 
@@ -61,11 +60,11 @@ public class MorePageDisplay {
 		return terminated;
 	}
 
-	public void display(Player sender) {
+	public void display(CommandSourceStack sender) {
 		display(sender, 1);
 	}
 
-	public void display(Player player, int page) {
+	public void display(CommandSourceStack player, int page) {
 		display(player, page, false);
 	}
 
@@ -147,7 +146,7 @@ public class MorePageDisplay {
 		return output2.toString();
 	}
 
-	public boolean handleChat(String input, Player sender) {
+	public boolean handleChat(String input, CommandSourceStack sender) {
 		if (terminated) {
 			return false;
 		}
@@ -170,8 +169,8 @@ public class MorePageDisplay {
 				currentpage++;
 				display(sender, currentpage);
 			}
-			if (sender instanceof Player) {
-				MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), (Player) sender);
+			if (sender.getPlayer() != null) {
+				MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), sender.getPlayer());
 			}
 		} else if (input.equalsIgnoreCase("previous") || input.equalsIgnoreCase("prev") || input.equalsIgnoreCase("pre") || input.equalsIgnoreCase("p")) {
 			if (currentpage < 2) {
@@ -196,21 +195,21 @@ public class MorePageDisplay {
 			display(sender, currentpage, true, false, 1);
 			sender.sendSystemMessage(Component.literal(ChatColor.AQUA + "Added '" + ChatColor.YELLOW + input.substring(5) + ChatColor.AQUA + "' to your chat history."));
 			printLastLine(sender, false);
-			if (sender instanceof Player) {
-				MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), (Player) sender);
+			if (sender.getPlayer() != null) {
+				MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), sender.getPlayer());
 			}
 		} else if (input.equals("save")) {
 			display(sender, currentpage, true, false, 2);
 			sender.sendSystemMessage(Component.literal(ChatColor.AQUA + "Add an command after the '" + ChatColor.YELLOW + "save " + ChatColor.AQUA + "' and it will be added to your chat history."));
 			printLastLine(sender, false);
-			if (sender instanceof Player) {
-				MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), (Player) sender);
+			if (sender.getPlayer() != null) {
+				MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), sender.getPlayer());
 			}
 		} else {
 			//display(sender,currentpage,true);
 			printLastLine(sender, true);
-			if (sender instanceof Player) {
-				MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), (Player) sender);
+			if (sender.getPlayer() != null) {
+				MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), sender.getPlayer());
 			}
 		}
 		return true;
@@ -234,21 +233,21 @@ public class MorePageDisplay {
 		return -1;
 	}
 
-	private void clearscreen(Player sender, int count) {
+	private void clearscreen(CommandSourceStack sender, int count) {
 		for (int i = 0; i < count; i++) {
 			sender.sendSystemMessage(Component.literal(""));
 		}
 	}
 
-	public void display(Player sender, int page, boolean flag) {
+	public void display(CommandSourceStack sender, int page, boolean flag) {
 		display(sender, page, flag, false, 0);
 	}
 
-	public void printLastLine(Player sender) {
+	public void printLastLine(CommandSourceStack sender) {
 		printLastLine(sender, false);
 	}
 
-	public void printLastLine(Player sender, boolean flag) {
+	public void printLastLine(CommandSourceStack sender, boolean flag) {
 		sender.sendSystemMessage(Component.literal((flag ? "! " : "") + ChatColor.AQUA + "Pageview:" + ChatColor.WHITE + " Enter " + ChatColor.RED + "Pre" + ChatColor.WHITE + "/" + ChatColor.GREEN + "Next" + ChatColor.WHITE + ", a " + ChatColor.AQUA + "number" + ChatColor.WHITE + ", " + ChatColor.AQUA + "all"
 				+ ChatColor.WHITE + ", " + ChatColor.AQUA + "reprint" + ChatColor.WHITE + ", " + ChatColor.AQUA + "save" + ChatColor.WHITE + " or " + ChatColor.RED + "exit" + ChatColor.WHITE + (flag ? " !" : ".")));
 	}
@@ -269,7 +268,7 @@ public class MorePageDisplay {
 		return currentPage + 1;
 	}
 
-	public void display(Player sender, int page, boolean flag, boolean all, int linesub) {
+	public void display(CommandSourceStack sender, int page, boolean flag, boolean all, int linesub) {
 		if (terminated) {
 			return;
 		}
@@ -317,8 +316,8 @@ public class MorePageDisplay {
 		if (!flag) {
 			printLastLine(sender);
 		}
-		if (sender instanceof Player) {
-			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), (Player) sender);
+		if (sender.getPlayer() != null) {
+			MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), sender.getPlayer());
 		}
 	}
 

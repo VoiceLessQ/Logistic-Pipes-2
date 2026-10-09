@@ -1,11 +1,10 @@
 package logisticspipes.commands.commands.wrapper;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
 import net.minecraft.network.chat.Component;
 
 import logisticspipes.asm.wrapper.AbstractWrapper;
@@ -22,7 +21,7 @@ public class EnableCommand implements ICommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
 		return LogisticsPipesCommand.isOP(sender);
 	}
 
@@ -32,7 +31,7 @@ public class EnableCommand implements ICommandHandler {
 	}
 
 	@Override
-	public void executeCommand(Player sender, String[] args) {
+	public void executeCommand(CommandSourceStack sender, String[] args) {
 		if (args.length != 1) {
 			sender.sendSystemMessage(Component.literal("Wrong amount of arguments"));
 			return;

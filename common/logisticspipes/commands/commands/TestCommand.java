@@ -1,9 +1,8 @@
 package logisticspipes.commands.commands;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.commands.CommandSourceStack;
 
 import java.lang.reflect.Method;
 
-// Player removed — use net.minecraft.commands.CommandSourceStack
 import net.minecraft.network.chat.Component;
 
 import kotlin.Unit;
@@ -21,7 +20,7 @@ public class TestCommand implements ICommandHandler {
 	}
 
 	@Override
-	public boolean isCommandUsableBy(Player sender) {
+	public boolean isCommandUsableBy(CommandSourceStack sender) {
 		return true;
 	}
 
@@ -31,7 +30,7 @@ public class TestCommand implements ICommandHandler {
 	}
 
 	@Override
-	public void executeCommand(Player sender, String[] args) {
+	public void executeCommand(CommandSourceStack sender, String[] args) {
 		final Class<?> testClass;
 		try {
 			testClass = Class.forName("network.rs485.logisticspipes.integration.MinecraftTest");
