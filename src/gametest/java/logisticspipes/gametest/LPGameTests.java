@@ -333,6 +333,20 @@ public class LPGameTests {
 		helper.succeed();
 	}
 
+	@GameTest(template = "empty")
+	public static void theOneProbeDescribesSatellitePipe(GameTestHelper helper) {
+		if (!net.neoforged.fml.ModList.get().isLoaded(LPConstants.theOneProbeModID)) {
+			helper.succeed();
+			return;
+		}
+		BlockPos abs = helper.absolutePos(PIPE);
+		CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.createPipe(LPItems.pipeSatellite.get());
+		helper.assertTrue(pipe != null && LogisticsBlockGenericPipe.placePipe(pipe, helper.getLevel(), abs, LPBlocks.pipe.get()), "place satellite pipe");
+		List<String> keys = TheOneProbeCheck.probeKeys(helper, abs);
+		helper.assertTrue(keys.equals(List.of("top.logisticspipes.pipe.satellite.no_name", "top.logisticspipes.general.no_upgrades")), "probe keys " + keys);
+		helper.succeed();
+	}
+
 	private static BlockState aeBlock(String path) {
 		return net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(
 				net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(LPConstants.appliedenergisticsModID, path)).defaultBlockState();

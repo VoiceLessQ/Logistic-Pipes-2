@@ -13,8 +13,11 @@ follows [Semantic Versioning](https://semver.org/) where practical.
   network (or only the interface's own slots once it has config set).
 - Storage Drawers support is back: pipes see each drawer's full count and fill
   drawers already holding an item before empty ones.
+- The One Probe support is back: probing a pipe shows its modules, filters,
+  satellite name and upgrades.
 
 ### Fixed
+- The game no longer fails to load when The One Probe is installed.
 - The slot finder works again: the hovered slot shows red, and clicking it
   picks that slot.
 - Hitting a pipe shows particles in the pipe's own texture instead of a

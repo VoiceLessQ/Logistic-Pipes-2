@@ -161,6 +161,10 @@ repositories {
         url = 'https://api.modrinth.com/maven'
         content { includeGroup 'maven.modrinth' }
     }
+    maven {
+        url = 'https://maven.k-4u.nl'
+        content { includeGroup 'mcjty.theoneprobe' }
+    }
 }
 
 dependencies {
@@ -211,6 +215,10 @@ dependencies {
 
     // Storage Drawers 1.21.1-13.11.4 (NeoForge file id) for the drawer handler; runtime Storage Drawers is optional.
     compileOnly("maven.modrinth:storagedrawers:px0CCB06") {
+        transitive = false
+    }
+    // The One Probe API for the pipe info provider; runtime TOP is optional.
+    compileOnly("mcjty.theoneprobe:theoneprobe:1.21_neo-12.0.8-10:api") {
         transitive = false
     }
 

@@ -339,7 +339,7 @@ public class LogisticsPipes {
 
 		if (ModList.get().isLoaded(LPConstants.theOneProbeModID)) {
 			InterModComms.sendTo(LPConstants.theOneProbeModID, "getTheOneProbe",
-					TheOneProbeIntegration.class::getName);
+					TheOneProbeIntegration::new);
 		}
 
 		MainProxy.proxy.initModelLoader();
