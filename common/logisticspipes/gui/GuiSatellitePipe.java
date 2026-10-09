@@ -89,6 +89,14 @@ public class GuiSatellitePipe extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (input.keyPressed(keyCode, scanCode, modifiers)) {
+			return true;
+		}
+		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+
+	@Override
 	public boolean charTyped(char c, int i) {
 		if (!input.handleKey(c, i)) {
 			return super.charTyped(c, i);

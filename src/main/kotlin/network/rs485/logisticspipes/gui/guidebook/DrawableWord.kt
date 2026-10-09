@@ -64,7 +64,7 @@ open class DrawableWord(
 
     init {
         relativeBody.setSize(
-            newWidth = GuiDrawer.lpFontRenderer.width(str),
+            newWidth = GuiDrawer.lpFontRenderer.getStringWidth(str, format.italic(), format.bold(), scale),
             newHeight = GuiDrawer.lpFontRenderer.getFontHeight(scale),
         )
     }
@@ -132,7 +132,7 @@ class DrawableSpace(
     }
 
     fun resetWidth() {
-        setWidth(newWidth = GuiDrawer.lpFontRenderer.width(" "))
+        setWidth(newWidth = GuiDrawer.lpFontRenderer.getStringWidth(" ", format.italic(), format.bold(), scale))
     }
 
     override fun toString(): String {

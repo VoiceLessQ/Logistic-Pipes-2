@@ -22,16 +22,17 @@ public abstract class ModuleBaseGui extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	public boolean charTyped(char typedChar, int keyCode) {
-		if (module == null) {
-			return super.charTyped(typedChar, keyCode);
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (module == null || hasSubGui()) {
+			return super.keyPressed(keyCode, scanCode, modifiers);
 		}
-		if (keyCode == 1 || typedChar == 'e') {
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || minecraft.options.keyInventory.matches(keyCode, scanCode)) {
+			boolean handled = super.keyPressed(keyCode, scanCode, modifiers);
 			if (module.getSlot() == ModulePositionType.SLOT) {
 				MainProxy.sendPacketToServer(PacketHandler.getPacket(GuiOpenChassis.class).setBlockPos(module.getBlockPos()));
 			}
-			return super.charTyped(typedChar, keyCode);
+			return handled;
 		}
-		return super.charTyped(typedChar, keyCode);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 }

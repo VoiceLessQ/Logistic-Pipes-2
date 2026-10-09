@@ -223,53 +223,56 @@ public class GuiEditCCAccessTable extends SubGuiScreen {
 	}
 
 	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (!editSearch) {
+			return super.keyPressed(keyCode, scanCode, modifiers);
+		}
+		if (Screen.isPaste(keyCode)) {
+			try {
+				String clip = net.minecraft.client.Minecraft.getInstance().keyboardHandler.getClipboard();
+				Integer.valueOf(clip);
+				searchInput1 = searchInput1 + clip;
+			} catch (Exception e) {
+				setSubGui(new GuiMessagePopup("Clipboard doesn't", "contain a number."));
+			}
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE) {
+			if (searchInput1.length() > 0) {
+				searchInput1 = searchInput1.substring(0, searchInput1.length() - 1);
+			}
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT) {
+			if (searchInput1.length() > 0) {
+				searchInput2 = searchInput1.substring(searchInput1.length() - 1) + searchInput2;
+				searchInput1 = searchInput1.substring(0, searchInput1.length() - 1);
+			}
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT) {
+			if (searchInput2.length() > 0) {
+				searchInput1 += searchInput2.substring(0, 1);
+				searchInput2 = searchInput2.substring(1);
+			}
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER) {
+			editSearch = false;
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_HOME) {
+			searchInput2 = searchInput1 + searchInput2;
+			searchInput1 = "";
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_END) {
+			searchInput1 = searchInput1 + searchInput2;
+			searchInput2 = "";
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE) {
+			if (searchInput2.length() > 0) {
+				searchInput2 = searchInput2.substring(1);
+			}
+		}
+		return true;
+	}
+
+	@Override
 	public boolean charTyped(char c, int i) {
 		if (editSearch) {
-			if (c == 13) {
-				editSearch = false;
-				return true;
-			} else if (i == 47 && Screen.hasControlDown()) {
-				try {
-					String clip = net.minecraft.client.Minecraft.getInstance().keyboardHandler.getClipboard();
-					Integer.valueOf(clip);
-					searchInput1 = searchInput1 + clip;
-				} catch (Exception e) {
-					setSubGui(new GuiMessagePopup("Clipboard doesn't", "contain a number."));
-				}
-			} else if (c == 8) {
-				if (searchInput1.length() > 0) {
-					searchInput1 = searchInput1.substring(0, searchInput1.length() - 1);
-				}
-				return true;
-			} else if (Character.isDigit(c)) {
+			if (Character.isDigit(c)) {
 				if (minecraft.font.width(searchInput1 + c + searchInput2) <= GuiEditCCAccessTable.searchWidth) {
 					searchInput1 += c;
 				}
 				return true;
-			} else if (i == 203) { //Left
-				if (searchInput1.length() > 0) {
-					searchInput2 = searchInput1.substring(searchInput1.length() - 1) + searchInput2;
-					searchInput1 = searchInput1.substring(0, searchInput1.length() - 1);
-				}
-			} else if (i == 205) { //Right
-				if (searchInput2.length() > 0) {
-					searchInput1 += searchInput2.substring(0, 1);
-					searchInput2 = searchInput2.substring(1);
-				}
-			} else if (i == 1) { //ESC
-				editSearch = false;
-			} else if (i == 28) { //Enter
-				editSearch = false;
-			} else if (i == 199) { //Pos
-				searchInput2 = searchInput1 + searchInput2;
-				searchInput1 = "";
-			} else if (i == 207) { //Ende
-				searchInput1 = searchInput1 + searchInput2;
-				searchInput2 = "";
-			} else if (i == 211) { //Entf
-				if (searchInput2.length() > 0) {
-					searchInput2 = searchInput2.substring(1);
-				}
 			}
 		} else {
 			return super.charTyped(c, i);

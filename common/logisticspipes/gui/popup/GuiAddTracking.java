@@ -140,16 +140,24 @@ public class GuiAddTracking extends SubGuiScreen implements IItemSearch {
 	}
 
 	@Override
-	public boolean charTyped(char c, int i) {
-		if (i == 201) { //PgUp
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP) {
 			itemDisplay.prevPage();
-		} else if (i == 209) { //PgDn
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_DOWN) {
 			itemDisplay.nextPage();
 		} else {
 			// Track everything except Escape when in search bar
-			if (i == 1 || !search.handleKey(c, i)) {
-				return super.charTyped(c, i);
+			if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || !search.keyPressed(keyCode, scanCode, modifiers)) {
+				return super.keyPressed(keyCode, scanCode, modifiers);
 			}
+		}
+		return true;
+	}
+
+	@Override
+	public boolean charTyped(char c, int i) {
+		if (!search.handleKey(c, i)) {
+			return super.charTyped(c, i);
 		}
 		return true;
 	}

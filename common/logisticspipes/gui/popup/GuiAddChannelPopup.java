@@ -109,6 +109,14 @@ public class GuiAddChannelPopup extends SubGuiScreen {
 	}
 
 	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (this.textInput.keyPressed(keyCode, scanCode, modifiers)) {
+			return true;
+		}
+		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+
+	@Override
 	public boolean charTyped(char par1, int par2) {
 		if (!this.textInput.handleKey(par1, par2)) {
 			return super.charTyped(par1, par2);
