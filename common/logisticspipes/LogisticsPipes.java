@@ -285,7 +285,12 @@ public class LogisticsPipes {
 	// other statics
 	public static Textures textures = new Textures();
 	public static final Logger log = LogUtils.getLogger();
-	public static ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+	// Daemon worker: a dedicated server only exits once all non-daemon threads end.
+	public static ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(r -> {
+		Thread t = new Thread(r, "LogisticsPipes Worker");
+		t.setDaemon(true);
+		return t;
+	});
 	public static VersionChecker versionChecker;
 
 	private Queue<Runnable> postInitRun = new LinkedList<>();

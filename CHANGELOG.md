@@ -11,6 +11,8 @@ were lost in the 1.12.2 → 1.20.1 port. Verified in-game (ghost pipe, machine
 rotation/cover plates, HS tubes, HUD glasses panels).
 
 ### Fixed
+- **Dedicated server never exited after `stop`.** It saved the world and then
+  hung; a Logistics Pipes worker thread kept the process alive.
 - **Game failed to start with The One Probe installed.** Logistics Pipes no
   longer registers with The One Probe on 1.20.1 (pipe info in the probe is not
   ported yet).
