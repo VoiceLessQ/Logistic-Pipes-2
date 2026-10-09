@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -122,7 +123,8 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 		// First Tab
 		LPGuiGraphics.drawStatsBackground(minecraft, leftPos + 6, topPos + 3);
 
-		// Second tab background: item icons drawn lazily by TabCrafting.draw()
+		// Second Tab
+		guiGraphics.renderItem(new ItemStack(Blocks.CRAFTING_TABLE), leftPos + 31, topPos + 3);
 	}
 
 	@Override

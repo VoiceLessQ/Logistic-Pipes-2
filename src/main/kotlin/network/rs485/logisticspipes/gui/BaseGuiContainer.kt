@@ -104,6 +104,28 @@ abstract class BaseGuiContainer(
         lastPartialTick = partialTick
         renderBackground(guiGraphics)
         super.render(guiGraphics, mouseX, mouseY, partialTick)
+        val floatMouseX = mouseX.toFloat()
+        val floatMouseY = mouseY.toFloat()
+        widgetScreen.updateHoveredState(floatMouseX, floatMouseY)
+        (widgetScreen.hoveredWidget as? Tooltipped)?.getTooltipText()?.takeIf { it.isNotEmpty() }?.also {
+            GuiDrawer.drawTextTooltip(it, mouseX, mouseY, 0f, HorizontalAlignment.LEFT, VerticalAlignment.TOP)
+        } ?: renderTooltip(guiGraphics, mouseX, mouseY)
+        fuzzySelector?.let { fuzzySelector ->
+            val slot = hoveredSlot
+            if (slot == null && fuzzySelector.active && !fuzzySelector.isMouseHovering(floatMouseX, floatMouseY)) {
+                fuzzySelector.active = false
+                fuzzySelector.currentSlot = null
+            } else if (slot is FuzzyItemSlot && slot != fuzzySelector.currentSlot) {
+                fuzzySelector.active = true
+                fuzzySelector.currentSlot = slot
+                fuzzySelector.setPos(leftPos + slot.x, topPos + slot.y + 17)
+            }
+            // above item tooltips (z 400)
+            guiGraphics.pose().pushPose()
+            guiGraphics.pose().translate(0f, 0f, 500f)
+            fuzzySelector.draw(floatMouseX, floatMouseY, partialTick, Screen.screen)
+            guiGraphics.pose().popPose()
+        }
     }
 
     override fun renderLabels(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int) {
@@ -121,11 +143,20 @@ abstract class BaseGuiContainer(
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+        if (fuzzySelector?.takeIf { it.active }?.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), button) == true) {
+            return true
+        }
         val hovered = widgetScreen.widgetContainer.getHovered(mouseX.toFloat(), mouseY.toFloat())
         if (hovered is MouseInteractable) {
             if (hovered.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), button)) return true
         }
         return super.mouseClicked(mouseX, mouseY, button)
+    }
+
+    override fun slotClicked(slot: Slot?, slotId: Int, mouseButton: Int, type: ClickType) {
+        // client-side filter fill; the property layer syncs it on close
+        if (type == ClickType.QUICK_MOVE && slot != null && baseContainer.tryTransferSlotToGhostSlot(slot.index)) return
+        super.slotClicked(slot, slotId, mouseButton, type)
     }
 
     override fun renderBg(

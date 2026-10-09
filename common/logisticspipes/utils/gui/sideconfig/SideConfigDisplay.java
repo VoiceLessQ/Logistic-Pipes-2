@@ -18,9 +18,12 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
@@ -235,7 +238,7 @@ public abstract class SideConfigDisplay {
 			return;
 		}
 		applyCamera(partialTick);
-		renderScene();
+		renderScene(partialTick);
 		renderSelection();
 		renderOverlay(par1, par2);
 	}
@@ -279,7 +282,7 @@ public abstract class SideConfigDisplay {
 		RenderSystem.viewport(0, 0, win.getWidth(), win.getHeight());
 	}
 
-	private void renderScene() {
+	private void renderScene(float partialTick) {
 		RenderSystem.enableCull();
 		RenderSystem.enableDepthTest();
 
@@ -293,6 +296,15 @@ public abstract class SideConfigDisplay {
 		if (renderNeighbours) {
 			for (DoubleCoordinates coord : neighbours) {
 				renderBlockAt(coord, blockRenderer, bufferSource, poseStack, true);
+			}
+		}
+		// pipes are ENTITYBLOCK_ANIMATED, only their block entity renderer draws them
+		for (DoubleCoordinates coord : configurables) {
+			renderBlockEntityAt(coord, bufferSource, poseStack, partialTick);
+		}
+		if (renderNeighbours) {
+			for (DoubleCoordinates coord : neighbours) {
+				renderBlockEntityAt(coord, bufferSource, poseStack, partialTick);
 			}
 		}
 		bufferSource.endBatch();
@@ -318,6 +330,21 @@ public abstract class SideConfigDisplay {
 		if (transparent) {
 			RenderSystem.disableBlend();
 		}
+	}
+
+	private void renderBlockEntityAt(DoubleCoordinates coord, MultiBufferSource.BufferSource bufferSource,
+			PoseStack poseStack, float partialTick) {
+		BlockPos pos = new BlockPos(coord.getXInt(), coord.getYInt(), coord.getZInt());
+		BlockEntity be = world.getBlockEntity(pos);
+		if (be == null) return;
+		BlockEntityRenderer<BlockEntity> renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(be);
+		if (renderer == null) return;
+		poseStack.pushPose();
+		poseStack.translate(pos.getX() - origin.x, pos.getY() - origin.y, pos.getZ() - origin.z);
+		try {
+			renderer.render(be, partialTick, poseStack, bufferSource, LevelRenderer.getLightColor(world, pos), OverlayTexture.NO_OVERLAY);
+		} catch (Exception ignored) {}
+		poseStack.popPose();
 	}
 
 	public void renderBlock(BlockState state, BlockPos pos, BlockGetter blockAccess, BufferBuilder worldRendererIn) {
