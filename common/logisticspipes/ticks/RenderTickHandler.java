@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -25,6 +26,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.RenderTickEvent;
@@ -55,18 +57,27 @@ public class RenderTickHandler {
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void renderTick(RenderTickEvent event) {
 		if (event.phase == Phase.START) {
-			if (GuiOverlay.getInstance().isCompatibleGui()) {
-				GuiOverlay.getInstance().preRender();
-			}
 			ClientViewController.instance().tick();
 		} else {
 			renderTicks++;
 			// TODO: migrate HUD rendering to 1.20 PoseStack / GameRenderer approach.
 			// mc.entityRenderer.setupCameraTransform() and ActiveRenderInfo.updateRenderInfo() were removed.
 			// See Task #7 (GameRenderer.setupCamera AT entry).
-			if (GuiOverlay.getInstance().isCompatibleGui()) {
-				GuiOverlay.getInstance().renderOverGui();
-			}
+		}
+	}
+
+	@SubscribeEvent
+	public void slotFinderRender(ScreenEvent.Render.Post event) {
+		if (event.getScreen() instanceof AbstractContainerScreen<?> gui) {
+			GuiOverlay.getInstance().render(gui, event.getGuiGraphics(), event.getMouseX(), event.getMouseY());
+		}
+	}
+
+	@SubscribeEvent
+	public void slotFinderClick(ScreenEvent.MouseButtonPressed.Pre event) {
+		if (event.getScreen() instanceof AbstractContainerScreen<?> gui
+				&& GuiOverlay.getInstance().mouseClicked(gui, event.getMouseX(), event.getMouseY(), event.getButton())) {
+			event.setCanceled(true);
 		}
 	}
 
@@ -93,7 +104,6 @@ public class RenderTickHandler {
 		MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
 		int packedLight = 0xF000F0;
 
-		long renderTicks = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0L;
 		LogisticsHUDRenderer.instance().renderWorldRelative(renderTicks, partialTick, poseStack, bufferSource, packedLight);
 		bufferSource.endBatch();
 

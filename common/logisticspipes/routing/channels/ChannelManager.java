@@ -32,7 +32,8 @@ public class ChannelManager implements IChannelManager {
 
 	public ChannelManager(@Nonnull Level world) {
 		if (world instanceof ServerLevel) {
-			savedData = ((ServerLevel) world).getDataStorage().computeIfAbsent(
+			// overworld storage = LP1's global map storage; per-dimension storage split channels
+			savedData = ((ServerLevel) world).getServer().overworld().getDataStorage().computeIfAbsent(
 					ChannelSavedData::load, ChannelSavedData::new, DATA_NAME
 			);
 		} else {
