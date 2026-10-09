@@ -319,8 +319,6 @@ public class LogisticsEventListener {
 				if (checker.isVersionCheckDone() && checker.getVersionInfo().isNewVersionAvailable() && !checker.getVersionInfo().isImcMessageSent()) {
 					playerEntity.sendSystemMessage(Component.literal(versionMessage));
 					playerEntity.sendSystemMessage(Component.literal("Use \"/logisticspipes changelog\" to see a changelog."));
-				} else if (!checker.isVersionCheckDone()) {
-					playerEntity.sendSystemMessage(Component.literal(versionMessage));
 				}
 			});
 		}
