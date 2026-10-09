@@ -52,7 +52,7 @@ public class FreqCardGui extends CoordinatesGuiProvider {
 		DummyContainer dummy = new DummyContainer(player.getInventory(), inv);
 		dummy.addRestrictedSlot(0, inv, 82, 15, itemStack ->
 				!itemStack.isEmpty() && itemStack.getItem() == LPItems.itemCard.get()
-						&& itemStack.getDamageValue() == LogisticsItemCard.FREQ_CARD);
+						&& LogisticsItemCard.getCardType(itemStack) == LogisticsItemCard.FREQ_CARD);
 		dummy.addNormalSlotsForPlayerInventory(10, 45);
 		return dummy;
 	}

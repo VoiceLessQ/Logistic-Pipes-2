@@ -1,10 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["lrl", "rgr", "lrl"],
+  "pattern": ["cd", "dc"],
   "key": {
-    "l": {"item": "minecraft:lapis_lazuli"},
-    "r": {"item": "minecraft:redstone"},
-    "g": {"item": "minecraft:gold_ingot"}
+    "c": {"item": "logisticspipes:chip_basic_raw"},
+    "d": {"tag": "forge:gems/diamond"}
   },
   "result": {"item": "logisticspipes:chip_advanced_raw", "count": 2}
 }

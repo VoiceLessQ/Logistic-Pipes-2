@@ -1,10 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["rdr", "dgd", "rdr"],
+  "pattern": ["sds", "grg", "sls"],
   "key": {
-    "r": {"item": "minecraft:redstone"},
-    "d": {"item": "minecraft:diamond"},
-    "g": {"item": "minecraft:gold_ingot"}
+    "s": {"tag": "forge:sand"},
+    "d": {"tag": "forge:gems/diamond"},
+    "g": {"tag": "forge:ingots/gold"},
+    "r": {"tag": "forge:dusts/redstone"},
+    "l": {"tag": "forge:gems/lapis"}
   },
-  "result": {"item": "logisticspipes:chip_fpga_raw", "count": 1}
+  "result": {"item": "logisticspipes:chip_fpga_raw", "count": 16}
 }

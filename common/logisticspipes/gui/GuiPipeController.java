@@ -183,7 +183,7 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 						if (itemStack.getItem() != LPItems.itemCard.get()) {
 							return false;
 						}
-						if (itemStack.getDamageValue() != LogisticsItemCard.SEC_CARD) {
+						if (LogisticsItemCard.getCardType(itemStack) != LogisticsItemCard.SEC_CARD) {
 							return false;
 						}
 						return SimpleServiceLocator.securityStationManager

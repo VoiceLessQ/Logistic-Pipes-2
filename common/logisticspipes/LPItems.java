@@ -49,8 +49,7 @@ public class LPItems {
 	public static final RegistryObject<ItemLogisticsPipe> requestTable             = LPRegistries.PIPE_REQUEST_TABLE;
 
 	// Logistics Fluid Pipes
-	// NOTE: pipeFluidBasic and pipeFluidTerminus have no corresponding pipe class (removed upstream).
-	public static final RegistryObject<? extends Item>    pipeFluidBasic           = null; // unregistered — PipeFluidBasic removed
+	public static final RegistryObject<ItemLogisticsPipe> pipeFluidBasic           = LPRegistries.PIPE_FLUID_BASIC;
 	public static final RegistryObject<ItemLogisticsPipe> pipeFluidRequest         = LPRegistries.PIPE_FLUID_REQUEST;
 	public static final RegistryObject<ItemLogisticsPipe> pipeFluidProvider        = LPRegistries.PIPE_FLUID_PROVIDER;
 	public static final RegistryObject<ItemLogisticsPipe> pipeFluidSatellite       = LPRegistries.PIPE_FLUID_SATELLITE;
@@ -58,7 +57,7 @@ public class LPItems {
 	public static final RegistryObject<ItemLogisticsPipe> pipeFluidSupplierMk2     = LPRegistries.PIPE_FLUID_SUPPLIER_MK2;
 	public static final RegistryObject<ItemLogisticsPipe> pipeFluidInsertion       = LPRegistries.PIPE_FLUID_INSERTION;
 	public static final RegistryObject<ItemLogisticsPipe> pipeFluidExtractor       = LPRegistries.PIPE_FLUID_EXTRACTOR;
-	public static final RegistryObject<? extends Item>    pipeFluidTerminus        = null; // unregistered — PipeFluidTerminus removed
+	public static final RegistryObject<ItemLogisticsPipe> pipeFluidTerminus        = LPRegistries.PIPE_FLUID_TERMINUS;
 
 	// Modules / Upgrades
 	public static final RegistryObject<ItemBlankModule>      blankModule          = LPRegistries.MODULE_BLANK;
