@@ -1,29 +1,15 @@
 package logisticspipes.ticks;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import net.minecraft.nbt.CompoundTag;
-
-import net.minecraftforge.fml.ModList;
-
-
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
 import lombok.Data;
 
 import logisticspipes.LogisticsPipes;
 
 public final class VersionChecker implements Callable<VersionChecker.VersionInfo> {
-
-	public static final int COMMIT_MAX_LINE_LENGTH = 60;
 
 	private static Future<VersionInfo> versionCheckFuture;
 	private String statusString;
@@ -67,7 +53,7 @@ public final class VersionChecker implements Callable<VersionChecker.VersionInfo
 					if (LogisticsPipes.isDevelopmentEnvironment()) {
 						return "You are running Logistics Pipes from a development environment.";
 					} else {
-						return "It seems you are missing the current version information on Logistics Pipes. There is no version checking available.";
+						return "Version checking is not available for this Logistics Pipes build.";
 					}
 				} else {
 					if (versionInfo.isNewVersionAvailable()) {
@@ -88,95 +74,9 @@ public final class VersionChecker implements Callable<VersionChecker.VersionInfo
 	}
 
 	@Override
-	public VersionInfo call() throws Exception {
-		if (LogisticsPipes.UNKNOWN.equals(LogisticsPipes.getVERSION())) {
-			return null;
-		}
-
-		VersionInfo versionInfo = new VersionInfo();
-		URL url = new URL(String.format("http://rs485.network/version?VERSION=%s:%b", LogisticsPipes.getVERSION(), LogisticsPipes.isDEBUG()));
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		InputStream inputStream = (InputStream) conn.getContent();
-		String jsonString;
-		try (Scanner sc = new Scanner(inputStream)) {
-			sc.useDelimiter("\\A");
-			jsonString = sc.next();
-		}
-
-		Gson gson = new Gson();
-		LinkedTreeMap part = gson.fromJson(jsonString, LinkedTreeMap.class);
-
-		Boolean hasNew = (Boolean) part.get("new");
-		versionInfo.setNewVersionAvailable(hasNew);
-		if (hasNew) {
-			versionInfo.setNewestBuild(String.valueOf(part.get("build")));
-			LogisticsPipes.log.info("New Logistics Pipes build found: #" + versionInfo.getNewestBuild());
-
-			@SuppressWarnings("unchecked")
-			LinkedTreeMap<String, List<String>> changelog = (LinkedTreeMap<String, List<String>>) part.get("changelog");
-
-			List<String> changeLogList = new ArrayList<>();
-			if (changelog != null) {
-				for (String build : changelog.keySet()) {
-					changeLogList.add(build + ": ");
-					for (String commit : changelog.get(build)) {
-						if (commit.length() > COMMIT_MAX_LINE_LENGTH) {
-							String prefix = "    ";
-							boolean first = true;
-							while (!commit.isEmpty()) {
-								int maxLength;
-								if (first) {
-									maxLength = COMMIT_MAX_LINE_LENGTH;
-								} else {
-									maxLength = COMMIT_MAX_LINE_LENGTH - prefix.length();
-								}
-								int splitAt = commit.substring(0, Math.min(maxLength, commit.length())).lastIndexOf(' ');
-								if (commit.length() < COMMIT_MAX_LINE_LENGTH) {
-									splitAt = commit.length();
-								}
-								if (splitAt <= 0) {
-									splitAt = Math.min(maxLength, commit.length());
-								} else if (commit.length() > COMMIT_MAX_LINE_LENGTH && splitAt < COMMIT_MAX_LINE_LENGTH - 20) {
-									splitAt = Math.min(maxLength, commit.length());
-								}
-								changeLogList.add((first ? "" : prefix) + commit.substring(0, splitAt));
-								commit = commit.substring(splitAt);
-								first = false;
-							}
-						} else {
-							changeLogList.add(commit);
-						}
-					}
-				}
-			}
-
-			versionInfo.setChangelog(changeLogList);
-			sendIMCOutdatedMessage(versionInfo);
-		}
-		return versionInfo;
-	}
-
-	/**
-	 * Integration with Version Checker
-	 * (http://www.minecraftforum.net/topic/2721902-/)
-	 */
-	private void sendIMCOutdatedMessage(VersionInfo versionInfo) {
-		if (ModList.get().isLoaded("VersionChecker")) {
-			CompoundTag tag = new CompoundTag();
-			tag.putString("oldVersion", LogisticsPipes.getVERSION());
-			tag.putString("newVersion", versionInfo.getNewestBuild());
-			tag.putString("updateUrl", "http://ci.rs485.network/view/Logistics%20Pipes/");
-			tag.putBoolean("isDirectLink", false);
-
-			StringBuilder stringBuilder = new StringBuilder();
-			for (String changeLogLine : versionInfo.getChangelog()) {
-				stringBuilder.append(changeLogLine).append("\n");
-			}
-			tag.putString("changeLog", stringBuilder.toString());
-			// FMLInterModComms.sendRuntimeMessage removed in 1.20.1 — TODO: use InterModComms.sendTo if needed
-			// FMLInterModComms.sendRuntimeMessage("LogisticsPipes", "VersionChecker", "addUpdate", tag);
-			versionInfo.setImcMessageSent(true);
-		}
+	public VersionInfo call() {
+		// LP1's update server (rs485.network) is offline; there is nothing to ask.
+		return null;
 	}
 
 	@Data
