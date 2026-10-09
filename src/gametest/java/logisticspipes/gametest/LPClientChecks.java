@@ -95,7 +95,15 @@ public final class LPClientChecks {
 						msg -> logisticspipes.LogisticsPipes.log.info("LPCHECK INFO crafting screenshot: {}", msg.getString()));
 				case SETTLE_TICKS + 15 -> {
 					mc.setScreen(null);
-					drawHud = false;
+					startTheOneProbe(mc);
+				}
+				// TOP polls the server for probe info; give it time to answer and draw
+				case SETTLE_TICKS + 55 -> {
+					if (TOP_LOADED) Screenshot.grab(mc.gameDirectory, "lpcheck_top.png", mc.getMainRenderTarget(),
+							msg -> logisticspipes.LogisticsPipes.log.info("LPCHECK INFO top screenshot: {}", msg.getString()));
+				}
+				case SETTLE_TICKS + 56 -> {
+					mc.options.keyShift.setDown(false);
 					logisticspipes.LogisticsPipes.log.info("LPCHECK DONE failures={}", failures);
 					mc.stop();
 				}
@@ -232,6 +240,29 @@ public final class LPClientChecks {
 		result("inputbar.clickFocuses", focusedIn, "focused after inside click=" + focusedIn);
 		result("inputbar.editingKeys", "a".equals(text), "text after a,b,backspace='" + text + "'");
 		result("inputbar.clickOutsideUnfocuses", !focusedOut, "focused after outside click=" + focusedOut);
+	}
+
+	private static final boolean TOP_LOADED = net.neoforged.fml.ModList.get().isLoaded(LPConstants.theOneProbeModID);
+
+	/** TOP: LPText draws through the reflected RenderHelper, then the real overlay over a routed pipe for the screenshot. */
+	private static void startTheOneProbe(Minecraft mc) throws ReflectiveOperationException {
+		if (!TOP_LOADED) {
+			logisticspipes.LogisticsPipes.log.info("LPCHECK INFO top: The One Probe not installed, skipped");
+			return;
+		}
+		// the probe step waits 40 ticks; a pause menu from lost focus would cover the screenshot
+		mc.options.pauseOnLostFocus = false;
+		String problem = TheOneProbeClientCheck.drawElement(mc);
+		result("top.drawElement", problem == null, problem == null ? "LPText drawn" : problem);
+		for (LogisticsTileGenericPipe pipe : loadedPipes(mc)) {
+			BlockPos pos = pipe.getBlockPos();
+			if (pipe.pipe instanceof logisticspipes.pipes.basic.CoreRoutedPipe && mc.level.isEmptyBlock(pos.above()) && mc.level.isEmptyBlock(pos.above(2))) {
+				TheOneProbeClientCheck.lookAtPipe(mc, pos);
+				logisticspipes.LogisticsPipes.log.info("LPCHECK INFO top: looking down at {} {}", pipe.pipe.getClass().getSimpleName(), pos);
+				return;
+			}
+		}
+		result("top.overlay", false, "no routed pipe with two air blocks above");
 	}
 
 	/** Disconnection popup over a routed pipe; the screenshot should show the pipe model. */

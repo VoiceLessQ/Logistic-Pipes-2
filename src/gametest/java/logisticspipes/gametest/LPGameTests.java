@@ -12,6 +12,10 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +39,10 @@ import logisticspipes.LPBlocks;
 import logisticspipes.LPConstants;
 import logisticspipes.LPItems;
 import logisticspipes.config.Configs;
+import logisticspipes.routing.IRouter;
+import logisticspipes.pipes.basic.CoreRoutedPipe;
 import logisticspipes.pipes.basic.CoreUnroutedPipe;
+import logisticspipes.proxy.SimpleServiceLocator;
 import logisticspipes.pipes.basic.LogisticsBlockGenericPipe;
 import logisticspipes.pipes.basic.LogisticsTileGenericPipe;
 import logisticspipes.routing.channels.ChannelInformation;
@@ -75,6 +82,42 @@ public class LPGameTests {
 		float actual = state.getDestroyProgress(player, helper.getLevel(), abs);
 		helper.assertTrue(Math.abs(actual - expected) < 1e-5F,
 				"destroy progress " + actual + ", expected " + expected + " (pipeDurability " + Configs.pipeDurability + ")");
+		helper.succeed();
+	}
+
+	/** A survival player breaking a pipe gets the pipe item and its upgrades back. */
+	@GameTest(template = "empty")
+	public static void pipeBreakDropsPipeAndUpgrades(GameTestHelper helper) {
+		LogisticsTileGenericPipe tile = placeBasicPipe(helper);
+		BlockPos abs = helper.absolutePos(PIPE);
+		Item speed = logisticspipes.items.ItemUpgrade.getAndCheckUpgrade(LPItems.upgrades.get(logisticspipes.pipes.upgrades.SpeedUpgrade.getName()));
+		((CoreRoutedPipe) tile.pipe).getOriginalUpgradeManager().inv.setItem(0, new ItemStack(speed));
+		// FakePlayer: a mock ServerPlayer logs in and LP's login packet fails on its unnegotiated connection
+		ServerPlayer player = net.neoforged.neoforge.common.util.FakePlayerFactory.getMinecraft(helper.getLevel());
+		player.setGameMode(GameType.SURVIVAL);
+		helper.assertTrue(player.gameMode.destroyBlock(abs), "destroyBlock refused");
+		List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(abs).inflate(2));
+		long pipes = drops.stream().filter(e -> e.getItem().is(LPItems.pipeBasic.get())).mapToInt(e -> e.getItem().getCount()).sum();
+		long upgrades = drops.stream().filter(e -> e.getItem().is(speed)).mapToInt(e -> e.getItem().getCount()).sum();
+		helper.assertTrue(pipes == 1 && upgrades == 1, "drops " + drops.stream().map(ItemEntity::getItem).toList());
+		drops.forEach(ItemEntity::discard);
+		helper.succeed();
+	}
+
+	/** Chunk unload (onChunkUnloaded, then setRemoved) keeps the router registered, like LP1; a break destroys it. */
+	@GameTest(template = "empty")
+	public static void chunkUnloadKeepsRouter(GameTestHelper helper) {
+		LogisticsTileGenericPipe tile = placeBasicPipe(helper);
+		CoreRoutedPipe pipe = (CoreRoutedPipe) tile.pipe;
+		IRouter router = pipe.getRouter();
+		int id = router.getSimpleID();
+		tile.onChunkUnloaded();
+		tile.setRemoved();
+		boolean kept = SimpleServiceLocator.routerManager.getRouter(id) == router;
+		// the unload flag sticks to this block entity; release the router as a real reload would replace it
+		pipe.invalidate();
+		boolean released = SimpleServiceLocator.routerManager.getRouter(id) == null;
+		helper.assertTrue(kept && released, "kept after unload=" + kept + " released after invalidate=" + released);
 		helper.succeed();
 	}
 
