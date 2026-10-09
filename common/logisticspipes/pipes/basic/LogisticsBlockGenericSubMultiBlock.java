@@ -32,7 +32,7 @@ public class LogisticsBlockGenericSubMultiBlock extends Block implements EntityB
 	public static boolean redirectedToMainPipe = false;
 
 	public LogisticsBlockGenericSubMultiBlock() {
-		super(BlockBehaviour.Properties.of().strength(1.5F).noOcclusion());
+		super(BlockBehaviour.Properties.of().strength(0.5F).noOcclusion());
 	}
 
 	@Override

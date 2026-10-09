@@ -24,12 +24,19 @@ public class ItemLogisticsProgrammer extends LogisticsItem {
 		super(new Item.Properties().stacksTo(1));
 	}
 
+	@Override
+	public boolean hasCraftingRemainingItem() {
+		return true;
+	}
+
 	@Nonnull
 	@Override
 	public ItemStack getCraftingRemainingItem(@Nonnull ItemStack itemStack) {
-		ItemStack items = super.getCraftingRemainingItem(itemStack);
-		items.setTag(itemStack.getTag());
-		return items;
+		ItemStack remainder = new ItemStack(this);
+		if (itemStack.hasTag()) {
+			remainder.setTag(itemStack.getTag().copy());
+		}
+		return remainder;
 	}
 
 	@Override

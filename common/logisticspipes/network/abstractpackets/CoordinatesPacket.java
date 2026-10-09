@@ -150,6 +150,17 @@ public abstract class CoordinatesPacket extends ModernPacket {
 		return getPipe(world, LTGPCompletionCheck.NONE);
 	}
 
+	/**
+	 * Retrieves pipe at packet coordinates in the given world, or {@code null} if there is none.
+	 */
+	public LogisticsTileGenericPipe getPipeOrNull(Level world) {
+		if (world == null) {
+			return null;
+		}
+		BlockEntity tile = world.getBlockEntity(new BlockPos(getPosX(), getPosY(), getPosZ()));
+		return tile instanceof LogisticsTileGenericPipe ? (LogisticsTileGenericPipe) tile : null;
+	}
+
 	@Nonnull
 	public LogisticsTileGenericPipe getPipe(Level world, LTGPCompletionCheck check) {
 		LogisticsTileGenericPipe pipe = getTileAs(world, LogisticsTileGenericPipe.class);

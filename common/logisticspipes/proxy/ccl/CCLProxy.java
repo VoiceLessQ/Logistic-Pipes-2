@@ -147,8 +147,8 @@ public class CCLProxy implements ICCLProxy {
 	}
 
 	@Override
-	public Object getRotation(double angleDegrees, int axisX, int axisY, int axisZ) {
-		return LPTransformOp.rotation(Math.toRadians(angleDegrees), axisX, axisY, axisZ);
+	public Object getRotation(double angleRadians, int axisX, int axisY, int axisZ) {
+		return LPTransformOp.rotation(angleRadians, axisX, axisY, axisZ);
 	}
 
 	@Override

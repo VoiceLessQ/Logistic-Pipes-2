@@ -48,7 +48,7 @@ public interface ICCLProxy {
 
 	boolean isActivated();
 
-	Object getRotation(double d, int i, int j, int k);
+	Object getRotation(double angleRadians, int i, int j, int k);
 
 	IModel3D combine(Collection<IModel3D> list);
 
