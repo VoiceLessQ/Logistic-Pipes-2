@@ -16,8 +16,25 @@ import logisticspipes.proxy.MainProxy;
 
 public class ItemHUDArmor extends ArmorItem implements IHUDArmor, ILogisticsItem {
 
+	/** LP1 HUD glasses: no armour points, not dyeable (leather tinted the texture brown). */
+	private static final net.minecraft.world.item.ArmorMaterial HUD_MATERIAL = new net.minecraft.world.item.ArmorMaterial() {
+		@Override public int getDurabilityForType(@Nonnull ArmorItem.Type type) { return 0; }
+		@Override public int getDefenseForType(@Nonnull ArmorItem.Type type) { return 0; }
+		@Override public int getEnchantmentValue() { return 0; }
+		@Override @Nonnull public net.minecraft.sounds.SoundEvent getEquipSound() { return net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_LEATHER; }
+		@Override @Nonnull public net.minecraft.world.item.crafting.Ingredient getRepairIngredient() { return net.minecraft.world.item.crafting.Ingredient.EMPTY; }
+		@Override @Nonnull public String getName() { return logisticspipes.LPConstants.LP_MOD_ID + ":hud"; }
+		@Override public float getToughness() { return 0f; }
+		@Override public float getKnockbackResistance() { return 0f; }
+	};
+
 	public ItemHUDArmor() {
-		super(net.minecraft.world.item.ArmorMaterials.LEATHER, ArmorItem.Type.HELMET, new Properties());
+		super(HUD_MATERIAL, ArmorItem.Type.HELMET, new Properties());
+	}
+
+	@Override
+	public String getArmorTexture(ItemStack stack, net.minecraft.world.entity.Entity entity, net.minecraft.world.entity.EquipmentSlot slot, String type) {
+		return logisticspipes.LPConstants.LP_MOD_ID + ":textures/armor/logisticshud_1.png";
 	}
 
 	@Nonnull

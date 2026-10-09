@@ -685,7 +685,17 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 		System.arraycopy(Direction.values(), 0, DIR_VALUES, 1, Direction.values().length);
 	}
 
-	// getBlockHardness removed in 1.20.1 — set via BlockBehaviour.Properties.strength() in constructor
+	@Override
+	public float getDestroyProgress(@Nonnull BlockState state, @Nonnull Player player, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
+		return pipeDestroyProgress(state, player, level, pos);
+	}
+
+	/** LP1 getBlockHardness: break time follows Configs.pipeDurability, read after config load. */
+	public static float pipeDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+		int divisor = net.minecraftforge.event.ForgeEventFactory.doPlayerHarvestCheck(player, state, !state.requiresCorrectToolForDrops() || player.hasCorrectToolForDrops(state)) ? 30 : 100;
+		return player.getDigSpeed(state, pos) / Configs.pipeDurability / divisor;
+	}
+
 	// getRenderType removed in 1.20.1 — MODEL is the default
 	// getRenderLayer removed in 1.20.1 — use ItemBlockRenderTypes.setRenderLayer in client setup
 	// isFullBlock / isFullCube / isNormalCube / isOpaqueCube / isTopSolid — all removed in 1.20.1
@@ -816,10 +826,28 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	// @Override
 	// public boolean addHitEffects(BlockState state, Level world, HitResult target, ParticleEngine effectRenderer) { ... }
 
-	// TODO: addDestroyEffects rendering — migrate to NeoForge IBlockExtension.addDestroyEffects with ParticleEngine (deferred)
-	// @OnlyIn(Dist.CLIENT)
-	// @Override
-	// public boolean addDestroyEffects(BlockState state, Level world, BlockPos pos, ParticleEngine effectRenderer) { ... }
+	// LP1 addDestroyEffects: the pipe model breaks into shards (LogisticsNewRenderPipe.renderDestruction)
+	@Override
+	public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientBlockExtensions> consumer) {
+		consumer.accept(ClientExtensionsHolder.EXTENSIONS);
+	}
+
+	/** Client-only references, loaded lazily so dedicated servers never touch them. */
+	private static final class ClientExtensionsHolder {
+		static final net.minecraftforge.client.extensions.common.IClientBlockExtensions EXTENSIONS =
+			new net.minecraftforge.client.extensions.common.IClientBlockExtensions() {
+				@Override
+				public boolean addDestroyEffects(BlockState state, Level level, BlockPos pos, net.minecraft.client.particle.ParticleEngine manager) {
+					CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(level, pos);
+					if (pipe == null || pipe.container == null || pipe.container.renderState.cachedRenderer == null
+							|| !(level instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel)) {
+						return false;
+					}
+					logisticspipes.renderer.newpipe.LogisticsNewRenderPipe.renderDestruction(pipe, clientLevel, pos.getX(), pos.getY(), pos.getZ(), manager);
+					return true;
+				}
+			};
+	}
 
 private void checkForRenderChanges(BlockGetter worldIn, BlockPos blockPos) {
 		BlockEntity tile = new DoubleCoordinates(blockPos).getTileEntity(worldIn);

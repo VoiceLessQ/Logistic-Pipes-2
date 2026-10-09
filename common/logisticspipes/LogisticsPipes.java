@@ -223,6 +223,7 @@ public class LogisticsPipes {
 		instance = this;
 		loadManifestValues(LogisticsPipes.class.getClassLoader());
 		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Configs.SPEC);
+		modEventBus.addListener(Configs::onReload);
 		LPRegistries.register(modEventBus);
 
 		modEventBus.addListener(this::preInit);

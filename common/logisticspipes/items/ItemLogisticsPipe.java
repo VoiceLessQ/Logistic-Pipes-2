@@ -82,7 +82,7 @@ public class ItemLogisticsPipe extends LogisticsItem {
 		}
 
 		if (!dummyPipe.isMultiBlock()) {
-			if (player.mayUseItemAt(pos, facing, itemstack) && world.isEmptyBlock(pos)) {
+			if (player.mayUseItemAt(pos, facing, itemstack) && mayPlace(world, block, pos)) {
 				CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.createPipe(this);
 
 				if (pipe == null) {
@@ -129,7 +129,7 @@ public class ItemLogisticsPipe extends LogisticsItem {
 			placeAt.add(orientation.getOffset());
 
 			for (DoubleCoordinatesType<CoreMultiBlockPipe.SubBlockTypeForShare> iPos : globalPos) {
-				if (!player.mayUseItemAt(iPos.getBlockPos(), facing, itemstack) || !world.isEmptyBlock(iPos.getBlockPos())) {
+				if (!player.mayUseItemAt(iPos.getBlockPos(), facing, itemstack) || !mayPlace(world, block, iPos.getBlockPos())) {
 					BlockEntity tile = world.getBlockEntity(iPos.getBlockPos());
 					boolean canPlace = false;
 					if (tile instanceof LogisticsTileGenericSubMultiBlock) {
@@ -201,6 +201,12 @@ public class ItemLogisticsPipe extends LogisticsItem {
 
 	public void setDummyPipe(CoreUnroutedPipe pipe) {
 		dummyPipe = pipe;
+	}
+
+	/** LP1 World.mayPlace: replaceable target and no entity in the way. */
+	private static boolean mayPlace(Level world, Block block, BlockPos pos) {
+		return world.getBlockState(pos).canBeReplaced()
+				&& world.isUnobstructed(block.defaultBlockState(), pos, net.minecraft.world.phys.shapes.CollisionContext.empty());
 	}
 
 	@Override

@@ -277,7 +277,7 @@ public abstract class PipeLogisticsChassis extends CoreRoutedPipe
 	public void readFromNBT(@Nonnull CompoundTag tag) {
 		super.readFromNBT(tag);
 		_moduleInventory.readFromNBT(tag, "chassi");
-
+		_module.fitModuleCount(getChassisSize());
 
 		// register slotted modules
 		_module.slottedModules()

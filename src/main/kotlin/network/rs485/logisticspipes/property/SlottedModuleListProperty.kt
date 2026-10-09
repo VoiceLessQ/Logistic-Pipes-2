@@ -60,8 +60,9 @@ class SlottedModuleListProperty(slots: Int, override val tagKey: String) :
         val logisticsModule = itemModule?.getModule(null, null, null)
         return logisticsModule?.let { module ->
             module.readFromNBT(slottedModuleTag)
-            SlottedModule(slot = slot, module = module).also { list[slot] = it }
-        } ?: list[slot]
+            // slot may exceed the list when chassisSlots was lowered since the save
+            SlottedModule(slot = slot, module = module).also { if (slot < list.size) list[slot] = it }
+        } ?: list.getOrElse(slot) { defaultValue(it) }
     }
 
     override fun writeSingleToNBT(tag: CompoundTag, key: String, value: SlottedModule) {

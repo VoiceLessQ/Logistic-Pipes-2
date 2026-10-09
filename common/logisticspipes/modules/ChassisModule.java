@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 
 import com.google.common.collect.ImmutableList;
 
+import logisticspipes.LogisticsPipes;
 import logisticspipes.interfaces.IInventoryUtil;
 import logisticspipes.interfaces.ISlotUpgradeManager;
 import logisticspipes.network.NewGuiHandler;
@@ -58,6 +59,22 @@ public class ChassisModule extends LogisticsModule implements Gui {
 			.add(modules)
 			.add(slotUpgradeManagers)
 			.build();
+	}
+
+	/** Fits slot lists saved under another chassisSlots value (LP1 crashed here). */
+	public void fitModuleCount(int moduleCount) {
+		modules.ensureSize(moduleCount);
+		slotUpgradeManagers.ensureSize(moduleCount);
+		if (modules.size() > moduleCount) {
+			modules.subList(moduleCount, modules.size()).stream()
+					.filter(slottedModule -> !slottedModule.isEmpty())
+					.forEach(slottedModule -> LogisticsPipes.log.warn("Chassis at {} lost module {} in slot {}: chassisSlots was lowered",
+							parentChassis.getPos(), slottedModule.getModule().getLPName(), slottedModule.getSlot()));
+			modules.replaceContent(new java.util.ArrayList<>(modules.subList(0, moduleCount)));
+		}
+		if (slotUpgradeManagers.size() > moduleCount) {
+			slotUpgradeManagers.replaceContent(new java.util.ArrayList<>(slotUpgradeManagers.subList(0, moduleCount)));
+		}
 	}
 
 	public void installModule(int slot, LogisticsModule module) {

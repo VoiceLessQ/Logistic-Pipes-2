@@ -86,7 +86,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 			craftInv.setItem(i, matrix.getItem(i));
 		}
 		List<Recipe> list = new ArrayList<>();
-		for (Recipe r : CraftingUtil.getRecipeList()) {
+		for (Recipe r : CraftingUtil.getRecipeList(level)) {
 			if (r.matches(craftInv, getWorld())) {
 				list.add(r);
 			}
@@ -144,7 +144,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 		}
 
 		List<Recipe> list = new ArrayList<>();
-		for (Recipe r : CraftingUtil.getRecipeList()) {
+		for (Recipe r : CraftingUtil.getRecipeList(level)) {
 			if (r.matches(craftInv, getWorld())) {
 				list.add(r);
 			}
@@ -259,7 +259,7 @@ public class LogisticsCraftingTableTileEntity extends LogisticsSolidTileEntity
 		if (!recipe.matches(crafter, getWorld())) {
 			if (isFuzzy && outputFuzzy().nextSetBit(0) != -1) {
 				recipe = null;
-				for (Recipe r : CraftingUtil.getRecipeList()) {
+				for (Recipe r : CraftingUtil.getRecipeList(level)) {
 
 					if (r.matches(crafter, getWorld()) && FuzzyUtil.INSTANCE
 							.fuzzyMatches(FuzzyUtil.INSTANCE.getter(outputFuzzy()), outStack.getItem(),

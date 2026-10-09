@@ -229,6 +229,8 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		pipe.updateEntity();
 
 		if (level.isClientSide) {
+			// LP1 ran this from getActualState on every chunk render (end caps on cold load)
+			renderState.checkForRenderUpdate(level, getBlockPos());
 			debug.end();
 			return;
 		}
@@ -393,7 +395,14 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		}
 		super.load(nbt);
 
-		if (!nbt.contains(NBT_PIPE_ID)) return;
+		if (!nbt.contains(NBT_PIPE_ID)) {
+			// Client updates may omit the id; deletePipe only acts in the server tick
+			if (pipe == null) {
+				LogisticsPipes.log.warn("Pipe without id in NBT at {}", getBlockPos());
+				deletePipe = true;
+			}
+			return;
+		}
 
 		coreState.pipeIdName = nbt.getString(NBT_PIPE_ID);
 		net.minecraft.world.item.Item pipeItem = null;

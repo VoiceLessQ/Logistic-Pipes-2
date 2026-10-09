@@ -42,6 +42,7 @@ public class Configs {
 	static final ForgeConfigSpec.IntValue     MIN_JOB_TICK_LENGTH_V;
 	static final ForgeConfigSpec.EnumValue<PowerSourceMode> POWER_SOURCE_MODE_V;
 	static final ForgeConfigSpec.BooleanValue BETA_UPGRADE_RECIPES_V;
+	static final ForgeConfigSpec.ConfigValue<java.util.List<? extends Integer>> CHASSIS_SLOTS_V;
 
 	static {
 		ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -68,7 +69,7 @@ public class Configs {
 		b.comment("Power settings").push("power");
 		PIPE_DURABILITY_V            = b.comment("Pipe block durability").defineInRange("pipeDurability", 0.25, 0.0, 1.0);
 		POWER_USAGE_DISABLED_V       = b.comment("Disable power usage entirely").define("powerUsageDisabled", false);
-		POWER_USAGE_MULTIPLIER_V     = b.comment("Power usage multiplier").defineInRange("powerUsageMultiplier", 1.0, 0.0, 100.0);
+		POWER_USAGE_MULTIPLIER_V     = b.comment("Power usage multiplier").defineInRange("powerUsageMultiplier", 1.0, 0.01, 100.0);
 		CRAFTING_TABLE_POWER_USAGE_V = b.comment("Power used per crafting operation (RF)").defineInRange("craftingTablePowerUsage", 250, 0, Integer.MAX_VALUE);
 		POWER_SOURCE_MODE_V          = b.comment("How the RF power junction acquires FE. ADJACENT: pulls from any neighbouring IEnergyStorage each tick. CABLE: passive — FE cables push into the junction.").defineEnum("powerSourceMode", PowerSourceMode.ADJACENT);
 		b.pop();
@@ -81,10 +82,12 @@ public class Configs {
 		CHECK_FOR_UPDATES_V      = b.comment("Check for mod updates on startup").define("checkForUpdates", true);
 		EASTER_EGGS_V            = b.comment("Enable easter eggs").define("easterEggs", true);
 		MAX_ROBOT_DISTANCE_V     = b.comment("Max robot operation distance in blocks").defineInRange("maxRobotDistance", 64, 1, 512);
+		CHASSIS_SLOTS_V          = b.comment("The number of slots in a chassis pipe starting from MK1 to MK5. Because there are 5 tiers, there need to be 5 values (positive integers, zero is allowed).")
+				.worldRestart().defineList("chassisSlots", java.util.List.of(1, 2, 3, 4, 8), o -> o instanceof Integer i && i >= 0);
 		b.pop();
 
 		b.comment("Multithreading settings").push(CATEGORY_MULTITHREAD);
-		MULTI_THREAD_NUMBER_V   = b.comment("Number of routing worker threads").defineInRange("threadCount", 4, 1, 32);
+		MULTI_THREAD_NUMBER_V   = b.comment("Number of routing table update threads, 0 to disable").defineInRange("threadCount", 4, 0, 32);
 		MULTI_THREAD_PRIORITY_V = b.comment("Worker thread priority").defineInRange("threadPriority", Thread.NORM_PRIORITY, Thread.MIN_PRIORITY, Thread.MAX_PRIORITY);
 		b.pop();
 
@@ -148,6 +151,7 @@ public class Configs {
 	public static int MAX_ROBOT_DISTANCE = 64;
 
 	private static boolean loaded = false;
+	private static boolean chassisSlotsLoaded = false;
 
 	public static void load() {
 		if (Configs.loaded) {
@@ -182,6 +186,25 @@ public class Configs {
 		MINIMUM_INVENTORY_SLOT_ACCESS_PER_TICK = MIN_SLOT_ACCESS_V.get();
 		MAXIMUM_INVENTORY_SLOT_ACCESS_PER_TICK = MAX_SLOT_ACCESS_V.get();
 		MINIMUM_JOB_TICK_LENGTH                = MIN_JOB_TICK_LENGTH_V.get();
+		if (!chassisSlotsLoaded) {
+			// Read once: live chassis inventories are sized from these values
+			chassisSlotsLoaded = true;
+			int[] slots = CHASSIS_SLOTS_V.get().stream().mapToInt(Integer::intValue).toArray();
+			if (slots.length == 5) {
+				java.util.Arrays.sort(slots);
+				CHASSIS_SLOTS_ARRAY = slots;
+			} else {
+				logisticspipes.LogisticsPipes.log.error("chassisSlots needs 5 values (MK1 to MK5), got " + slots.length + "; using defaults");
+			}
+		}
+	}
+
+	/** Re-reads the statics when the config file changes while the game runs. */
+	public static void onReload(net.minecraftforge.fml.event.config.ModConfigEvent.Reloading event) {
+		if (event.getConfig().getSpec() == SPEC) {
+			loaded = false;
+			load();
+		}
 	}
 
 	public static void savePopupState() {
