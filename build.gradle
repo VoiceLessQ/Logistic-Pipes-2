@@ -152,6 +152,10 @@ repositories {
     maven { url = 'https://maven.blamejared.com' }
     maven { url = 'https://maven.fabricmc.net/' }   // tiny-remapper + mapping-io (reobf step)
     maven {
+        url = 'https://modmaven.dev/'
+        content { includeGroup 'appeng' }
+    }
+    maven {
         url = 'https://maven.k-4u.nl'
         content { includeGroup 'mcjty.theoneprobe' }
     }
@@ -183,6 +187,10 @@ dependencies {
     compileOnly "mezz.jei:jei-1.20.1-forge-api:15.20.0.129"
     //runtimeOnly "mezz.jei:jei-1.20.1-forge:15.20.0.129"
 
+    // AE2 API for the ME interface handler; runtime AE2 is optional.
+    compileOnly("appeng:appliedenergistics2-forge:15.4.10:api") {
+        transitive = false
+    }
     // The One Probe API for the pipe info provider; runtime TOP is optional.
     compileOnly("mcjty.theoneprobe:theoneprobe:1.20.1-10.0.1-3:api") {
         transitive = false
