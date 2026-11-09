@@ -49,13 +49,13 @@ class SlottedModuleListProperty(slots: Int, override val tagKey: String) :
     override fun defaultValue(idx: Int): SlottedModule = SlottedModule(idx, null)
 
     override fun readSingleFromNBT(tag: CompoundTag, key: String): SlottedModule {
-        val slottedModuleTag = tag.getCompound(key)
-        val slot = slottedModuleTag.getInt(SLOT_INDEX_KEY)
+        val slottedModuleTag = tag.getCompoundOrEmpty(key)
+        val slot = slottedModuleTag.getIntOr(SLOT_INDEX_KEY, 0)
         val moduleName = if (slottedModuleTag.contains(MODULE_NAME_KEY)) {
-            slottedModuleTag.getString(MODULE_NAME_KEY)
+            slottedModuleTag.getStringOr(MODULE_NAME_KEY, "")
         } else null
         val moduleResource = moduleName?.let { LPItems.modules[it] }
-        val itemModule = moduleResource?.let { BuiltInRegistries.ITEM.get(moduleResource) as? ItemModule }
+        val itemModule = moduleResource?.let { BuiltInRegistries.ITEM.getValue(moduleResource) as? ItemModule }
         // FIXME: move module creation to before readFromNBT
         val logisticsModule = itemModule?.getModule(null, null, null)
         return logisticsModule?.let { module ->

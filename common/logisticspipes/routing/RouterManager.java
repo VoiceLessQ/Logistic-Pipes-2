@@ -19,7 +19,7 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -91,7 +91,7 @@ public class RouterManager implements IChannelConnectionManager, ISecurityStatio
 		if (id > 0) {
 			getRouter(id);
 		}
-		ResourceLocation dimId = world.dimension().location();
+		Identifier dimId = world.dimension().identifier();
 		if (MainProxy.isClient(world)) {
 			synchronized (_routersClient) {
 				for (IRouter r2 : _routersClient) {
@@ -245,7 +245,7 @@ public class RouterManager implements IChannelConnectionManager, ISecurityStatio
 		deauthorizeUUID(tile.getSecId());
 	}
 
-	public void dimensionUnloaded(ResourceLocation dim) {
+	public void dimensionUnloaded(Identifier dim) {
 		synchronized (_routersServer) {
 			_routersServer.stream().filter(r -> r != null && r.isInDim(dim)).forEach(r -> {
 				r.clearPipeCache();

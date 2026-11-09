@@ -7,8 +7,6 @@
 
 package logisticspipes;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -27,42 +25,29 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.InterModComms;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.event.AddPackFindersEvent;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraft.server.MinecraftServer;
 
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.repository.Pack;
-import net.minecraft.server.packs.repository.PackSource;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.loader.api.FabricLoader;
 
-import com.mojang.logging.LogUtils;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import logisticspipes.interfaces.IBlockEntityLifecycle;
 import logisticspipes.asm.wrapper.LogisticsWrapperHandler;
 import logisticspipes.blocks.LogisticsProgramCompilerTileEntity;
 import logisticspipes.blocks.LogisticsSecurityTileEntity;
@@ -151,6 +136,7 @@ import logisticspipes.proxy.specialtankhandler.SpecialTankHandler;
 import logisticspipes.recipes.CraftingRecipes;
 import logisticspipes.recipes.LPChipRecipes;
 import logisticspipes.recipes.LPRecipePack;
+import logisticspipes.recipes.MiscItemRecipes;
 import logisticspipes.recipes.ModuleChippedCraftingRecipes;
 import logisticspipes.recipes.NBTIngredient;
 import logisticspipes.recipes.PipeChippedCraftingRecipes;
@@ -184,7 +170,6 @@ import logisticspipes.utils.RoutedItemHelper;
 import logisticspipes.utils.StaticResolverUtil;
 import logisticspipes.utils.tuples.Pair;
 import network.rs485.grow.ServerTickDispatcher;
-import network.rs485.logisticspipes.compat.TheOneProbeIntegration;
 import network.rs485.logisticspipes.config.ClientConfiguration;
 import network.rs485.logisticspipes.config.ServerConfigurationManager;
 import network.rs485.logisticspipes.gui.font.LPFontRenderer;
@@ -195,8 +180,7 @@ import network.rs485.util.SystemUtilKt;
 //@formatter:off
 //CHECKSTYLE:OFF
 
-@Mod(LPConstants.LP_MOD_ID)
-public class LogisticsPipes {
+public class LogisticsPipes implements ModInitializer {
 	//@formatter:on
 	//CHECKSTYLE:ON
 
@@ -204,8 +188,11 @@ public class LogisticsPipes {
 	// Dev-only: gates the + power-cheat button, the starter-pack bypass, security-station
 	// override, etc. Flipped off automatically in a shipped jar so players can't free-cheat
 	// infinite RF from the power junction.
-	private static final boolean DEBUG = !net.minecraftforge.fml.loading.FMLEnvironment.production;
-	private Consumer<ServerStartedEvent> minecraftTestStartMethod = null;
+	private static final boolean DEBUG = FabricLoader.getInstance().isDevelopmentEnvironment();
+	private Consumer<MinecraftServer> minecraftTestStartMethod = null;
+	@Nullable
+	private static MinecraftServer server;
+	private boolean postInitDone = false;
 
 	public static boolean isDEBUG() {
 		return DEBUG;
@@ -218,44 +205,28 @@ public class LogisticsPipes {
 	@Getter
 	private static String TARGET = UNKNOWN;
 
-	public LogisticsPipes() {
-		this(thedarkcolour.kotlinforforge.forge.ForgeKt.getMOD_BUS());
-	}
-
-	public LogisticsPipes(IEventBus modEventBus) {
+	/** Main entrypoint: the Forge constructor, preInit and commonSetup in their old order. Client parts run in {@link LogisticsPipesClient}. */
+	@Override
+	public void onInitialize() {
 		instance = this;
 		loadManifestValues(LogisticsPipes.class.getClassLoader());
-		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Configs.SPEC);
-		modEventBus.addListener(Configs::onReload);
 		logisticspipes.items.ItemPipeSignCreator.registerPipeSignTypes();
-		LPRegistries.register(modEventBus);
-
-		modEventBus.addListener(this::preInit);
-		modEventBus.addListener(this::commonSetup);
-		modEventBus.addListener(this::postInit);
-		modEventBus.addListener(this::onAddPackFinders);
-		// `clientSetup` and `registerRenderers` are @OnlyIn(Dist.CLIENT); on a dedicated
-		// server FML's runtime-dist-cleaner strips them, and the `this::method` reference
-		// here would NoSuchMethodError before the constructor finishes.
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
-			modEventBus.addListener(this::clientSetup);
-			modEventBus.addListener(this::registerRenderers);
-			modEventBus.register(logisticspipes.textures.TextureRegistrar.class);
-			modEventBus.register(logisticspipes.renderer.FluidContainerRenderer.class);
-			// dev-only runClientCheck driver from the gametest source set; KFF 4 does not auto-subscribe it
-			if (Boolean.getBoolean("lp.clientcheck")) {
-				try {
-					MinecraftForge.EVENT_BUS.register(Class.forName("logisticspipes.gametest.LPClientChecks"));
-				} catch (ClassNotFoundException e) {
-					log.error("lp.clientcheck is set but the gametest classes are missing", e);
-				}
-			}
-		}
+		LPRegistries.register();
 		LPDataFixer.INSTANCE.init();
-		// Networking is registered during preInit via PacketHandler.registerMessages().
-		// Items/blocks/BEs/creative-tabs are registered via DeferredRegister in LPRegistries.
 
-		MinecraftForge.EVENT_BUS.register(this);
+		ServerLifecycleEvents.SERVER_STARTING.register(this::beforeStart);
+		ServerLifecycleEvents.SERVER_STARTED.register(this::serverStarted);
+		ServerLifecycleEvents.SERVER_STOPPING.register(this::cleanup);
+		ServerLifecycleEvents.SERVER_STOPPED.register(stopped -> LogisticsPipes.server = null);
+		CommandRegistrationCallback.EVENT.register((dispatcher, buildContext, selection) -> registerCommands(dispatcher));
+
+		preInit();
+		commonSetup();
+	}
+
+	/** The running server (integrated or dedicated), or null outside a session. Replaces logisticspipes.LogisticsPipes.getServer(). */
+	public static MinecraftServer getServer() {
+		return server;
 	}
 
 	private static void loadManifestValues(ClassLoader loader) {
@@ -298,7 +269,7 @@ public class LogisticsPipes {
 
 	// other statics
 	public static Textures textures = new Textures();
-	public static final Logger log = LogUtils.getLogger();
+	public static final Logger log = LoggerFactory.getLogger("LogisticsPipes");
 	// Daemon worker: a dedicated server only exits once all non-daemon threads end.
 	public static ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(r -> {
 		Thread t = new Thread(r, "LogisticsPipes Worker");
@@ -324,9 +295,9 @@ public class LogisticsPipes {
 		}
 	}
 
-	// ── FML lifecycle (mod event bus) ────────────────────────────────────────
+	// ── Init (formerly the FML mod event bus) ────────────────────────────────
 
-	private void preInit(FMLCommonSetupEvent event) {
+	private void preInit() {
 		PacketHandler.initialize();
 		PacketHandler.registerMessages();
 		NewGuiHandler.initialize();
@@ -348,15 +319,10 @@ public class LogisticsPipes {
 		SimpleServiceLocator.setPipeInformationManager(new PipeInformationManager());
 		SimpleServiceLocator.setLogisticsFluidManager(new LogisticsFluidManager());
 
-		if (ModList.get().isLoaded(LPConstants.theOneProbeModID)) {
-			InterModComms.sendTo(LPConstants.theOneProbeModID, "getTheOneProbe",
-					TheOneProbeIntegration::new);
-		}
-
 		MainProxy.proxy.initModelLoader();
 	}
 
-	private void commonSetup(FMLCommonSetupEvent event) {
+	private void commonSetup() {
 		registerRecipes();
 
 
@@ -373,37 +339,21 @@ public class LogisticsPipes {
 		SimpleServiceLocator.setRoutedItemHelper(new RoutedItemHelper());
 		SimpleServiceLocator.setChannelManagerProvider(new ChannelManagerProvider());
 
-		MinecraftForge.EVENT_BUS.register(new LPTickHandler());
-		MinecraftForge.EVENT_BUS.register(new QueuedTasks());
-		MinecraftForge.EVENT_BUS.register(new LogisticsEventListener());
-		MinecraftForge.EVENT_BUS.register(new LPChatListener());
-		MinecraftForge.EVENT_BUS.register(new BlockChangeListener());
-		MinecraftForge.EVENT_BUS.register(PropertyUpdaterEventListener.INSTANCE);
-
-		// Client-side setup (runs on client only)
-		event.enqueueWork(() -> {
-			if (net.minecraftforge.fml.loading.FMLEnvironment.dist == Dist.CLIENT) {
-				RenderTickHandler sub = new RenderTickHandler();
-				MinecraftForge.EVENT_BUS.register(sub);
-				MinecraftForge.EVENT_BUS.register(network.rs485.logisticspipes.gui.WidgetScreenHudSuppressor.INSTANCE);
-				SimpleServiceLocator.setClientPacketBufferHandlerThread(new ClientPacketBufferHandlerThread());
-				LPFontRenderer.Factory.asyncPreload();
-
-				// Preload all render models so they don't get loaded (and crash) on concurrent
-				// render-thread class loading. Each loader is wrapped in its own try/catch so a
-				// failure in one OBJ file / group lookup doesn't halt init. These reference
-				// client-only renderer classes, so they MUST stay inside this Dist.CLIENT guard —
-				// the method-reference bootstraps below would otherwise link client classes on a
-				// dedicated server.
-				safeLoadModels("LogisticsNewRenderPipe",       LogisticsNewRenderPipe::loadModels);
-				safeLoadModels("LogisticsNewSolidBlockWorldRenderer", LogisticsNewSolidBlockWorldRenderer::loadModels);
-				safeLoadModels("CurveTubeRenderer",            CurveTubeRenderer::loadModels);
-				safeLoadModels("GainTubeRenderer",             GainTubeRenderer::loadModels);
-				safeLoadModels("LineTubeRenderer",             LineTubeRenderer::loadModels);
-				safeLoadModels("SpeedupTubeRenderer",          SpeedupTubeRenderer::loadModels);
-				safeLoadModels("SCurveTubeRenderer",           SCurveTubeRenderer::loadModels);
-			}
+		LPTickHandler tickHandler = new LPTickHandler();
+		QueuedTasks queuedTasks = new QueuedTasks();
+		ServerTickEvents.END_SERVER_TICK.register(tickServer -> tickHandler.serverTick());
+		ServerTickEvents.END_LEVEL_TICK.register(tickHandler::worldTick);
+		ServerTickEvents.END_SERVER_TICK.register(tickServer -> queuedTasks.tickEnd());
+		ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> {
+			if (blockEntity instanceof IBlockEntityLifecycle lifecycle) lifecycle.onLoad();
 		});
+		ServerChunkEvents.CHUNK_UNLOAD.register((level, chunk) -> chunk.getBlockEntities().values().forEach(blockEntity -> {
+			if (blockEntity instanceof IBlockEntityLifecycle lifecycle) lifecycle.onChunkUnloaded();
+		}));
+		LogisticsEventListener.register();
+		LPChatListener.register();
+		BlockChangeListener.register();
+		// PropertyUpdaterEventListener is called directly by NewGuiHandler and ServerPlayerMixin.
 
 		SimpleServiceLocator.setServerPacketBufferHandlerThread(new ServerPacketBufferHandlerThread());
 		for (int i = 0; i < Configs.MULTI_THREAD_NUMBER; i++) {
@@ -420,22 +370,24 @@ public class LogisticsPipes {
 			try {
 				final Object minecraftTestInstance = testClass.getDeclaredField("INSTANCE").get(null);
 				final java.lang.reflect.Method serverStartMethod = testClass
-						.getDeclaredMethod("serverStart", ServerStartedEvent.class);
-				minecraftTestStartMethod = (ServerStartedEvent serverStartedEvent) -> {
+						.getDeclaredMethod("serverStart", MinecraftServer.class);
+				minecraftTestStartMethod = (MinecraftServer startedServer) -> {
 					try {
-						serverStartMethod.invoke(minecraftTestInstance, serverStartedEvent);
+						serverStartMethod.invoke(minecraftTestInstance, startedServer);
 					} catch (ReflectiveOperationException e) {
 						throw new RuntimeException("Could not run server started hook in " + minecraftTestInstance, e);
 					}
 				};
-				MinecraftForge.EVENT_BUS.register(minecraftTestInstance);
 			} catch (ReflectiveOperationException e) {
 				throw new RuntimeException("Error accessing minecraft test instance", e);
 			}
 		}
 	}
 
-	private void postInit(FMLLoadCompleteEvent event) {
+	/** Forge FMLLoadCompleteEvent: after every mod initialized. Runs on CLIENT_STARTED, or SERVER_STARTING on a dedicated server. */
+	void postInit() {
+		if (postInitDone) return;
+		postInitDone = true;
 		postInitRun.forEach(Runnable::run);
 		postInitRun = null;
 
@@ -446,7 +398,6 @@ public class LogisticsPipes {
 		// MCMultiPart) — none of these mods exist on 1.20.1.
 		SimpleServiceLocator.addCraftingRecipeProvider(new LogisticsCraftingTable());
 
-		// BlockEntityTypes are registered via DeferredRegister in LPRegistries.
 		MainProxy.proxy.registerTileEntities();
 		MainProxy.proxy.registerParticles();
 
@@ -455,38 +406,7 @@ public class LogisticsPipes {
 		versionChecker = new VersionChecker();
 	}
 
-	@OnlyIn(Dist.CLIENT)
-	private void clientSetup(FMLClientSetupEvent event) {
-		// Texture atlas sprites and item/block models are supplied declaratively via
-		// JSON in assets/logisticspipes/models/** in 1.20.1 — no code registration.
-		// The legacy MainProxy.proxy.registerTextures() / registerModels() and
-		// LogisticsPipes.textures.registerBlockIcons(...) paths are deferred to the
-		// renderer rewrite; they are intentionally not called here.
-		// BlockEntityRenderer for the pipe BE is registered via
-		// EntityRenderersEvent.RegisterRenderers (see registerRenderers below).
-		event.enqueueWork(() -> {
-			net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
-				LPRegistries.PIPE.get(),
-				net.minecraft.client.renderer.RenderType.cutout());
-		});
-	}
-
-	@OnlyIn(Dist.CLIENT)
-	private void registerRenderers(net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
-		LogisticsPipes.log.debug("registerRenderers: BE_PIPE={}", LPRegistries.BE_PIPE.get());
-		event.registerBlockEntityRenderer(LPRegistries.BE_PIPE.get(), logisticspipes.renderer.LogisticsRenderPipe::new);
-		// LP solid blocks: shared BER draws the OBJ body + cover plates with the per-type sprite.
-		event.registerBlockEntityRenderer(LPRegistries.BE_POWER_JUNCTION.get(),    logisticspipes.renderer.LogisticsSolidBlockRenderer::new);
-		event.registerBlockEntityRenderer(LPRegistries.BE_POWER_PROVIDER_RF.get(), logisticspipes.renderer.LogisticsSolidBlockRenderer::new);
-		event.registerBlockEntityRenderer(LPRegistries.BE_POWER_PROVIDER_EU.get(), logisticspipes.renderer.LogisticsSolidBlockRenderer::new);
-		event.registerBlockEntityRenderer(LPRegistries.BE_SECURITY_STATION.get(),  logisticspipes.renderer.LogisticsSolidBlockRenderer::new);
-		event.registerBlockEntityRenderer(LPRegistries.BE_CRAFTING_TABLE.get(),    logisticspipes.renderer.LogisticsSolidBlockRenderer::new);
-		event.registerBlockEntityRenderer(LPRegistries.BE_STATISTICS_TABLE.get(),  logisticspipes.renderer.LogisticsSolidBlockRenderer::new);
-		event.registerBlockEntityRenderer(LPRegistries.BE_PROGRAM_COMPILER.get(),  logisticspipes.renderer.LogisticsSolidBlockRenderer::new);
-		event.registerBlockEntityRenderer(LPRegistries.BE_FRAME.get(),             logisticspipes.renderer.LogisticsSolidBlockRenderer::new);
-	}
-
-	private static void safeLoadModels(String name, Runnable loader) {
+	static void safeLoadModels(String name, Runnable loader) {
 		try {
 			loader.run();
 		} catch (Throwable t) {
@@ -498,42 +418,40 @@ public class LogisticsPipes {
 		return SystemUtilKt.checkBooleanProperty("logisticspipes.test");
 	}
 
-	// ── Game event bus (server lifecycle) ────────────────────────────────────
+	// ── Server lifecycle ─────────────────────────────────────────────────────
 
-	@SubscribeEvent
-	public void beforeStart(ServerAboutToStartEvent event) {
+	private void beforeStart(MinecraftServer startingServer) {
+		LogisticsPipes.server = startingServer;
+		postInit();
 		ServerTickDispatcher.INSTANCE.serverStart();
 	}
 
-	@SubscribeEvent
-	public void cleanup(ServerStoppingEvent event) {
+	private void cleanup(MinecraftServer stoppingServer) {
 		SimpleServiceLocator.routerManager.serverStopClean();
 		QueuedTasks.clearAllTasks();
 		HudUpdateTick.clearUpdateFlags();
 		PipeItemsSatelliteLogistics.cleanup();
 		PipeFluidSatellite.cleanup();
 		ServerRouter.cleanup();
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == Dist.CLIENT) {
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			LogisticsHUDRenderer.instance().clear();
 		}
 		ServerTickDispatcher.INSTANCE.cleanup();
 		LogisticsPipes.serverConfigManager = null;
 	}
 
-	@SubscribeEvent
-	public void registerCommands(net.minecraftforge.event.RegisterCommandsEvent event) {
-		new logisticspipes.commands.LogisticsPipesCommand().register(event.getDispatcher());
+	private void registerCommands(com.mojang.brigadier.CommandDispatcher<net.minecraft.commands.CommandSourceStack> dispatcher) {
+		new logisticspipes.commands.LogisticsPipesCommand().register(dispatcher);
 	}
 
-	@SubscribeEvent
-	public void serverStarted(ServerStartedEvent event) {
-		if (minecraftTestStartMethod != null) minecraftTestStartMethod.accept(event);
+	private void serverStarted(MinecraftServer startedServer) {
+		if (minecraftTestStartMethod != null) minecraftTestStartMethod.accept(startedServer);
 	}
 
 	// ── Registry ─────────────────────────────────────────────────────────────
-	// Items/blocks/BEs are registered via DeferredRegister in LPRegistries.
+	// Items/blocks/BEs are registered in LPRegistries.
 	// These setName stubs are retained as no-ops for legacy call sites that still
-	// pass through them; the ResourceLocation is set at DeferredRegister.register time.
+	// pass through them; the Identifier is set at LPRegistries.registerItem/registerBlock time.
 
 	public static <T extends Item> T setName(T item, String name) {
 		return item;
@@ -549,36 +467,19 @@ public class LogisticsPipes {
 
 	// ── Recipes ───────────────────────────────────────────────────────────────
 
-	private void onAddPackFinders(AddPackFindersEvent event) {
-		if (event.getPackType() != PackType.SERVER_DATA) return;
-		event.addRepositorySource(consumer -> {
-			Pack pack = Pack.readMetaAndCreate(
-					"logisticspipes:virtual_recipes",
-					Component.literal("LogisticsPipes virtual recipes"),
-					true,
-					id -> new LPRecipePack(),
-					PackType.SERVER_DATA,
-					Pack.Position.TOP,
-					PackSource.BUILT_IN);
-			if (pack != null) consumer.accept(pack);
-		});
-	}
+	// The virtual recipe data pack (Forge AddPackFindersEvent) is added by PackRepositoryMixin.
 
 	private void registerRecipes() {
-		// Register the NBT ingredient serializer so programmer-based recipes can be
-		// parsed from JSON (generated by the recipe providers into LPRecipePack).
-		CraftingHelper.register(NBTIngredient.ID, NBTIngredient.SERIALIZER);
-
 		RecipeManager.recipeProvider.add(new LPChipRecipes());
 		RecipeManager.recipeProvider.add(new UpgradeChippedCraftingRecipes());
 		RecipeManager.recipeProvider.add(new ModuleChippedCraftingRecipes());
 		RecipeManager.recipeProvider.add(new PipeChippedCraftingRecipes());
 		RecipeManager.recipeProvider.add(new CraftingRecipes());
-		RecipeManager.loadRecipes();
+		RecipeManager.recipeProvider.add(new MiscItemRecipes());
 	}
 
 	public void registerPipes(Object registry) {
-		// Pipes are registered via DeferredRegister in LPRegistries / LPItems.
+		// Pipes are registered in LPRegistries / LPItems.
 	}
 
 	// ── Computer/CC access ───────────────────────────────────────────────────

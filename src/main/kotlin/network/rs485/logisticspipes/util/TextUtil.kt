@@ -53,7 +53,7 @@ object TextUtil {
     private val formattingState: EnumSet<ChatFormatting> = EnumSet.noneOf(ChatFormatting::class.java)
     private val baseFormattingState: EnumSet<ChatFormatting> = EnumSet.noneOf(ChatFormatting::class.java)
     private val regexPattern =
-            ChatFormatting.values().joinToString("|", prefix = "(\\$)(", postfix = ")") { it.getName().uppercase() }
+            ChatFormatting.values().joinToString("|", prefix = "(\\$)(", postfix = ")") { it.name }
                     .toRegex()
 
     @JvmStatic
@@ -121,12 +121,12 @@ object TextUtil {
     fun addTooltipInformation(stack: ItemStack, tooltip: MutableList<net.minecraft.network.chat.Component>, extended: Boolean){
         if(extended) {
             var tooltipLine = 1
-            while(Language.getInstance().has("${stack.descriptionId}.tip$tooltipLine")){
-                tooltip += net.minecraft.network.chat.Component.literal(translate("${stack.descriptionId}.tip$tooltipLine"))
+            while(Language.getInstance().has("${stack.item.descriptionId}.tip$tooltipLine")){
+                tooltip += net.minecraft.network.chat.Component.literal(translate("${stack.item.descriptionId}.tip$tooltipLine"))
                 tooltipLine++
             }
         } else {
-            if(Language.getInstance().has("${stack.descriptionId}.tip1")){
+            if(Language.getInstance().has("${stack.item.descriptionId}.tip1")){
                 tooltip += net.minecraft.network.chat.Component.literal(translate(holdShiftTooltip))
             }
         }
@@ -158,7 +158,7 @@ object TextUtil {
 
     @JvmStatic
     fun formatNumberWithCommas(number: Long): String =
-            NumberFormat.getNumberInstance(Minecraft.getInstance().languageManager.javaLocale).format(number)
+            NumberFormat.getNumberInstance(Locale.forLanguageTag(Minecraft.getInstance().languageManager.selected.replace('_', '-'))).format(number)
 
     private fun getReplacementString(formatting: ChatFormatting): String {
         if (formatting == ChatFormatting.RESET) {
@@ -172,7 +172,13 @@ object TextUtil {
         return formattingState.getColorTag() + formattingState.getFormattingTags()
     }
 
-    private fun MatchResult.getTextFormatting(): ChatFormatting = ChatFormatting.getByName(value.lowercase())!!
+    private fun MatchResult.getTextFormatting(): ChatFormatting =
+            value.filter(Char::isLetter).let { name -> ChatFormatting.entries.first { it.name.replace("_", "").equals(name, ignoreCase = true) } }
+
+    // 26.x ChatFormatting dropped isColor/isFormat: colors are BLACK..WHITE, formats OBFUSCATED..ITALIC
+    private val ChatFormatting.isColor: Boolean get() = this <= ChatFormatting.WHITE
+
+    private val ChatFormatting.isFormat: Boolean get() = this > ChatFormatting.WHITE && this != ChatFormatting.RESET
 
     private fun EnumSet<ChatFormatting>.getColorTag(): String =
             this.firstOrNull { it.isColor }?.toString() ?: baseFormattingState.firstOrNull { it.isColor }?.toString()

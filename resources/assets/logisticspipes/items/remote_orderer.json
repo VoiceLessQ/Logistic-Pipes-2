@@ -1,0 +1,124 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "logisticspipes:orderer_color",
+    "cases": [
+      {
+        "when": 1,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/1"
+        }
+      },
+      {
+        "when": 2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/2"
+        }
+      },
+      {
+        "when": 3,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/3"
+        }
+      },
+      {
+        "when": 4,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/4"
+        }
+      },
+      {
+        "when": 5,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/5"
+        }
+      },
+      {
+        "when": 6,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/6"
+        }
+      },
+      {
+        "when": 7,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/7"
+        }
+      },
+      {
+        "when": 8,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/8"
+        }
+      },
+      {
+        "when": 9,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/9"
+        }
+      },
+      {
+        "when": 10,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/10"
+        }
+      },
+      {
+        "when": 11,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/11"
+        }
+      },
+      {
+        "when": 12,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/12"
+        }
+      },
+      {
+        "when": 13,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/13"
+        }
+      },
+      {
+        "when": 14,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/14"
+        }
+      },
+      {
+        "when": 15,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/15"
+        }
+      },
+      {
+        "when": 16,
+        "model": {
+          "type": "minecraft:model",
+          "model": "logisticspipes:item/remote_orderer/16"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "logisticspipes:item/remote_orderer"
+    }
+  }
+}

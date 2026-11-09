@@ -1,11 +1,12 @@
 package logisticspipes.gui.modules;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Gui;
 
 import net.minecraft.world.Container;
@@ -102,7 +103,7 @@ public class GuiOreDictItemSink extends ModuleBaseGui {
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float var1, int var2, int var3) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float var1, int var2, int var3) {
 		int pointerX = var2 - leftPos;
 		int pointerY = var3 - topPos;
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, right, bottom, 0.0f, true);
@@ -129,7 +130,7 @@ public class GuiOreDictItemSink extends ModuleBaseGui {
 				if (27 <= pointerX && pointerX < 158 && 6 + (10 * i) <= pointerY && pointerY < 6 + (10 * (i + 1))) {
 					guiGraphics.fill(leftPos + 27, topPos + 6 + (10 * i), leftPos + 158, topPos + 6 + (10 * (i + 1)), Color.LIGHT_GREY.getValue());
 				}
-				labelTexts.add(unsunkNames.get(currentOffset + i));
+				labelTexts.add(minecraft.font.plainSubstrByWidth(unsunkNames.get(currentOffset + i), 130));
 				labelPositions.add(new int[]{28, 7 + (10 * i), 0x404040});
 				if (27 <= mouseX && mouseX < 158 && 6 + (10 * i) <= mouseY && mouseY < 6 + (10 * (i + 1))) {
 					mouseX = 0;
@@ -160,7 +161,7 @@ public class GuiOreDictItemSink extends ModuleBaseGui {
 				if (6 <= pointerX && pointerX < 168 && 31 + (10 * i) <= pointerY && pointerY < 31 + (10 * (i + 1))) {
 					guiGraphics.fill(leftPos + 6, topPos + 31 + (10 * i), leftPos + 168, topPos + 31 + (10 * (i + 1)), Color.LIGHT_GREY.getValue());
 				}
-				labelTexts.add(oreList.get(i));
+				labelTexts.add(minecraft.font.plainSubstrByWidth(oreList.get(i), 160));
 				labelPositions.add(new int[]{7, 32 + (10 * i), 0x404040});
 				if (6 <= mouseX && mouseX < 168 && 31 + (10 * i) <= mouseY && mouseY < 31 + (10 * (i + 1))) {
 					mouseX = 0;
@@ -181,17 +182,17 @@ public class GuiOreDictItemSink extends ModuleBaseGui {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
 		for (int i = 0; i < labelTexts.size(); i++) {
 			int[] pos = labelPositions.get(i);
-			guiGraphics.drawString(minecraft.font, labelTexts.get(i), pos[0], pos[1], pos[2], false);
+			SimpleGraphics.drawString(guiGraphics, minecraft.font, labelTexts.get(i), pos[0], pos[1], pos[2], false);
 		}
 	}
 
 	private List<String> getOreNames(@Nonnull ItemStack stack) {
 		List<String> oreNames = new ArrayList<>();
-		stack.getTags().forEach(tag -> {
+		stack.typeHolder().tags().forEach(tag -> {
 			String oreName = tag.location().toString();
 			if (!oreNames.contains(oreName)) {
 				oreNames.add(oreName);

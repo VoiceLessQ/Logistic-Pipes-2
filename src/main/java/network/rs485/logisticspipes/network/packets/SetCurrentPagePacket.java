@@ -37,6 +37,7 @@
 
 package network.rs485.logisticspipes.network.packets;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nullable;
@@ -75,13 +76,13 @@ public class SetCurrentPagePacket extends ModernPacket {
 		ItemStack book = player.getItemBySlot(equipmentSlot);
 		if (book.isEmpty() || !(book.getItem() instanceof ItemGuideBook)) return;
 		CompoundTag compound;
-		if (book.hasTag()) {
-			compound = Objects.requireNonNull(book.getTag());
+		if (CustomDataUtil.hasTag(book)) {
+			compound = CustomDataUtil.getOrCreateTag(book);
 		} else {
 			compound = new CompoundTag();
 		}
 		final CompoundTag nbt = LPItems.getItemGuideBook().updateNBT(compound, currentPage, bookmarks);
-		book.setTag(nbt);
+		CustomDataUtil.setTag(book, nbt);
 	}
 
 	@Override

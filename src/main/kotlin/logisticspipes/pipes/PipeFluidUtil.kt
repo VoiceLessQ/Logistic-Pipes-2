@@ -47,31 +47,23 @@ import logisticspipes.utils.SpecialTankUtil
 import logisticspipes.utils.TankUtil
 import logisticspipes.utils.item.ItemIdentifierStack
 import logisticspipes.utils.tuples.Pair
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraftforge.common.capabilities.ForgeCapabilities
 import network.rs485.logisticspipes.connection.getTankUtil
 
 object PipeFluidUtil {
 
     fun getTankUtilForTE(tile: BlockEntity?, dirOnEntity: Direction?): ITankUtil? {
-        // NeoForge 1.20.1: BlockCapability queried via static method
+        val level = tile?.level ?: return null
+        val storage = FluidStorage.SIDED.find(level, tile.blockPos, tile.blockState, tile, dirOnEntity) ?: return null
         if (SimpleServiceLocator.specialTankHandler.hasHandlerFor(tile)) {
             val handler = SimpleServiceLocator.specialTankHandler.getTankHandlerFor(tile)
-            if (handler is ISpecialTankAccessHandler && tile != null) {
-                val fluidHandler = tile.getCapability(ForgeCapabilities.FLUID_HANDLER, dirOnEntity).orElse(null)
-                if (fluidHandler != null) {
-                    return SpecialTankUtil(fluidHandler, tile, handler)
-                }
+            if (handler is ISpecialTankAccessHandler) {
+                return SpecialTankUtil(storage, tile, handler)
             }
         }
-        if (tile != null) {
-            val fluidHandler = tile.getCapability(ForgeCapabilities.FLUID_HANDLER, dirOnEntity).orElse(null)
-            if (fluidHandler != null) {
-                return TankUtil(fluidHandler)
-            }
-        }
-        return null
+        return TankUtil(storage)
     }
 
     fun FluidRoutedPipe.getAdjacentTanks(listNearbyPipes: Boolean) =
@@ -86,11 +78,7 @@ object PipeFluidUtil {
         .flatMap { pair -> SimpleServiceLocator.specialTankHandler.getBaseTileFor(pair.component1().tileEntity) }
 
     fun PipeFluidSatellite.fluidsToItemList(): List<ItemIdentifierStack> {
-        val fluidIdentStacks = getAdjacentTanks(false)
-            .flatMap { (_, util) ->
-                util.tanks().toList()
-                    .mapNotNull { stack -> FluidIdentifierStack.getFromStack(stack) }
-            }
+        val fluidIdentStacks = getAdjacentTanks(false).flatMap { (_, util) -> util.tanks().toList() }
         val distinctionSet = HashSet<FluidIdentifier>()
         val outputList = ArrayList<ItemIdentifierStack>()
         for (identStack in fluidIdentStacks) {
@@ -102,5 +90,4 @@ object PipeFluidUtil {
         }
         return outputList
     }
-
 }

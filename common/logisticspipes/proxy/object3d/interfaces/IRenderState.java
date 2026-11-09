@@ -4,8 +4,8 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter; // was IBlockAccess
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 public interface IRenderState {
 
@@ -17,7 +17,7 @@ public interface IRenderState {
 
 	void setBrightness(BlockGetter world, BlockPos pos);
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	void startDrawing(int mode, VertexFormat format);
 
 }

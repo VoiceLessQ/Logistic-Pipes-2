@@ -48,7 +48,9 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.InteractionResultHolder
+import net.minecraft.world.InteractionResult
+import net.minecraft.core.component.DataComponents
+import net.minecraft.world.item.component.CustomData
 import net.minecraft.world.level.Level
 import network.rs485.logisticspipes.gui.guidebook.GuiGuideBook
 import network.rs485.logisticspipes.gui.guidebook.IPageData
@@ -65,15 +67,14 @@ class ItemGuideBook : LogisticsItem() {
         private fun loadDataFromNBT(stack: ItemStack): Pair<PageData, List<PageData>> {
             var currentPage: PageData? = null
             var tabPages: List<PageData>? = null
-            if (stack.hasTag()) {
-                val nbt = stack.tag!!
+            val nbt = stack.get(DataComponents.CUSTOM_DATA)?.copyTag()
+            if (nbt != null) {
                 if (nbt.contains("version")) {
-                    when (nbt.getByte("version")) {
+                    when (nbt.getByteOr("version", 0)) {
                         1.toByte() -> {
-                            currentPage = PageData(nbt.getCompound("page"))
-                            // type 10 = CompoundTag, see net.minecraft.nbt.Tag
-                            val tagList = nbt.getList("bookmarks", 10)
-                            tabPages = tagList.mapNotNull { tag -> PageData(tag as CompoundTag) }
+                            currentPage = PageData(nbt.getCompoundOrEmpty("page"))
+                            val tagList = nbt.getListOrEmpty("bookmarks")
+                            tabPages = tagList.mapNotNull { tag -> (tag as? CompoundTag)?.let(::PageData) }
                         }
                     }
                 }
@@ -92,7 +93,7 @@ class ItemGuideBook : LogisticsItem() {
                 val state = loadDataFromNBT(stack).let {
                     GuideBookState(equipmentSlot, Page(it.first), it.second.map(::Page))
                 }
-                mc.setScreen(GuiGuideBook(state))
+                mc.gui.setScreen(GuiGuideBook(state))
             }
         }
     }
@@ -109,23 +110,22 @@ class ItemGuideBook : LogisticsItem() {
         })
     }
 
-    override fun use(world: Level, player: Player, hand: InteractionHand): InteractionResultHolder<ItemStack> {
+    override fun use(world: Level, player: Player, hand: InteractionHand): InteractionResult {
         val stack = player.getItemInHand(hand)
         if (stack.item is ItemGuideBook && MainProxy.isServer(world)) {
             MainProxy.sendPacketToPlayer(
                 PacketHandler.getPacket(OpenGuideBook::class.java).setHand(hand).setStack(stack),
                 player,
             )
-            return InteractionResultHolder.success(stack)
+            return InteractionResult.SUCCESS
         }
-        return InteractionResultHolder.pass(stack)
+        return InteractionResult.PASS
     }
 
     fun saveState(state: GuideBookState) {
         val stack = Minecraft.getInstance().player!!.getItemBySlot(state.equipmentSlot)
-        val compound = if (stack.hasTag()) stack.tag!! else CompoundTag()
         // update NBT for the client
-        stack.setTag(updateNBT(compound, state.currentPage, state.bookmarks))
+        CustomData.update(DataComponents.CUSTOM_DATA, stack) { updateNBT(it, state.currentPage, state.bookmarks) }
 
         // … and for the server
         MainProxy.sendPacketToServer(

@@ -34,7 +34,7 @@ public class DataFixerTE {
 	@Nonnull
 
 	public CompoundTag fixTagCompound(CompoundTag compound) {
-		String teName = compound.getString("id");
+		String teName = compound.getStringOr("id", "");
 
 		compound.putString("id", tileIDMap.getOrDefault(teName, teName));
 

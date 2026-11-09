@@ -1,32 +1,33 @@
 package logisticspipes.pipefxhandlers;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
-
 import java.util.Random;
 
-import net.minecraft.client.Camera;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.CompareOp;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.LPConstants;
 
-public class EntitySparkleFX extends Particle {
+public class EntitySparkleFX extends SingleQuadParticle {
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation(LPConstants.LP_MOD_ID, "textures/particles/particles.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "textures/particles/particles.png");
+	// LP1's own 8x8 sheet instead of an atlas sprite
+	// LP1 blended sparkles additively (SRC_ALPHA, ONE) without writing depth
+	private static final RenderPipeline ADDITIVE_PARTICLE = RenderPipeline.builder(RenderPipelines.PARTICLE_SNIPPET)
+			.withLocation(Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "pipeline/additive_particle"))
+			.withColorTargetState(new ColorTargetState(BlendFunction.LIGHTNING))
+			.withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
+			.build();
+	private static final SingleQuadParticle.Layer LAYER = new SingleQuadParticle.Layer(true, TEXTURE, ADDITIVE_PARTICLE);
 
 	public int multiplier;
 	public boolean shrink;
@@ -34,7 +35,7 @@ public class EntitySparkleFX extends Particle {
 	public int blendmode;
 
 	public EntitySparkleFX(ClientLevel world, double x, double y, double z, float scalemult, float red, float green, float blue, int var12) {
-		super(world, x, y, z, 0.0D, 0.0D, 0.0D);
+		super(world, x, y, z, 0.0D, 0.0D, 0.0D, Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.PARTICLES).missingSprite());
 		shrink = false;
 		particle = 0;
 		blendmode = 1;
@@ -52,75 +53,40 @@ public class EntitySparkleFX extends Particle {
 		hasPhysics = false;
 	}
 
-	// LP1: own sheet, additive blend (SRC_ALPHA, ONE), no depth write
-	private static final ParticleRenderType SPARKLE_RENDER_TYPE = new ParticleRenderType() {
-		@Override
-		public void begin(BufferBuilder bb, TextureManager textureManager) {
-			RenderSystem.enableBlend();
-			RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
-			RenderSystem.depthMask(false);
-			RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-			RenderSystem.setShaderTexture(0, TEXTURE);
-			bb.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-		}
-
-		@Override
-		public void end(Tesselator tesselator) {
-			BufferUploader.drawWithShader(tesselator.getBuilder().end());
-			RenderSystem.depthMask(true);
-			RenderSystem.disableBlend();
-		}
-
-		@Override
-		public String toString() {
-			return "LOGISTICS_SPARKLE";
-		}
-	};
-
 	@Override
-	public ParticleRenderType getRenderType() {
-		return SPARKLE_RENDER_TYPE;
+	protected SingleQuadParticle.Layer getLayer() {
+		return LAYER;
 	}
 
 	@Override
-	public void render(VertexConsumer buffer, Camera camera, float partialTicks) {
-		double px = Mth.lerp(partialTicks, xo, x) - camera.getPosition().x;
-		double py = Mth.lerp(partialTicks, yo, y) - camera.getPosition().y;
-		double pz = Mth.lerp(partialTicks, zo, z) - camera.getPosition().z;
-
-		org.joml.Quaternionf rot = camera.rotation();
-		org.joml.Vector3f right = new org.joml.Vector3f(1, 0, 0);
-		org.joml.Vector3f up    = new org.joml.Vector3f(0, 1, 0);
-		rot.transform(right);
-		rot.transform(up);
-
-		// LP1: half-extent = 0.1 * particleScale * lifeFade (always shrinking).
-		// bbWidth = 0.2 * scalemult here, so 0.1 * bbWidth ~ LP1's 0.02 * scalemult.
-		float s = 0.1f * this.bbWidth * ((float) (lifetime - age + 1) / (float) lifetime);
-		// LP1 animation: one 8x8 sheet cell per `multiplier` ticks
-		int frame = particle + age / multiplier;
-		float u0 = frame % 8 / 8.0F;
-		float u1 = u0 + 0.124875F;
-		float v0 = frame / 8 / 8.0F;
-		float v1 = v0 + 0.124875F;
-		int r = (int) (rCol * 255);
-		int g = (int) (gCol * 255);
-		int b = (int) (bCol * 255);
-
-		billboardVertex(buffer, px, py, pz, right, up, -s, -s, u1, v1, r, g, b);
-		billboardVertex(buffer, px, py, pz, right, up, -s,  s, u1, v0, r, g, b);
-		billboardVertex(buffer, px, py, pz, right, up,  s,  s, u0, v0, r, g, b);
-		billboardVertex(buffer, px, py, pz, right, up,  s, -s, u0, v1, r, g, b);
+	public float getQuadSize(float partialTicks) {
+		// LP1: half-extent = 0.1 * particleScale * lifeFade (always shrinking); bbWidth = 0.2 * scalemult
+		return 0.1f * this.bbWidth * ((float) (lifetime - age + 1) / (float) lifetime);
 	}
 
-	private static void billboardVertex(VertexConsumer buf, double cx, double cy, double cz,
-			org.joml.Vector3f right, org.joml.Vector3f up, float rs, float us,
-			float u, float v, int r, int g, int b) {
-		buf.vertex((float) (cx + right.x * rs + up.x * us),
-		           (float) (cy + right.y * rs + up.y * us),
-		           (float) (cz + right.z * rs + up.z * us))
-		   .uv(u, v)
-		   .color(r, g, b, 255).endVertex();
+	// LP1 animation: one 8x8 sheet cell per `multiplier` ticks
+	private int frame() {
+		return particle + age / multiplier;
+	}
+
+	@Override
+	protected float getU0() {
+		return frame() % 8 / 8.0F + 0.124875F;
+	}
+
+	@Override
+	protected float getU1() {
+		return frame() % 8 / 8.0F;
+	}
+
+	@Override
+	protected float getV0() {
+		return frame() / 8 / 8.0F;
+	}
+
+	@Override
+	protected float getV1() {
+		return frame() / 8 / 8.0F + 0.124875F;
 	}
 
 	/**

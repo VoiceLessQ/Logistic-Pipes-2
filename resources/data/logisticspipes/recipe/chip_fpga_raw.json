@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "sds",
+    "grg",
+    "sls"
+  ],
+  "key": {
+    "s": "#c:sands",
+    "d": "#c:gems/diamond",
+    "g": "#c:ingots/gold",
+    "r": "#c:dusts/redstone",
+    "l": "#c:gems/lapis"
+  },
+  "result": {
+    "id": "logisticspipes:chip_fpga_raw",
+    "count": 16
+  }
+}

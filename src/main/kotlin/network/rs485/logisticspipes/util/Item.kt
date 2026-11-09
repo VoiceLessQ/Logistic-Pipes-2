@@ -39,6 +39,7 @@ package network.rs485.logisticspipes.util
 
 import logisticspipes.utils.SinkReply
 import logisticspipes.utils.item.ItemIdentifier
+import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemStack
 import network.rs485.logisticspipes.inventory.IItemIdentifierInventory
 import kotlin.math.min
@@ -46,8 +47,7 @@ import kotlin.math.min
 
 fun ItemIdentifier.equalsWithNBT(stack: ItemStack): Boolean = this.item == stack.item &&
         this.itemDamage == stack.damageValue &&
-        ((this.tag == null && stack.tag == null) ||
-                (this.tag != null && stack.tag != null && this.tag == stack.tag))
+        this.tag == stack.get(DataComponents.CUSTOM_DATA)?.copyTag()
 
 fun IItemIdentifierInventory.matchingSequence(stack: ItemStack) =
     (0 until containerSize).asSequence().map { getIDStackInSlot(it) }

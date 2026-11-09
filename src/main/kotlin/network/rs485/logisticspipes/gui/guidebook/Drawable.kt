@@ -183,8 +183,8 @@ interface Drawable {
 object Screen : Drawable {
     val screen: MutableRectangle
         get() = MutableRectangle(
-            width = Minecraft.getInstance().screen?.width ?: Minecraft.getInstance().window.width,
-            height = Minecraft.getInstance().screen?.height ?: Minecraft.getInstance().window.height,
+            width = Minecraft.getInstance().gui.screen()?.width ?: Minecraft.getInstance().window.width,
+            height = Minecraft.getInstance().gui.screen()?.height ?: Minecraft.getInstance().window.height,
         )
 
     override val relativeBody: MutableRectangle

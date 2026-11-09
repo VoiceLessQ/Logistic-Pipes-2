@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "pjp",
+    "gug",
+    "pcp"
+  ],
+  "key": {
+    "p": "minecraft:paper",
+    "j": "logisticspipes:power_junction",
+    "g": "#c:ingots/gold",
+    "u": "logisticspipes:upgrade_power_transportation",
+    "c": "#c:ingots/copper"
+  },
+  "result": {
+    "id": "logisticspipes:upgrade_power_supplier_rf"
+  }
+}

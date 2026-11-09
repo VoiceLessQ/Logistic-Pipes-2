@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "b b",
+    " s ",
+    " a "
+  ],
+  "key": {
+    "a": "logisticspipes:chip_advanced",
+    "b": "logisticspipes:chip_basic",
+    "s": "#minecraft:signs"
+  },
+  "result": {
+    "id": "logisticspipes:sign_creator"
+  }
+}

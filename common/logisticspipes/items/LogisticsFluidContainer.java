@@ -1,5 +1,6 @@
 package logisticspipes.items;
 
+import net.minecraft.world.item.Item;
 import net.minecraft.client.gui.screens.Screen;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -10,8 +11,8 @@ import javax.annotation.Nullable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 
 
@@ -25,7 +26,7 @@ public class LogisticsFluidContainer extends LogisticsItem implements IItemAdvan
 	static int capacity = 8000;
 
 	public LogisticsFluidContainer() {
-		super(new net.minecraft.world.item.Item.Properties().stacksTo(1));
+		super(logisticspipes.LPRegistries.itemProperties().stacksTo(1));
 	}
 
 	@Override
@@ -40,39 +41,27 @@ public class LogisticsFluidContainer extends LogisticsItem implements IItemAdvan
 
 	@Override
 	@Nonnull
-	public String getDescriptionId(@Nonnull ItemStack stack) {
-		FluidIdentifierStack fluidStack = SimpleServiceLocator.logisticsFluidManager.getFluidFromContainer(ItemIdentifierStack.getFromStack(stack));
-		if (fluidStack != null) {
-			// Fluid.getDescriptionId() removed in 1.20.1; use FluidStack.getDisplayName()
-			String s = fluidStack.makeFluidStack().getDisplayName().getString();
-			if (s != null) {
-				return s;
-			}
-		}
-		return super.getDescriptionId(stack);
-	}
-
-	@Override
-	@Nonnull
 	public net.minecraft.network.chat.Component getName(@Nonnull ItemStack itemstack) {
 		FluidIdentifierStack fluidStack = SimpleServiceLocator.logisticsFluidManager.getFluidFromContainer(ItemIdentifierStack.getFromStack(itemstack));
 		if (fluidStack != null) {
-			return fluidStack.makeFluidStack().getDisplayName();
+			return fluidStack.getFluid().getDisplayName();
 		}
 		return super.getName(itemstack);
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
-		super.appendHoverText(stack, worldIn, tooltip, flagIn);
-		if (Screen.hasShiftDown()) {
+	@Environment(EnvType.CLIENT)
+	public void appendHoverText(@Nonnull ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<net.minecraft.network.chat.Component> tooltipConsumer, net.minecraft.world.item.TooltipFlag flagIn) {
+		java.util.List<net.minecraft.network.chat.Component> tooltip = new java.util.ArrayList<>();
+		super.appendHoverText(stack, context, display, tooltipConsumer, flagIn);
+		if (net.minecraft.client.Minecraft.getInstance().hasShiftDown()) {
 			FluidIdentifierStack fluidStack = SimpleServiceLocator.logisticsFluidManager.getFluidFromContainer(ItemIdentifierStack.getFromStack(stack));
 			if (fluidStack != null) {
-				tooltip.add(net.minecraft.network.chat.Component.literal("Type:  " + fluidStack.makeFluidStack().getDisplayName().getString()));
+				tooltip.add(net.minecraft.network.chat.Component.literal("Type:  " + fluidStack.getFluid().getDisplayName().getString()));
 				tooltip.add(net.minecraft.network.chat.Component.literal("Value: " + fluidStack.getAmount() + "mB"));
 			}
 		}
+		tooltip.forEach(tooltipConsumer);
 	}
 
 	// fillItemCategory removed in 1.20.1 — creative tab content registered via BuildCreativeModeTabContentsEvent

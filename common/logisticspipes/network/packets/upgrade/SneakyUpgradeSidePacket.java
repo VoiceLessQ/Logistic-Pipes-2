@@ -1,5 +1,6 @@
 package logisticspipes.network.packets.upgrade;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.Objects;
 
 import net.minecraft.world.entity.player.Player;
@@ -34,11 +35,9 @@ public class SneakyUpgradeSidePacket extends SlotPacket {
 		UpgradeSlot slot = getSlot(player, UpgradeSlot.class);
 		ItemStack stack = slot.getItem();
 		if (stack.isEmpty()) return;
-		if (!stack.hasTag()) {
-			stack.setTag(new CompoundTag());
-		}
-		final CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		final CompoundTag tag = CustomDataUtil.getOrCreateTag(stack);
 		tag.putString(SneakyUpgradeConfig.SIDE_KEY, SneakyUpgradeConfig.Sides.getNameForDirection(side));
+		CustomDataUtil.setTag(stack, tag);
 		slot.set(stack);
 	}
 

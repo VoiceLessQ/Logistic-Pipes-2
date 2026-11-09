@@ -19,12 +19,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.level.LevelEvent;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.server.ServerLifecycleHooks;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
@@ -48,13 +44,14 @@ public class MainProxy {
 	 * Side-specific proxy: ClientProxy on client dist, ServerProxy on dedicated server.
 	 * Replaces 1.12.2 {@code @SidedProxy} annotation.
 	 */
-	// NeoForge 1.20.1: DistExecutor removed — use FMLEnvironment.dist check
-	public static IProxy proxy = net.minecraftforge.fml.loading.FMLEnvironment.dist.isClient()
+	public static IProxy proxy = net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT
 			? new logisticspipes.proxy.side.ClientProxy()
 			: new logisticspipes.proxy.side.ServerProxy();
 
 	@Getter
 	private static int globalTick;
+
+	private enum LogicalSide { CLIENT, SERVER }
 
 	private static final WeakHashMap<Thread, LogicalSide> threadSideMap = new WeakHashMap<>();
 	private static final Map<ResourceKey<Level>, FakePlayerLP> fakePlayers = Maps.newHashMap();
@@ -104,12 +101,12 @@ public class MainProxy {
 		// Mirror isServer(Level): fall back to thread detection when no level is available
 		// (e.g. a pipe queried before its container is bound).
 		if (level == null) return MainProxy.getEffectiveSide() == LogicalSide.CLIENT;
-		return level.isClientSide;
+		return level.isClientSide();
 	}
 
 	public static boolean isServer(Level level) {
 		if (level == null) return MainProxy.getEffectiveSide() == LogicalSide.SERVER;
-		return !level.isClientSide;
+		return !level.isClientSide();
 	}
 
 	/**
@@ -118,14 +115,14 @@ public class MainProxy {
 	 */
 	public static boolean isServer(@Nullable LevelAccessor levelAccessor) {
 		if (levelAccessor instanceof Level level) {
-			return !level.isClientSide;
+			return !level.isClientSide();
 		}
 		return MainProxy.isServer();
 	}
 
 	public static boolean isClient(@Nullable LevelAccessor levelAccessor) {
 		if (levelAccessor instanceof Level level) {
-			return level.isClientSide;
+			return level.isClientSide();
 		}
 		return MainProxy.isClient();
 	}
@@ -165,7 +162,7 @@ public class MainProxy {
 	// ── Chunk-watch / broadcast helpers ──────────────────────────────────────
 
 	public static boolean isAnyoneWatching(BlockPos pos, int dimensionID) {
-		net.minecraft.world.level.ChunkPos chunkPos = new net.minecraft.world.level.ChunkPos(pos);
+		net.minecraft.world.level.ChunkPos chunkPos = net.minecraft.world.level.ChunkPos.containing(pos);
 		PlayerCollectionList list = logisticspipes.LogisticsEventListener.watcherList.get(chunkPos);
 		return list != null && !list.isEmpty();
 	}
@@ -180,7 +177,7 @@ public class MainProxy {
 
 	public static void sendPacketToAllWatchingChunk(LogisticsModule module, ModernPacket packet) {
 		if (module == null || module.getBlockPos() == null) return;
-		net.minecraft.world.level.ChunkPos chunkPos = new net.minecraft.world.level.ChunkPos(module.getBlockPos());
+		net.minecraft.world.level.ChunkPos chunkPos = net.minecraft.world.level.ChunkPos.containing(module.getBlockPos());
 		sendPacketToChunkWatchers(chunkPos, packet);
 	}
 
@@ -188,13 +185,10 @@ public class MainProxy {
 		if (tile == null) return;
 		net.minecraft.world.level.Level lvl = tile.getLevel();
 		if (lvl instanceof net.minecraft.server.level.ServerLevel sl) {
-			net.minecraft.world.level.chunk.LevelChunk chunk = sl.getChunkAt(tile.getBlockPos());
-			logisticspipes.network.PacketHandler.CHANNEL.send(
-				net.minecraftforge.network.PacketDistributor.TRACKING_CHUNK.with(() -> chunk),
-				logisticspipes.network.PacketHandler.buildPayloadPublic(packet));
+			logisticspipes.network.PacketHandler.sendToTrackingChunk(packet, sl, net.minecraft.world.level.ChunkPos.containing(tile.getBlockPos()));
 			return;
 		}
-		net.minecraft.world.level.ChunkPos chunkPos = new net.minecraft.world.level.ChunkPos(tile.getBlockPos());
+		net.minecraft.world.level.ChunkPos chunkPos = net.minecraft.world.level.ChunkPos.containing(tile.getBlockPos());
 		sendPacketToChunkWatchers(chunkPos, packet);
 	}
 
@@ -229,7 +223,7 @@ public class MainProxy {
 			LogisticsPipes.log.error("sendToAllPlayers called client-side!");
 			return;
 		}
-		var server = ServerLifecycleHooks.getCurrentServer();
+		var server = logisticspipes.LogisticsPipes.getServer();
 		if (server == null) return;
 		for (ServerLevel level : server.getAllLevels()) {
 			for (Player player : level.players()) {
@@ -282,11 +276,8 @@ public class MainProxy {
 				player.getItemBySlot(EquipmentSlot.MAINHAND).getItem() == LPItems.pipeController.get();
 	}
 
-	@SubscribeEvent
-	public static void onWorldUnload(LevelEvent.Unload event) {
-		if (event.getLevel() instanceof Level level) {
-			fakePlayers.keySet().removeIf(key -> key.equals(level.dimension()));
-		}
+	public static void onWorldUnload(Level level) {
+		fakePlayers.keySet().removeIf(key -> key.equals(level.dimension()));
 	}
 
 	private static boolean needsToBeCompressed(ModernPacket packet) {

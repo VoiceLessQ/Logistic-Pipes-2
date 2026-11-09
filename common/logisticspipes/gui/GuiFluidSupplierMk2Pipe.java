@@ -6,10 +6,10 @@
 
 package logisticspipes.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.io.IOException;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.Container;
 
 import logisticspipes.network.PacketHandler;
@@ -50,23 +50,23 @@ public class GuiFluidSupplierMk2Pipe extends LogisticsBaseGuiScreen {
 
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "TargetInv"), imageWidth / 2 - minecraft.font.width(TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "TargetInv")) / 2, 6, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "Inventory"), 15, imageHeight - 95, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "Fluid") + ":", 25, 22, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "Partial") + ":", imageWidth - 176, imageHeight - 109, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "minMode") + ":", imageWidth - 108, imageHeight - 109, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, Integer.toString(logic.getAmount()), imageWidth / 2, 22, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, "+", 32, 39, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, "-", 32, 50, 0x404040, false);
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "TargetInv"), imageWidth / 2 - minecraft.font.width(TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "TargetInv")) / 2, 6, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "Inventory"), 15, imageHeight - 95, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "Fluid") + ":", 25, 22, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "Partial") + ":", imageWidth - 176, imageHeight - 109, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiFluidSupplierMk2Pipe.PREFIX + "minMode") + ":", imageWidth - 108, imageHeight - 109, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, Integer.toString(logic.getAmount()), imageWidth / 2, 22, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "+", 32, 39, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "-", 32, 50, 0x404040, false);
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int x, int y) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int x, int y) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0.0f, true);
 		LPGuiGraphics.drawPlayerInventoryBackground(minecraft, leftPos + 13, topPos + 92);
 		LPGuiGraphics.drawSlotBackground(minecraft, leftPos + 59, topPos + 17);
-		//RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		//SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 		//minecraft.renderEngine.func_110577_a("/logisticspipes/gui/supplier.png");
 		//int j = leftPos;
 		//int k = topPos;

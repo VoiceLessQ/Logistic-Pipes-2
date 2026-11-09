@@ -9,8 +9,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.interfaces.ITubeOrientation;
 import logisticspipes.renderer.newpipe.ISpecialPipeRenderer;
@@ -112,7 +112,7 @@ public abstract class CoreMultiBlockPipe extends CoreUnroutedPipe {
 	public abstract boolean actAsNormalPipe();
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public abstract ISpecialPipeRenderer getSpecialRenderer();
 
 	@Override

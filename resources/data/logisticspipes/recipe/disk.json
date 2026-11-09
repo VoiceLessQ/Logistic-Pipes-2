@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iri",
+    "rgr",
+    "iri"
+  ],
+  "key": {
+    "i": "#c:ingots/iron",
+    "r": "minecraft:redstone",
+    "g": "#c:nuggets/gold"
+  },
+  "result": {
+    "id": "logisticspipes:disk"
+  }
+}

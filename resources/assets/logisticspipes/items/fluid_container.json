@@ -1,0 +1,18 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "logisticspipes:item/fluid_container"
+      },
+      {
+        "type": "minecraft:special",
+        "base": "logisticspipes:item/fluid_container",
+        "model": {
+          "type": "logisticspipes:fluid_container"
+        }
+      }
+    ]
+  }
+}

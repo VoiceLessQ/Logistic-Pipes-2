@@ -2,12 +2,12 @@ package logisticspipes.proxy.object3d.interfaces;
 
 import java.util.List;
 
-import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.world.phys.AABB;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 public interface IModel3D {
 
@@ -15,7 +15,7 @@ public interface IModel3D {
 
 	void render(I3DOperation... i3dOperations);
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	List<BakedQuad> renderToQuads(VertexFormat format, I3DOperation... i3dOperations);
 
 	void computeNormals();

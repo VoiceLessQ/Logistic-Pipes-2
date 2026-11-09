@@ -1,6 +1,7 @@
 package logisticspipes.gui;
 
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.world.entity.player.Player;
 
 
@@ -64,7 +65,7 @@ public class GuiLogisticsSettings extends LogisticsBaseTabGuiScreen {
 		@Override
 		public void renderIcon(int x, int y) {
 			if (logisticspipes.utils.gui.SimpleGraphics.guiGraphics != null) {
-				logisticspipes.utils.gui.SimpleGraphics.guiGraphics.renderItem(new net.minecraft.world.item.ItemStack(LPItems.pipeBasic.get()), x, y);
+				logisticspipes.utils.gui.SimpleGraphics.guiGraphics.item(new net.minecraft.world.item.ItemStack(LPItems.pipeBasic.get()), x, y);
 			}
 		}
 
@@ -85,10 +86,10 @@ public class GuiLogisticsSettings extends LogisticsBaseTabGuiScreen {
 		public void renderForegroundContent() {
 			renderDistance.drawTextBox();
 			contentRenderDistance.drawTextBox();
-			//guiGraphics.drawString(font, StringUtil.translate(PREFIX + "pipenewrenderer"), 38, 34, 0x404040, false);
-			//guiGraphics.drawString(font, StringUtil.translate(PREFIX + "pipefallbackrenderer"), 38, 54, 0x404040, false);
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "piperenderdistance"), 10, 70, 0x404040, false);
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "pipecontentrenderdistance"), 10, 100, 0x404040, false);
+			//SimpleGraphics.drawString(guiGraphics, font, StringUtil.translate(PREFIX + "pipenewrenderer"), 38, 34, 0x404040, false);
+			//SimpleGraphics.drawString(guiGraphics, font, StringUtil.translate(PREFIX + "pipefallbackrenderer"), 38, 54, 0x404040, false);
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "piperenderdistance"), 10, 70, 0x404040, false);
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "pipecontentrenderdistance"), 10, 100, 0x404040, false);
 		}
 
 		@Override

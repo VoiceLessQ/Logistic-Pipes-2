@@ -12,18 +12,18 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ChunkPos;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
-
-import java.util.function.Supplier;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -42,40 +42,24 @@ import network.rs485.logisticspipes.util.LPDataInput;
  * Central packet registry and dispatcher for LogisticsPipes.
  *
  * All LP packets share a single {@link LPPacketPayload} channel multiplexed by a short ID.
- * Registration happens in {@link logisticspipes.LogisticsPipes} via {@code RegisterPayloadsEvent}.
+ * Registration happens in {@link logisticspipes.LogisticsPipes#onInitialize} (both directions plus the
+ * server receiver) and {@link logisticspipes.LogisticsPipesClient} (client receiver). Fabric runs
+ * play payload handlers on the main thread, like Forge's consumerMainThread did.
  */
 public class PacketHandler {
 
-    private static final String PROTOCOL_VERSION = "1";
-    public static final ResourceLocation CHANNEL_ID = new ResourceLocation("logisticspipes", "packet");
-    public static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
-            .named(CHANNEL_ID)
-            .clientAcceptedVersions(PROTOCOL_VERSION::equals)
-            .serverAcceptedVersions(PROTOCOL_VERSION::equals)
-            .networkProtocolVersion(() -> PROTOCOL_VERSION)
-            .simpleChannel();
+    // LP 1.12 sent whole request-table/orderer inventories in one packet; Fabric splits large payloads.
+    private static final int MAX_PAYLOAD_SIZE = 8 * 1024 * 1024;
 
     public static void registerMessages() {
-        CHANNEL.messageBuilder(LPPacketPayload.class, 0)
-                .encoder(LPPacketPayload::write)
-                .decoder(LPPacketPayload::decode)
-                .consumerMainThread(PacketHandler::handlePayload)
-                .add();
+        PayloadTypeRegistry.clientboundPlay().registerLarge(LPPacketPayload.TYPE, LPPacketPayload.CODEC, MAX_PAYLOAD_SIZE);
+        PayloadTypeRegistry.serverboundPlay().registerLarge(LPPacketPayload.TYPE, LPPacketPayload.CODEC, MAX_PAYLOAD_SIZE);
+        ServerPlayNetworking.registerGlobalReceiver(LPPacketPayload.TYPE, (payload, context) -> handlePayload(payload, context.player()));
     }
 
-    private static void handlePayload(LPPacketPayload payload, Supplier<NetworkEvent.Context> ctxSup) {
-        NetworkEvent.Context ctx = ctxSup.get();
-        try {
-            Player player = ctx.getSender();
-            if (player == null) {
-                player = MainProxy.proxy.getClientPlayer();
-            }
-            if (player != null) {
-                onPacketData(payload.getData(), player);
-            }
-        } finally {
-            payload.release();
-            ctx.setPacketHandled(true);
+    public static void handlePayload(LPPacketPayload payload, Player player) {
+        if (player != null) {
+            onPacketData(new FriendlyByteBuf(Unpooled.wrappedBuffer(payload.data())), player);
         }
     }
 
@@ -156,9 +140,9 @@ public class PacketHandler {
         nbt.putByteArray("LogisticsPipes:PacketData", data);
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public static void queueAndRemovePacketFromNBT(CompoundTag nbt) {
-        byte[] data = nbt.getByteArray("LogisticsPipes:PacketData");
+        byte[] data = nbt.getByteArray("LogisticsPipes:PacketData").orElse(new byte[0]);
         if (data.length > 0) {
             LPDataIOWrapper.provideData(data, dataInput -> {
                 final int packetID = dataInput.readShort();
@@ -174,19 +158,21 @@ public class PacketHandler {
     // ── Sending ──────────────────────────────────────────────────────────────
 
     private static LPPacketPayload buildPayload(@Nonnull ModernPacket msg) {
-        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-        fillByteBuf(msg, buf);
-        return LPPacketPayload.of(buf);
-    }
-
-    public static LPPacketPayload buildPayloadPublic(@Nonnull ModernPacket msg) {
-        return buildPayload(msg);
+        ByteBuf buf = Unpooled.buffer();
+        try {
+            fillByteBuf(msg, buf);
+            byte[] data = new byte[buf.readableBytes()];
+            buf.readBytes(data);
+            return new LPPacketPayload(data);
+        } finally {
+            buf.release();
+        }
     }
 
     /** Sends a packet from the client to the server. Must only be called client-side. */
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public static void sendToServer(@Nonnull ModernPacket msg) {
-        CHANNEL.sendToServer(buildPayload(msg));
+        ClientPlayNetworking.send(buildPayload(msg));
     }
 
     /** Sends a packet from the server to a specific player. Must only be called server-side. */
@@ -195,12 +181,21 @@ public class PacketHandler {
             LogisticsPipes.log.warn("sendToPlayer: player is not a ServerPlayer, skipping");
             return;
         }
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> sp), buildPayload(msg));
+        ServerPlayNetworking.send(sp, buildPayload(msg));
     }
 
     /** Sends a packet to every connected player. Must only be called server-side. */
     public static void sendToAll(@Nonnull ModernPacket msg) {
-        CHANNEL.send(PacketDistributor.ALL.noArg(), buildPayload(msg));
+        MinecraftServer server = LogisticsPipes.getServer();
+        if (server == null) return;
+        LPPacketPayload payload = buildPayload(msg);
+        PlayerLookup.all(server).forEach(player -> ServerPlayNetworking.send(player, payload));
+    }
+
+    /** Sends a packet to every player tracking the chunk. Must only be called server-side. */
+    public static void sendToTrackingChunk(@Nonnull ModernPacket msg, @Nonnull ServerLevel level, @Nonnull ChunkPos pos) {
+        LPPacketPayload payload = buildPayload(msg);
+        PlayerLookup.tracking(level, pos).forEach(player -> ServerPlayNetworking.send(player, payload));
     }
 
     /** Resolves a fresh packet template for a received id, guarding the null gaps that

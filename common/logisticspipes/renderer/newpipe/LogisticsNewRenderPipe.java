@@ -16,17 +16,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.ParticleEngine;
-import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
@@ -54,6 +53,7 @@ import logisticspipes.proxy.object3d.operation.LPTranslation;
 import logisticspipes.proxy.object3d.operation.LPUVScale;
 import logisticspipes.proxy.object3d.operation.LPUVTransformationList;
 import logisticspipes.proxy.object3d.operation.LPUVTranslation;
+import logisticspipes.renderer.LogisticsRenderPipe;
 import logisticspipes.renderer.state.PipeRenderState;
 import logisticspipes.textures.Textures;
 import logisticspipes.utils.tuples.Quartet;
@@ -573,7 +573,8 @@ public class LogisticsNewRenderPipe implements IHighlightPlacementRenderer {
 
 	private ClientConfiguration config = LogisticsPipes.getClientPlayerConfig();
 
-	public void renderTileEntityAt(LogisticsTileGenericPipe pipeTile, double x, double y, double z, float partialTickTime, double distance) {
+	public void renderTileEntityAt(LogisticsTileGenericPipe pipeTile, double distance, com.mojang.blaze3d.vertex.PoseStack poseStack,
+			net.minecraft.client.renderer.SubmitNodeCollector collector, int packedLight, int packedOverlay) {
 		boolean inHand = false;
 		if (pipeTile == null) return;
 		if (pipeTile.pipe == null) return;
@@ -594,14 +595,8 @@ public class LogisticsNewRenderPipe implements IHighlightPlacementRenderer {
 			}*/
 		} else {
 			renderState.forceRenderOldPipe = false;
-			boolean recalculateList = checkAndCalculateRenderCache(pipeTile);
-			renderList(x, y, z, renderState.renderLists, renderState.cachedRenderer, recalculateList);
-			if (recalculateList) {
-				net.minecraft.core.BlockPos bpos = pipeTile.getBlockPos();
-				net.minecraft.client.Minecraft.getInstance().levelRenderer.setBlocksDirty(
-						bpos.getX(), bpos.getY(), bpos.getZ(),
-						bpos.getX(), bpos.getY(), bpos.getZ());
-			}
+			checkAndCalculateRenderCache(pipeTile);
+			renderList(renderState.cachedRenderer, poseStack, collector, packedLight, packedOverlay);
 		}
 	}
 
@@ -629,42 +624,21 @@ public class LogisticsNewRenderPipe implements IHighlightPlacementRenderer {
 		return false;
 	}
 
-	private static void renderList(double x, double y, double z, Map<ResourceLocation, GLRenderList> renderLists, List<RenderEntry> cachedRenderer, boolean recalculateList) {
-		// 1.20.1 rewrite: the old 1.12.2 code cached geometry into GL display lists
-		// (GLRenderList) keyed by texture. Display lists are removed in 1.20.1 and
-		// the modern pipeline already batches per-frame through MultiBufferSource,
-		// so the caching layer is both impossible and unnecessary. We now emit
-		// every RenderEntry directly through the VertexConsumer bound on
-		// LPRenderStateImpl by the outer BlockEntityRenderer.
-		//
-		// Most pipe textures live on the block atlas (LOCATION_BLOCKS) and resolve
-		// through the TextureTransformation operation each entry carries — those use
-		// the buffer bound by the BER. Special renderers (HS tubes) carry standalone
-		// texture paths with raw 0..1 UVs; those need their own RenderType buffer or
-		// the UVs sample across the whole atlas.
-		IRenderState rs = SimpleServiceLocator.cclProxy.getRenderState();
-		if (rs == null) return;
-		rs.reset();
-		logisticspipes.proxy.object3d.impl.LPRenderStateImpl rsImpl =
-				rs instanceof logisticspipes.proxy.object3d.impl.LPRenderStateImpl
-						? (logisticspipes.proxy.object3d.impl.LPRenderStateImpl) rs : null;
-		com.mojang.blaze3d.vertex.VertexConsumer atlasBuffer = rsImpl != null ? rsImpl.buffer : null;
+	/**
+	 * Display lists are gone: every entry is re-emitted each frame. Entries are grouped by texture,
+	 * because HS tubes carry standalone textures with raw 0..1 UVs that need their own render type.
+	 */
+	private static void renderList(List<RenderEntry> cachedRenderer, com.mojang.blaze3d.vertex.PoseStack poseStack,
+			net.minecraft.client.renderer.SubmitNodeCollector collector, int packedLight, int packedOverlay) {
+		Map<Identifier, List<RenderEntry>> byTexture = new java.util.LinkedHashMap<>();
 		for (RenderEntry entry : cachedRenderer) {
-			if (rsImpl != null && rsImpl.bufferSource != null && atlasBuffer != null) {
-				ResourceLocation texture = entry.getTexture();
-				if (texture == null || texture.equals(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)) {
-					rsImpl.buffer = atlasBuffer;
-				} else {
-					rsImpl.buffer = rsImpl.bufferSource.getBuffer(
-							net.minecraft.client.renderer.RenderType.entityCutoutNoCull(texture));
-				}
-			}
-			entry.getModel().render(entry.getOperations());
+			Identifier texture = entry.getTexture() == null ? net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS : entry.getTexture();
+			byTexture.computeIfAbsent(texture, k -> new ArrayList<>()).add(entry);
 		}
-		if (rsImpl != null && atlasBuffer != null) {
-			rsImpl.buffer = atlasBuffer;
-		}
-		rs.draw();
+		byTexture.forEach((texture, entries) -> LogisticsRenderPipe.submitGeometry(collector, poseStack,
+				texture.equals(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)
+						? LogisticsRenderPipe.ATLAS_TYPE : net.minecraft.client.renderer.rendertype.RenderTypes.entityCutout(texture),
+				packedLight, packedOverlay, () -> entries.forEach(entry -> entry.getModel().render(entry.getOperations()))));
 	}
 
 	private static void fillObjectsToRenderList(List<RenderEntry> objectsToRender, LogisticsTileGenericPipe pipeTile, PipeRenderState renderState) {
@@ -748,12 +722,12 @@ public class LogisticsNewRenderPipe implements IHighlightPlacementRenderer {
 							double toAdd;
 							if (dir.ordinal() % 2 == 1) {
 								toAdd = 1 + (bound / LPConstants.PIPE_MIN_POS);
-								model2 = model2.apply(new LPScale(dir.getNormal().getX() != 0 ? toAdd : 1, dir.getNormal().getY() != 0 ? toAdd : 1, dir.getNormal().getZ() != 0 ? toAdd : 1));
+								model2 = model2.apply(new LPScale(dir.getUnitVec3i().getX() != 0 ? toAdd : 1, dir.getUnitVec3i().getY() != 0 ? toAdd : 1, dir.getUnitVec3i().getZ() != 0 ? toAdd : 1));
 							} else {
 								bound = 1 - bound;
 								toAdd = 1 + (bound / LPConstants.PIPE_MIN_POS);
-								model2 = model2.apply(new LPScale(dir.getNormal().getX() != 0 ? toAdd : 1, dir.getNormal().getY() != 0 ? toAdd : 1, dir.getNormal().getZ() != 0 ? toAdd : 1));
-								model2 = model2.apply(new LPTranslation(dir.getNormal().getX() * bound, dir.getNormal().getY() * bound, dir.getNormal().getZ() * bound));
+								model2 = model2.apply(new LPScale(dir.getUnitVec3i().getX() != 0 ? toAdd : 1, dir.getUnitVec3i().getY() != 0 ? toAdd : 1, dir.getUnitVec3i().getZ() != 0 ? toAdd : 1));
+								model2 = model2.apply(new LPTranslation(dir.getUnitVec3i().getX() * bound, dir.getUnitVec3i().getY() * bound, dir.getUnitVec3i().getZ() * bound));
 							}
 							model2 = model2.apply(new LPTranslation(min));
 							LogisticsNewRenderPipe.scaleMap.put(key, model2);
@@ -1056,7 +1030,7 @@ public class LogisticsNewRenderPipe implements IHighlightPlacementRenderer {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public static void renderDestruction(CoreUnroutedPipe pipe, net.minecraft.client.multiplayer.ClientLevel world, int x, int y, int z, ParticleEngine effectRenderer) {
 		if (pipe.container != null && pipe.container.renderState != null && pipe.container.renderState.cachedRenderer != null) {
 			for (RenderEntry entry : pipe.container.renderState.cachedRenderer) {
@@ -1130,21 +1104,6 @@ public class LogisticsNewRenderPipe implements IHighlightPlacementRenderer {
 		for (RenderEntry model : objectsToRender) {
 			model.getModel().render(model.getOperations());
 		}
-	}
-
-	@Nonnull
-	public ArrayList<BakedQuad> getQuadsFromRenderList(List<RenderEntry> renderEntryList, VertexFormat format, boolean skipNonBlockTextures) {
-		ArrayList<BakedQuad> quads = Lists.newArrayList();
-		for (RenderEntry model : renderEntryList) {
-			ResourceLocation texture = model.getTexture();
-			if (texture == null) {
-				throw new NullPointerException();
-			}
-			if (texture.equals(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)) {
-				quads.addAll(model.getModel().renderToQuads(format, model.getOperations()));
-			}
-		}
-		return quads;
 	}
 
 	@Override

@@ -9,8 +9,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -205,7 +205,7 @@ public class HSTubeCurve extends CoreMultiBlockPipe {
 	@Override
 	public void readFromNBT(CompoundTag data) {
 		super.readFromNBT(data);
-		orientation = CurveOrientation.valueOf(data.getString("orientation"));
+		orientation = CurveOrientation.valueOf(data.getStringOr("orientation", ""));
 	}
 
 	@Override
@@ -250,7 +250,7 @@ public class HSTubeCurve extends CoreMultiBlockPipe {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public ISpecialPipeRenderer getSpecialRenderer() {
 		return CurveTubeRenderer.instance;
 	}

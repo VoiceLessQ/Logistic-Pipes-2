@@ -67,13 +67,13 @@ public class PipeItemsFirewall extends CoreRoutedPipe {
 	public void readFromNBT(CompoundTag nbttagcompound) {
 		super.readFromNBT(nbttagcompound);
 		inv.readFromNBT(nbttagcompound);
-		blockProvider = nbttagcompound.getBoolean("blockProvider");
-		blockCrafter = nbttagcompound.getBoolean("blockCrafer");
-		blockSorting = nbttagcompound.getBoolean("blockSorting");
+		blockProvider = nbttagcompound.getBooleanOr("blockProvider", false);
+		blockCrafter = nbttagcompound.getBooleanOr("blockCrafer", false);
+		blockSorting = nbttagcompound.getBooleanOr("blockSorting", false);
 		if (nbttagcompound.contains("blockPower")) {
-			blockPower = nbttagcompound.getBoolean("blockPower");
+			blockPower = nbttagcompound.getBooleanOr("blockPower", false);
 		}
-		isBlocking = nbttagcompound.getBoolean("isBlocking");
+		isBlocking = nbttagcompound.getBooleanOr("isBlocking", false);
 	}
 
 	@Override
@@ -137,7 +137,7 @@ public class PipeItemsFirewall extends CoreRoutedPipe {
 
 				@Override
 				public boolean isFilteredItem(IResource resultItem) {
-					for (Pair<ItemIdentifierStack, Integer> pair : inv) {
+					for (Pair<ItemIdentifierStack, Integer> pair : inv.contents()) {
 						ItemIdentifierStack stack = pair.getValue1();
 						if (stack != null && resultItem.matches(stack.getItem(), IResource.MatchSettings.NORMAL)) {
 							return true;

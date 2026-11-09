@@ -24,8 +24,8 @@ public class PlayerList extends StringListPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (Minecraft.getInstance().screen instanceof PlayerListReciver) {
-			((PlayerListReciver) Minecraft.getInstance().screen).receivePlayerList(getStringList());
+		if (Minecraft.getInstance().gui.screen() instanceof PlayerListReciver) {
+			((PlayerListReciver) Minecraft.getInstance().gui.screen()).receivePlayerList(getStringList());
 		}
 	}
 }

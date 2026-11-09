@@ -39,6 +39,7 @@ package network.rs485.logisticspipes.property.layer
 
 import network.rs485.logisticspipes.property.InventoryProperty
 import net.minecraft.world.Container
+import net.minecraft.world.entity.ContainerUser
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 
@@ -67,11 +68,11 @@ class PropertyOverlayInventoryAdapter<T : Container, out P : InventoryProperty<T
     override fun stillValid(player: Player): Boolean = propertyOverlay.read { it.stillValid(player) }
 
     @Deprecated("no-op on adapter")
-    override fun startOpen(player: Player) {
+    override fun startOpen(user: ContainerUser) {
     }
 
     @Deprecated("no-op on adapter")
-    override fun stopOpen(player: Player) {
+    override fun stopOpen(user: ContainerUser) {
     }
 
     override fun canPlaceItem(index: Int, stack: ItemStack): Boolean =

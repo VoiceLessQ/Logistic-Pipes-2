@@ -1,8 +1,7 @@
 
 package logisticspipes.utils.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,8 +50,8 @@ public class LogisticsBaseTabGuiScreen extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int mouse_x, int mouse_y) {
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int mouse_x, int mouse_y) {
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 		for (int i = 0; i < tabList.size(); i++) {
 			LPGuiGraphics.drawGuiBackGround(minecraft, leftPos + (25 * i) + 2, topPos - 2, leftPos + 27 + (25 * i), topPos + 35, 0.0f, false, true, true, false, true);
 		}
@@ -114,7 +113,7 @@ public class LogisticsBaseTabGuiScreen extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
 		for (int i = 0; i < tabList.size(); i++) {
 			if (current_Tab == i) {
@@ -124,7 +123,7 @@ public class LogisticsBaseTabGuiScreen extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void drawSlot(Slot slot) {
+	protected void extractSlot(GuiGraphicsExtractor guiGraphics, Slot slot, int mouseX, int mouseY) {
 		if (hiddenSlots.contains(slot)) return;
 		for (int i = 0; i < tabList.size(); i++) {
 			if (tabList.get(i).isSlotForTab(slot)) {
@@ -133,7 +132,7 @@ public class LogisticsBaseTabGuiScreen extends LogisticsBaseGuiScreen {
 				}
 			}
 		}
-		super.drawSlot(slot);
+		super.extractSlot(guiGraphics, slot, mouseX, mouseY);
 	}
 
 	@Override
@@ -197,6 +196,11 @@ public class LogisticsBaseTabGuiScreen extends LogisticsBaseGuiScreen {
 
 		public net.minecraft.client.gui.components.AbstractButton addRenderableWidget(net.minecraft.client.gui.components.AbstractButton button) {
 			TAB_BUTTONS.add(LogisticsBaseTabGuiScreen.this.addRenderableWidget(button));
+			if (button instanceof SmallGuiButton smallButton) {
+				smallButton.setPressListener(this::buttonClicked);
+			} else if (button instanceof GuiCheckBox checkBox) {
+				checkBox.setPressListener(this::buttonClicked);
+			}
 			return button;
 		}
 

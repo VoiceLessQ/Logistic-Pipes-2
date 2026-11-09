@@ -32,7 +32,9 @@ public class AdvancedExtractorSneakyGuiPacket extends ModuleCoordinatesPacket {
 			if (player.containerMenu instanceof DummyModuleContainer) {
 				DummyModuleContainer dummy = (DummyModuleContainer) player.containerMenu;
 				if (dummy.getModule() instanceof AsyncAdvancedExtractor) {
-					player.closeContainer(); // closeScreen() removed in 1.20.1
+					if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+						serverPlayer.closeContainer();
+					}
 					NewGuiHandler.getGui(SneakyModuleInHandGuiProvider.class).setInvSlot(getPositionInt()).open(player);
 				}
 			}

@@ -9,9 +9,12 @@
 package logisticspipes.utils.gui;
 
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 
 
@@ -21,12 +24,54 @@ import logisticspipes.utils.Color;
  * Utils class for simple drawing methods.
  */
 @SuppressWarnings("JavadocReference")
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public final class SimpleGraphics {
 
-	public static net.minecraft.client.gui.GuiGraphics guiGraphics = null;
+	public static GuiGraphicsExtractor guiGraphics = null;
+	/** Stand-in for the removed RenderSystem.setShaderColor: ARGB tint LP passes to its GUI blits. */
+	public static int color = -1;
 
 	private SimpleGraphics() {}
+
+	public static void setColor(float r, float g, float b, float a) {
+		color = ARGB.colorFromFloat(a, r, g, b);
+	}
+
+	/** 1.20.1 drawString semantics: a color without alpha is opaque, returns the end x. */
+	public static int drawString(GuiGraphicsExtractor gg, Font font, String s, int x, int y, int color, boolean shadow) {
+		if (s == null) return x;
+		gg.text(font, s, x, y, opaque(color), shadow);
+		return x + font.width(s) + (shadow ? 1 : 0);
+	}
+
+	public static int drawString(GuiGraphicsExtractor gg, Font font, String s, int x, int y, int color) {
+		return drawString(gg, font, s, x, y, color, true);
+	}
+
+	public static int drawString(GuiGraphicsExtractor gg, Font font, String s, float x, int y, int color, boolean shadow) {
+		return drawString(gg, font, s, (int) x, y, color, shadow);
+	}
+
+	public static int drawString(GuiGraphicsExtractor gg, Font font, Component s, int x, int y, int color, boolean shadow) {
+		gg.text(font, s, x, y, opaque(color), shadow);
+		return x + font.width(s) + (shadow ? 1 : 0);
+	}
+
+	public static int drawString(GuiGraphicsExtractor gg, Font font, Component s, int x, int y, int color) {
+		return drawString(gg, font, s, x, y, color, true);
+	}
+
+	public static void drawCenteredString(GuiGraphicsExtractor gg, Font font, String s, int x, int y, int color) {
+		gg.centeredText(font, s, x, y, opaque(color));
+	}
+
+	public static void drawCenteredString(GuiGraphicsExtractor gg, Font font, Component s, int x, int y, int color) {
+		gg.centeredText(font, s, x, y, opaque(color));
+	}
+
+	private static int opaque(int color) {
+		return (color & 0xFC000000) == 0 ? color | 0xFF000000 : color;
+	}
 
 	/**
 	 * Takes colors as enum values from {@link logisticspipes.utils.Color}.
@@ -164,12 +209,12 @@ public final class SimpleGraphics {
 	 */
 	/**
 	 * @deprecated 1.12.2 signature — callers must migrate to
-	 *   {@code guiGraphics.blit(ResourceLocation, x, y, u, v, w, h)}.
+	 *   {@code guiGraphics.blit(Identifier, x, y, u, v, w, h)}.
 	 *   Kept as a no-op so legacy call sites still compile until migrated.
 	 */
 	@Deprecated
 	public static void drawTexturedModalRect(int x, int y, int u, int v, int width, int height, double zLevel) {
-		// no-op: texture binding is callsite-specific in 1.20.1; see GuiGraphics.blit
+		// no-op: texture binding is callsite-specific in 1.20.1; see GuiGraphicsExtractor.blit
 	}
 
 	/**
@@ -187,10 +232,10 @@ public final class SimpleGraphics {
 
 		// make color gray-ish and draw shadow
 		int grayColor = (color & 16579836) >> 2 | color & -16777216;
-		endX = guiGraphics.drawString(font, s, x + 1, y + 1, grayColor, false);
+		endX = SimpleGraphics.drawString(guiGraphics, font, s, x + 1, y + 1, grayColor, false);
 
 		// move to foreground and draw actual string
-		endX = Math.max(endX, guiGraphics.drawString(font, s, x, y, color, false));
+		endX = Math.max(endX, SimpleGraphics.drawString(guiGraphics, font, s, x, y, color, false));
 
 		return endX;
 	}
@@ -207,7 +252,7 @@ public final class SimpleGraphics {
 	/**
 	 * Draws a solid-color rectangle. The {@code tessellator} parameter is kept for
 	 * source compatibility with 1.12.2 call sites and is ignored; the rectangle is
-	 * painted via {@link net.minecraft.client.gui.GuiGraphics#fill}.
+	 * painted via {@link net.minecraft.client.gui.GuiGraphicsExtractor#fill}.
 	 */
 	public static void drawQuad(Object tessellator, int x, int y, int width, int height, int color, double zLevel) {
 		guiGraphics.fill(x, y, x + width, y + height, color);

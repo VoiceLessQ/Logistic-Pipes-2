@@ -1,5 +1,6 @@
 package logisticspipes.blocks.stats;
 
+import logisticspipes.utils.TagUtil;
 import net.minecraft.nbt.CompoundTag;
 
 import logisticspipes.pipes.basic.CoreRoutedPipe;
@@ -27,15 +28,15 @@ public class TrackingTask {
 	}
 
 	public void readFromNBT(CompoundTag nbt) {
-		int[] amountRecorded_A = nbt.getIntArray("amountRecorded_A");
-		int[] amountRecorded_B = nbt.getIntArray("amountRecorded_B");
+		int[] amountRecorded_A = nbt.getIntArray("amountRecorded_A").orElse(new int[0]);
+		int[] amountRecorded_B = nbt.getIntArray("amountRecorded_B").orElse(new int[0]);
 		for (int i = 0; i < amountRecorded.length; i++) {
 			if (i >= amountRecorded_A.length || i >= amountRecorded_B.length) {
 				break;
 			}
 			amountRecorded[i] = (((long) amountRecorded_B[i]) << 32) | amountRecorded_A[i];
 		}
-		arrayPos = nbt.getInt("arrayPos");
+		arrayPos = nbt.getIntOr("arrayPos", 0);
 		item = ItemIdentifier.get(ItemStackLoader.loadAndFixItemStackFromNBT(nbt));
 	}
 
@@ -49,7 +50,7 @@ public class TrackingTask {
 		nbt.putIntArray("amountRecorded_A", amountRecorded_A);
 		nbt.putIntArray("amountRecorded_B", amountRecorded_B);
 		nbt.putInt("arrayPos", arrayPos);
-		item.makeNormalStack(1).save(nbt);
+		TagUtil.saveStack(item.makeNormalStack(1), nbt);
 	}
 
 	public void writeToLPData(LPDataOutput output) {

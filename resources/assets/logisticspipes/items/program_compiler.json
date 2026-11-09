@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "logisticspipes:item/program_compiler",
+    "model": {
+      "type": "logisticspipes:solid_block"
+    }
+  }
+}

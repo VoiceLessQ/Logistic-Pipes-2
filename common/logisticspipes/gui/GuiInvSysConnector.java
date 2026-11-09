@@ -1,6 +1,8 @@
 package logisticspipes.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.Minecraft;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,7 +76,7 @@ public class GuiInvSysConnector extends LogisticsBaseGuiScreen implements IGUICh
 		b2.setPressListener(b -> refreshPacket());
 		addRenderableWidget(b2);
 		SmallGuiButton b3 = new SmallGuiButton(3, leftPos + 80, topPos + 55, 10, 10, "<");
-		b3.setPressListener(b -> resistanceCountBar.putInt(resistanceCountBar.getInt() - (Screen.hasControlDown() ? 10 : 1)));
+		b3.setPressListener(b -> resistanceCountBar.putInt(resistanceCountBar.getInt() - (Minecraft.getInstance().hasControlDown() ? 10 : 1)));
 		addRenderableWidget(b3);
 		SmallGuiButton b4 = new SmallGuiButton(4, leftPos + 120, topPos + 55, 10, 10, ">");
 		b4.setPressListener(b -> resistanceCountBar.putInt(resistanceCountBar.getInt() + 1));
@@ -106,7 +108,7 @@ public class GuiInvSysConnector extends LogisticsBaseGuiScreen implements IGUICh
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float var1, int var2, int var3) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float var1, int var2, int var3) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, right, bottom, 0.0f, true);
 		LPGuiGraphics.drawPlayerInventoryBackground(minecraft, leftPos + 10, topPos + 135);
 		guiGraphics.fill(leftPos + 9, topPos + 78, leftPos + 170, topPos + 132, Color.getValue(Color.GREY));
@@ -114,14 +116,14 @@ public class GuiInvSysConnector extends LogisticsBaseGuiScreen implements IGUICh
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiInvSysConnector.PREFIX + "InventorySystemConnector"), 5, 6, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiInvSysConnector.PREFIX + "ConnectionInformation") + ":", 10, 21, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.getTrimmedString(TextUtil.translate(GuiInvSysConnector.PREFIX + "Channel") + ": " + (connectedChannel != null ? connectedChannel.getName() : "UNDEFINED"), 150, this.font, "..."), 15, 38, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiInvSysConnector.PREFIX + "Resistance") + ":", 10, 55, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiInvSysConnector.PREFIX + "Waitingfor") + ":", 10, 68, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, (page + 1) + "/" + maxPage(), 136, 69, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiInvSysConnector.PREFIX + "InventorySystemConnector"), 5, 6, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiInvSysConnector.PREFIX + "ConnectionInformation") + ":", 10, 21, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.getTrimmedString(TextUtil.translate(GuiInvSysConnector.PREFIX + "Channel") + ": " + (connectedChannel != null ? connectedChannel.getName() : "UNDEFINED"), 150, this.font, "..."), 15, 38, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiInvSysConnector.PREFIX + "Resistance") + ":", 10, 55, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiInvSysConnector.PREFIX + "Waitingfor") + ":", 10, 68, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, (page + 1) + "/" + maxPage(), 136, 69, 0x404040, false);
 		ItemStackRenderer.renderItemIdentifierStackListIntoGui(_allItems, null, page, 9, 79, 9, 27, 18, 18, 100.0F, DisplayAmount.ALWAYS);
 
 		int ppi = 0;
@@ -135,7 +137,7 @@ public class GuiInvSysConnector extends LogisticsBaseGuiScreen implements IGUICh
 			int x = 9 + 18 * column + leftPos;
 			int y = 79 + 18 * row + topPos;
 			if (x < par1 && par1 < x + 18 && y < par2 && par2 < y + 18) {
-				guiGraphics.renderTooltip(minecraft.font, st, par1, par2);
+				guiGraphics.setTooltipForNextFrame(minecraft.font, st, par1, par2);
 			}
 			column++;
 			if (column >= 9) {
@@ -183,7 +185,7 @@ public class GuiInvSysConnector extends LogisticsBaseGuiScreen implements IGUICh
 
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		if (resistanceCountBar.keyPressed(keyCode, scanCode, modifiers)) {
+		if (resistanceCountBar.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 			return true;
 		}
 		return super.keyPressed(keyCode, scanCode, modifiers);

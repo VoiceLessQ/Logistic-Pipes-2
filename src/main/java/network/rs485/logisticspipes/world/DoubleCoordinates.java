@@ -110,7 +110,7 @@ public class DoubleCoordinates implements IPositionRotateble, ICoordinates, LPSe
 
 	public static DoubleCoordinates readFromNBT(String prefix, CompoundTag nbt) {
 		if (nbt.contains(prefix + "xPos") && nbt.contains(prefix + "yPos") && nbt.contains(prefix + "zPos")) {
-			return new DoubleCoordinates(nbt.getDouble(prefix + "xPos"), nbt.getDouble(prefix + "yPos"), nbt.getDouble(prefix + "zPos"));
+			return new DoubleCoordinates(nbt.getDoubleOr(prefix + "xPos", 0.0), nbt.getDoubleOr(prefix + "yPos", 0.0), nbt.getDoubleOr(prefix + "zPos", 0.0));
 		}
 		return null;
 	}

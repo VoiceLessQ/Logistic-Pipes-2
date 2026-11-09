@@ -312,9 +312,9 @@ class AsyncExtractorModule(
 
             val d: Direction? = module.sneakyDirection
             val gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics ?: return
-            gg.drawString(mc.font, "Extract", -22, -22, 0xff000000.toInt(), false)
-            gg.drawString(mc.font, "from:", -22, -9, 0xff000000.toInt(), false)
-            gg.drawString(mc.font, d?.name ?: "DEFAULT", -22, 18, 0xff000000.toInt(), false)
+            gg.text(mc.font, "Extract", -22, -22, 0xff000000.toInt(), false)
+            gg.text(mc.font, "from:", -22, -9, 0xff000000.toInt(), false)
+            gg.text(mc.font, d?.name ?: "DEFAULT", -22, 18, 0xff000000.toInt(), false)
         }
 
         override fun getButtons(): MutableList<IHUDButton>? = null

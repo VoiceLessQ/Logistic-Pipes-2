@@ -1,5 +1,11 @@
 package logisticspipes.blocks;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.utils.TagUtil;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.core.component.DataComponents;
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,7 +18,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import lombok.Getter;
 
@@ -39,14 +45,14 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 
 	public static class ProgrammCategories {
 
-		public static final ResourceLocation BASIC = new ResourceLocation("logisticspipes", "compilercategory.basic");
-		public static final ResourceLocation TIER_2 = new ResourceLocation("logisticspipes", "compilercategory.tier_2");
-		public static final ResourceLocation FLUID = new ResourceLocation("logisticspipes", "compilercategory.fluid");
-		public static final ResourceLocation TIER_3 = new ResourceLocation("logisticspipes", "compilercategory.tier_3");
-		public static final ResourceLocation CHASSIS = new ResourceLocation("logisticspipes", "compilercategory.chassis");
-		public static final ResourceLocation CHASSIS_2 = new ResourceLocation("logisticspipes", "compilercategory.chassis_2");
-		public static final ResourceLocation CHASSIS_3 = new ResourceLocation("logisticspipes", "compilercategory.chassis_3");
-		public static final ResourceLocation MODDED = new ResourceLocation("logisticspipes", "compilercategory.modded");
+		public static final Identifier BASIC = Identifier.fromNamespaceAndPath("logisticspipes", "compilercategory.basic");
+		public static final Identifier TIER_2 = Identifier.fromNamespaceAndPath("logisticspipes", "compilercategory.tier_2");
+		public static final Identifier FLUID = Identifier.fromNamespaceAndPath("logisticspipes", "compilercategory.fluid");
+		public static final Identifier TIER_3 = Identifier.fromNamespaceAndPath("logisticspipes", "compilercategory.tier_3");
+		public static final Identifier CHASSIS = Identifier.fromNamespaceAndPath("logisticspipes", "compilercategory.chassis");
+		public static final Identifier CHASSIS_2 = Identifier.fromNamespaceAndPath("logisticspipes", "compilercategory.chassis_2");
+		public static final Identifier CHASSIS_3 = Identifier.fromNamespaceAndPath("logisticspipes", "compilercategory.chassis_3");
+		public static final Identifier MODDED = Identifier.fromNamespaceAndPath("logisticspipes", "compilercategory.modded");
 
 		static {
 			//Force the order of keys
@@ -65,11 +71,11 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 		super(logisticspipes.LPRegistries.BE_PROGRAM_COMPILER.get(), pos, state);
 	}
 
-	public static final Map<ResourceLocation, Set<ResourceLocation>> programByCategory = new LinkedHashMap<>();
+	public static final Map<Identifier, Set<Identifier>> programByCategory = new LinkedHashMap<>();
 	private final PlayerCollectionList playerList = new PlayerCollectionList();
 	private String taskType = "";
 	@Getter
-	private ResourceLocation currentTask = null;
+	private Identifier currentTask = null;
 	@Getter
 	private double taskProgress = 0;
 	@Getter
@@ -84,20 +90,18 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 	}
 
 	public ListTag getListTagForKey(String key) {
-		CompoundTag nbt = this.getInventory().getItem(0).getTag();
-		if (nbt == null) {
-			this.getInventory().getItem(0).setTag(new CompoundTag());
-			nbt = this.getInventory().getItem(0).getTag();
-		}
-
-		if (!nbt.contains(key)) {
-			ListTag list = new ListTag();
-			nbt.put(key, list);
-		}
-		return nbt.getList(key, 8 /* String */);
+		return CustomDataUtil.getOrCreateTag(this.getInventory().getItem(0)).getListOrEmpty(key);
 	}
 
-	public void triggerNewTask(ResourceLocation category, String taskType) {
+	private void addToListTagForKey(String key, String value) {
+		CustomData.update(DataComponents.CUSTOM_DATA, this.getInventory().getItem(0), nbt -> {
+			ListTag list = nbt.getListOrEmpty(key);
+			list.add(StringTag.valueOf(value));
+			nbt.put(key, list);
+		});
+	}
+
+	public void triggerNewTask(Identifier category, String taskType) {
 		if (currentTask != null) return;
 		this.taskType = taskType;
 		currentTask = category;
@@ -166,24 +170,18 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 				if (taskProgress >= 1) {
 					switch (taskType) {
 						case "category": {
-							ListTag list = getListTagForKey("compilerCategories");
-							list.add(StringTag.valueOf(currentTask.toString()));
+							addToListTagForKey("compilerCategories", currentTask.toString());
 							break;
 						}
 						case "program": {
-							ListTag list = getListTagForKey("compilerPrograms");
-							list.add(StringTag.valueOf(currentTask.toString()));
+							addToListTagForKey("compilerPrograms", currentTask.toString());
 							break;
 						}
 						case "flash":
 							if (!getInventory().getItem(1).isEmpty()) {
 								ItemStack programmer = getInventory().getItem(1);
-								if (!programmer.hasTag()) {
-									programmer.setTag(new CompoundTag());
-								}
-								assert programmer.getTag() != null;
-								programmer.getTag()
-										.putString(ItemLogisticsProgrammer.RECIPE_TARGET, currentTask.toString());
+								CustomData.update(DataComponents.CUSTOM_DATA, programmer,
+										nbt -> nbt.putString(ItemLogisticsProgrammer.RECIPE_TARGET, currentTask.toString()));
 							}
 							break;
 						default:
@@ -218,14 +216,17 @@ public class LogisticsProgramCompilerTileEntity extends LogisticsSolidTileEntity
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag nbt = TagUtil.read(input);
 		inventory.readFromNBT(nbt, "programcompilerinv");
-		super.load(nbt);
+		super.loadAdditional(input);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag nbt = new CompoundTag();
 		inventory.writeToNBT(nbt, "programcompilerinv");
-		super.saveAdditional(nbt);
+		super.saveAdditional(output);
+		TagUtil.write(output, nbt);
 	}
 }

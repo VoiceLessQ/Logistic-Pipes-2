@@ -1,5 +1,8 @@
 package logisticspipes.pipes.basic;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.utils.TagUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -11,7 +14,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.network.Connection;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -19,8 +22,8 @@ import net.minecraft.core.Direction;
 
 import net.minecraft.core.BlockPos;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.interfaces.ITickable;
 import logisticspipes.network.PacketHandler;
@@ -33,7 +36,7 @@ import logisticspipes.routing.pathfinder.ISubMultiBlockPipeInformationProvider;
 import logisticspipes.utils.TileBuffer;
 import network.rs485.logisticspipes.world.DoubleCoordinates;
 
-public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements ISubMultiBlockPipeInformationProvider, ITickable {
+public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements ISubMultiBlockPipeInformationProvider, ITickable, logisticspipes.interfaces.IBlockEntityLifecycle {
 
 	private Set<DoubleCoordinates> mainPipePos = new HashSet<>();
 	private List<LogisticsTileGenericPipe> mainPipe;
@@ -120,8 +123,12 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag nbt = TagUtil.read(input);
+		if (nbt.contains("LogisticsPipes:PacketData")) {
+			PacketHandler.queueAndRemovePacketFromNBT(nbt);
+		}
+		super.loadAdditional(input);
 		if (nbt.contains("MainPipePos_xPos")) {
 			mainPipePos.clear();
 			DoubleCoordinates pos = DoubleCoordinates.readFromNBT("MainPipePos_", nbt);
@@ -130,19 +137,19 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 			}
 		}
 		if (nbt.contains("MainPipePosList")) {
-			ListTag list = nbt.getList("MainPipePosList", net.minecraft.nbt.Tag.TAG_COMPOUND);
+			ListTag list = nbt.getListOrEmpty("MainPipePosList");
 			for (int i = 0; i < list.size(); i++) {
-				DoubleCoordinates pos = DoubleCoordinates.readFromNBT("MainPipePos_", list.getCompound(i));
+				DoubleCoordinates pos = DoubleCoordinates.readFromNBT("MainPipePos_", list.getCompoundOrEmpty(i));
 				if (pos != null) {
 					mainPipePos.add(pos);
 				}
 			}
 		}
 		if (nbt.contains("SubTypeList")) {
-			ListTag list = nbt.getList("SubTypeList", net.minecraft.nbt.Tag.TAG_STRING);
+			ListTag list = nbt.getListOrEmpty("SubTypeList");
 			subTypes.clear();
 			for (int i = 0; i < list.size(); i++) {
-				String name = list.getString(i);
+				String name = list.getStringOr(i, "");
 				CoreMultiBlockPipe.SubBlockTypeForShare type = CoreMultiBlockPipe.SubBlockTypeForShare.valueOf(name);
 				if (type != null) {
 					subTypes.add(type);
@@ -153,8 +160,9 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag nbt = new CompoundTag();
+		super.saveAdditional(output);
 		ListTag nbtList = new ListTag();
 		for (DoubleCoordinates pos : mainPipePos) {
 			CompoundTag compound = new CompoundTag();
@@ -168,12 +176,13 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 			nbtTypeList.add(StringTag.valueOf(type.name()));
 		}
 		nbt.put("SubTypeList", nbtTypeList);
+		TagUtil.write(output, nbt);
 	}
 
 	@Nonnull
 	@Override
-	public CompoundTag getUpdateTag() {
-		CompoundTag nbt = super.getUpdateTag();
+	public CompoundTag getUpdateTag(@Nonnull HolderLookup.Provider registries) {
+		CompoundTag nbt = super.getUpdateTag(registries);
 		try {
 			PacketHandler.addPacketToNBT(getLPDescriptionPacket(), nbt);
 		} catch (Exception e) {
@@ -183,20 +192,8 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void handleUpdateTag(@Nonnull CompoundTag tag) {
-		PacketHandler.queueAndRemovePacketFromNBT(tag);
-		super.handleUpdateTag(tag);
-	}
-
-	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
 		return ClientboundBlockEntityDataPacket.create(this);
-	}
-
-	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-		if (packet.getTag() != null) PacketHandler.queueAndRemovePacketFromNBT(packet.getTag());
 	}
 
 	public ModernPacket getLPDescriptionPacket() {
@@ -256,10 +253,8 @@ public class LogisticsTileGenericSubMultiBlock extends BlockEntity implements IS
 		tileBuffer = null;
 	}
 
-	// validate() removed from BlockEntity in 1.20.1 — use onLoad()
 	@Override
 	public void onLoad() {
-		super.onLoad();
 		tileBuffer = null;
 	}
 

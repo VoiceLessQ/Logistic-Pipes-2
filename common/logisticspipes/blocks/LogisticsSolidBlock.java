@@ -112,14 +112,14 @@ public class LogisticsSolidBlock extends Block implements EntityBlock {
 		// noOcclusion() is required so the BER receives a non-zero packedLight value.
 		// Without it Minecraft treats the block as fully opaque, stores sky-light = 0
 		// at its own position, and the BER renders pitch-black regardless of ambient light.
-		super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(6.0F).requiresCorrectToolForDrops().noOcclusion());
+		super(logisticspipes.LPRegistries.blockProperties().mapColor(MapColor.METAL).strength(6.0F).requiresCorrectToolForDrops().noOcclusion());
 		this.type = type;
 	}
 
 	@Override
 	@Nonnull
 	public List<ItemStack> getDrops(@Nonnull BlockState state, @Nonnull net.minecraft.world.level.storage.loot.LootParams.Builder params) {
-		ItemStack stack = new ItemStack(BuiltInRegistries.ITEM.get(BuiltInRegistries.BLOCK.getKey(this)));
+		ItemStack stack = new ItemStack(BuiltInRegistries.ITEM.getValue(BuiltInRegistries.BLOCK.getKey(this)));
 		if (stack.isEmpty()) {
 			return List.of();
 		}
@@ -127,8 +127,8 @@ public class LogisticsSolidBlock extends Block implements EntityBlock {
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-		super.neighborChanged(state, world, pos, block, fromPos, isMoving);
+	protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block block, @Nullable net.minecraft.world.level.redstone.Orientation orientation, boolean isMoving) {
+		super.neighborChanged(state, world, pos, block, orientation, isMoving);
 		BlockEntity tile = world.getBlockEntity(pos);
 		if (tile instanceof LogisticsSolidTileEntity) {
 			((LogisticsSolidTileEntity) tile).notifyOfBlockChange();
@@ -136,7 +136,7 @@ public class LogisticsSolidBlock extends Block implements EntityBlock {
 	}
 
 	@Override
-	public InteractionResult use(@Nonnull BlockState state, @Nonnull Level worldIn, @Nonnull BlockPos pos, @Nonnull Player playerIn, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hit) {
+	protected InteractionResult useWithoutItem(@Nonnull BlockState state, @Nonnull Level worldIn, @Nonnull BlockPos pos, @Nonnull Player playerIn, @Nonnull BlockHitResult hit) {
 		if (!playerIn.isCrouching()) {
 			BlockEntity tile = worldIn.getBlockEntity(pos);
 			if (tile instanceof IGuiTileEntity) {
@@ -144,7 +144,7 @@ public class LogisticsSolidBlock extends Block implements EntityBlock {
 					logisticspipes.network.abstractguis.CoordinatesGuiProvider gp = ((IGuiTileEntity) tile).getGuiProvider();
 					gp.setTilePos(tile).open(playerIn);
 				}
-				return InteractionResult.sidedSuccess(worldIn.isClientSide);
+				return InteractionResult.SUCCESS;
 			}
 		}
 		return InteractionResult.PASS;
@@ -160,17 +160,6 @@ public class LogisticsSolidBlock extends Block implements EntityBlock {
 		if (placer != null && tile instanceof IRotationProvider) {
 			((IRotationProvider) tile).setFacing(placer.getDirection().getOpposite());
 		}
-	}
-
-	@Override
-	public void onRemove(@Nonnull BlockState state, @Nonnull Level worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
-		if (state.getBlock() != newState.getBlock()) {
-			BlockEntity tile = worldIn.getBlockEntity(pos);
-			if (tile instanceof LogisticsSolidTileEntity) {
-				((LogisticsSolidTileEntity) tile).onBlockBreak();
-			}
-		}
-		super.onRemove(state, worldIn, pos, newState, isMoving);
 	}
 
 	@Nullable
@@ -196,7 +185,7 @@ public class LogisticsSolidBlock extends Block implements EntityBlock {
 		// flat cube_all JSON model so only the 3D OBJ geometry is visible. Types without a
 		// TE (frame, BC power provider) fall back to the JSON model for now.
 		if (type.hasTE()) {
-			return net.minecraft.world.level.block.RenderShape.ENTITYBLOCK_ANIMATED;
+			return net.minecraft.world.level.block.RenderShape.INVISIBLE;
 		}
 		return super.getRenderShape(state);
 	}

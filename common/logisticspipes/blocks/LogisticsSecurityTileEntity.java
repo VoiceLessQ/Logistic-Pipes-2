@@ -1,5 +1,9 @@
 package logisticspipes.blocks;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.utils.TagUtil;
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -137,35 +141,37 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 	}
 
 	@Override
-	public void load(CompoundTag par1nbtTagCompound) {
-		super.load(par1nbtTagCompound);
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag par1nbtTagCompound = TagUtil.read(input);
+		super.loadAdditional(input);
 		if (par1nbtTagCompound.contains("UUID")) {
-			secId = UUID.fromString(par1nbtTagCompound.getString("UUID"));
+			secId = UUID.fromString(par1nbtTagCompound.getStringOr("UUID", ""));
 		}
-		allowCC = par1nbtTagCompound.getBoolean("allowCC");
-		allowAutoDestroy = par1nbtTagCompound.getBoolean("allowAutoDestroy");
+		allowCC = par1nbtTagCompound.getBooleanOr("allowCC", false);
+		allowAutoDestroy = par1nbtTagCompound.getBooleanOr("allowAutoDestroy", false);
 		inv.readFromNBT(par1nbtTagCompound);
 		settingsList.clear();
-		ListTag list = par1nbtTagCompound.getList("settings", 10);
+		ListTag list = par1nbtTagCompound.getListOrEmpty("settings");
 		while (list.size() > 0) {
 			net.minecraft.nbt.Tag base = list.remove(0);
-			String name = ((CompoundTag) base).getString("name");
-			CompoundTag value = ((CompoundTag) base).getCompound("content");
+			String name = ((CompoundTag) base).getStringOr("name", "");
+			CompoundTag value = ((CompoundTag) base).getCompoundOrEmpty("content");
 			SecuritySettings settings = new SecuritySettings(name);
 			settings.readFromNBT(value);
 			settingsList.put(name, settings);
 		}
 		excludedCC.clear();
-		list = par1nbtTagCompound.getList("excludedCC", 3);
+		list = par1nbtTagCompound.getListOrEmpty("excludedCC");
 		while (list.size() > 0) {
 			net.minecraft.nbt.Tag base = list.remove(0);
-			excludedCC.add(((IntTag) base).getAsInt());
+			excludedCC.add(((IntTag) base).value());
 		}
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag par1nbtTagCompound) {
-		super.saveAdditional(par1nbtTagCompound);
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag par1nbtTagCompound = new CompoundTag();
+		super.saveAdditional(output);
 		par1nbtTagCompound.putString("UUID", getSecId().toString());
 		par1nbtTagCompound.putBoolean("allowCC", allowCC);
 		par1nbtTagCompound.putBoolean("allowAutoDestroy", allowAutoDestroy);
@@ -185,6 +191,7 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 			list.add(IntTag.valueOf(i));
 		}
 		par1nbtTagCompound.put("excludedCC", list);
+		TagUtil.write(output, par1nbtTagCompound);
 	}
 
 	public void buttonFreqCard(int integer, Player player) {
@@ -202,13 +209,13 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 				}
 				if (inv.getIDStackInSlot(0) == null) {
 					ItemStack stack = new ItemStack(LPItems.itemCard.get(), 1);
-					stack.setTag(logisticspipes.items.LogisticsItemCard.makeSecurityCard(getSecId(), 1).getTag());
+					CustomDataUtil.setTag(stack, CustomDataUtil.getTag(logisticspipes.items.LogisticsItemCard.makeSecurityCard(getSecId(), 1)));
 					inv.setItem(0, stack);
 				} else {
 					ItemStack slot = inv.getItem(0);
 					if (slot.getCount() < 64) {
 						slot.grow(1);
-						slot.setTag(logisticspipes.items.LogisticsItemCard.makeSecurityCard(getSecId(), 1).getTag());
+						CustomDataUtil.setTag(slot, CustomDataUtil.getTag(logisticspipes.items.LogisticsItemCard.makeSecurityCard(getSecId(), 1)));
 						inv.setItem(0, slot);
 					}
 				}
@@ -219,7 +226,7 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 					return;
 				}
 				ItemStack stack = new ItemStack(LPItems.itemCard.get(), 64);
-				stack.setTag(logisticspipes.items.LogisticsItemCard.makeSecurityCard(getSecId(), 1).getTag());
+				CustomDataUtil.setTag(stack, CustomDataUtil.getTag(logisticspipes.items.LogisticsItemCard.makeSecurityCard(getSecId(), 1)));
 				inv.setItem(0, stack);
 				break;
 		}
@@ -240,8 +247,8 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 	public void saveNewSecuritySettings(CompoundTag tag) {
 		SecuritySettings setting = settingsList.get(tag.getString("name"));
 		if (setting == null) {
-			setting = new SecuritySettings(tag.getString("name"));
-			settingsList.put(tag.getString("name"), setting);
+			setting = new SecuritySettings(tag.getStringOr("name", ""));
+			settingsList.put(tag.getStringOr("name", ""), setting);
 		}
 		setting.readFromNBT(tag);
 	}
@@ -296,10 +303,10 @@ public class LogisticsSecurityTileEntity extends LogisticsSolidTileEntity implem
 
 	public void handleListPacket(CompoundTag tag) {
 		excludedCC.clear();
-		ListTag list = tag.getList("list", 3);
+		ListTag list = tag.getListOrEmpty("list");
 		while (list.size() > 0) {
 			net.minecraft.nbt.Tag base = list.remove(0);
-			excludedCC.add(((IntTag) base).getAsInt());
+			excludedCC.add(((IntTag) base).value());
 		}
 	}
 

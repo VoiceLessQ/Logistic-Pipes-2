@@ -1,14 +1,19 @@
 package logisticspipes.recipes;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -22,39 +27,25 @@ import logisticspipes.LPConstants;
  */
 public class ShapelessResetRecipe extends CustomRecipe {
 
-	public static final ResourceLocation ID = new ResourceLocation(LPConstants.LP_MOD_ID, "reset");
+	public static final Identifier ID = Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "reset");
 
-	public static final RecipeSerializer<ShapelessResetRecipe> SERIALIZER = new RecipeSerializer<>() {
-
-		@Override
-		public ShapelessResetRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-			Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new ResourceLocation(json.get("item").getAsString()));
-			return new ShapelessResetRecipe(recipeId, CraftingBookCategory.MISC, item);
-		}
-
-		@Override
-		public ShapelessResetRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buf) {
-			Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(buf.readResourceLocation());
-			return new ShapelessResetRecipe(recipeId, CraftingBookCategory.MISC, item);
-		}
-
-		@Override
-		public void toNetwork(FriendlyByteBuf buf, ShapelessResetRecipe recipe) {
-			buf.writeResourceLocation(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(recipe.targetItem));
-		}
-	};
+	public static final MapCodec<ShapelessResetRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+			BuiltInRegistries.ITEM.byNameCodec().fieldOf("item").forGetter(r -> r.targetItem)
+	).apply(i, ShapelessResetRecipe::new));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ShapelessResetRecipe> STREAM_CODEC =
+			ByteBufCodecs.registry(Registries.ITEM).map(ShapelessResetRecipe::new, r -> r.targetItem);
+	public static final RecipeSerializer<ShapelessResetRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 
 	private final Item targetItem;
 
-	public ShapelessResetRecipe(ResourceLocation id, CraftingBookCategory category, Item targetItem) {
-		super(id, category);
+	public ShapelessResetRecipe(Item targetItem) {
 		this.targetItem = targetItem;
 	}
 
 	@Override
-	public boolean matches(CraftingContainer input, Level level) {
+	public boolean matches(CraftingInput input, Level level) {
 		ItemStack first = ItemStack.EMPTY;
-		for (int i = 0; i < input.getContainerSize(); i++) {
+		for (int i = 0; i < input.size(); i++) {
 			ItemStack stack = input.getItem(i);
 			if (stack.isEmpty()) continue;
 			if (stack.getItem() != targetItem) return false;
@@ -66,28 +57,26 @@ public class ShapelessResetRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer input, RegistryAccess registry) {
+	public ItemStack assemble(CraftingInput input) {
 		// LP1: one clean item per matching stack in the grid
 		int count = 0;
 		int variant = 0;
-		for (int i = 0; i < input.getContainerSize(); i++) {
+		for (int i = 0; i < input.size(); i++) {
 			ItemStack stack = input.getItem(i);
 			if (stack.isEmpty()) continue;
 			if (count++ == 0) variant = OrdererDyeRecipe.getVariant(stack);
 		}
 		ItemStack result = new ItemStack(targetItem, count);
 		// keeps the orderer colour, like LP1's meta-preserving reset
-		if (variant != 0) result.getOrCreateTag().putInt(OrdererDyeRecipe.COLOR_TAG, variant);
+		if (variant != 0) {
+			int color = variant;
+			CustomData.update(DataComponents.CUSTOM_DATA, result, tag -> tag.putInt(OrdererDyeRecipe.COLOR_TAG, color));
+		}
 		return result;
 	}
 
 	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return true;
-	}
-
-	@Override
-	public RecipeSerializer<?> getSerializer() {
+	public RecipeSerializer<ShapelessResetRecipe> getSerializer() {
 		return SERIALIZER;
 	}
 }

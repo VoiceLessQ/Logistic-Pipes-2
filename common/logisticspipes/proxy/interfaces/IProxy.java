@@ -1,6 +1,6 @@
 package logisticspipes.proxy.interfaces;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
@@ -33,7 +33,7 @@ public interface IProxy {
 
 	void sendNameUpdateRequest(Player player);
 
-	LogisticsTileGenericPipe getPipeInDimensionAt(ResourceLocation dimension, int x, int y, int z, Player player);
+	LogisticsTileGenericPipe getPipeInDimensionAt(Identifier dimension, int x, int y, int z, Player player);
 
 	void sendBroadCast(String message);
 

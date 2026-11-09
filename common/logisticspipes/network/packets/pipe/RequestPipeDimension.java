@@ -21,9 +21,9 @@ public class RequestPipeDimension extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (Minecraft.getInstance().screen instanceof GuiOrderer) {
-			((GuiOrderer) Minecraft.getInstance().screen).dimension = getDimension();
-			((GuiOrderer) Minecraft.getInstance().screen).refreshItems();
+		if (Minecraft.getInstance().gui.screen() instanceof GuiOrderer) {
+			((GuiOrderer) Minecraft.getInstance().gui.screen()).dimension = getDimension();
+			((GuiOrderer) Minecraft.getInstance().gui.screen()).refreshItems();
 		} else {
 			GuiOrderer.dimensioncache = getDimension();
 			GuiOrderer.cachetime = System.currentTimeMillis();

@@ -1,5 +1,6 @@
 package logisticspipes.network.abstractpackets;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import javax.annotation.Nonnull;
@@ -33,7 +34,7 @@ public abstract class ItemPacket extends CoordinatesPacket {
 			output.writeInt(BuiltInRegistries.ITEM.getId(getStack().getItem()));
 			output.writeInt(getStack().getCount());
 			output.writeInt(getStack().getDamageValue());
-			output.writeCompoundTag(getStack().getTag());
+			output.writeCompoundTag(CustomDataUtil.getTag(getStack()));
 		}
 	}
 
@@ -50,7 +51,7 @@ public abstract class ItemPacket extends CoordinatesPacket {
 			ItemStack newStack = new ItemStack(BuiltInRegistries.ITEM.byId(itemID), stackSize);
 			newStack.setDamageValue(damage);
 			setStack(newStack);
-			getStack().setTag(input.readCompoundTag());
+			CustomDataUtil.setTag(getStack(), input.readCompoundTag());
 		}
 	}
 }

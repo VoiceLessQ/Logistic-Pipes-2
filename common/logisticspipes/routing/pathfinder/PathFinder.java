@@ -7,7 +7,7 @@
 
 package logisticspipes.routing.pathfinder;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import logisticspipes.utils.StorageItemHandler;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -260,7 +260,7 @@ public class PathFinder {
 				}
 			}
 
-			if (!SimpleServiceLocator.pipeInformationManager.isPipe(tile) && tile.getLevel() != null && tile.getCapability(ForgeCapabilities.ITEM_HANDLER, direction.getOpposite()).isPresent() && startPipe.isRoutingPipe() && startPipe.getRoutingPipe() instanceof IChannelRoutingConnection && startPipe.canConnect(tile, direction, false)) {
+			if (!SimpleServiceLocator.pipeInformationManager.isPipe(tile) && StorageItemHandler.find(tile, direction.getOpposite()) != null && startPipe.isRoutingPipe() && startPipe.getRoutingPipe() instanceof IChannelRoutingConnection && startPipe.canConnect(tile, direction, false)) {
 				if (SimpleServiceLocator.connectionManager.hasChannelConnection(startPipe.getRoutingPipe().getRouter())) {
 					List<CoreRoutedPipe> connectedPipes = SimpleServiceLocator.connectionManager.getConnectedPipes(startPipe.getRoutingPipe().getRouter());
 					connections.addAll(connectedPipes.stream().map(pipe -> new Quartet<>((BlockEntity) pipe.container, direction, ((IChannelRoutingConnection) startPipe.getRoutingPipe()).getConnectionResistance(), true)).collect(Collectors.toList()));

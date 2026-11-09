@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " g ",
+    "rfr",
+    "iri"
+  ],
+  "key": {
+    "g": "logisticspipes:chip_advanced",
+    "r": "minecraft:redstone",
+    "f": "logisticspipes:frame",
+    "i": "#c:ingots/iron"
+  },
+  "result": {
+    "id": "logisticspipes:security_station"
+  }
+}

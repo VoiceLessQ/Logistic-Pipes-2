@@ -1,5 +1,6 @@
 package logisticspipes.network.packets.pipe;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.inventory.Slot;
@@ -83,7 +84,7 @@ public class SlotFinderNumberPacket extends ModuleCoordinatesPacket {
 			ItemStack dummyStack = new ItemStack(Blocks.DIRT, 1);
 			CompoundTag nbt = new CompoundTag();
 			nbt.putBoolean("LPStackFinderBoolean", true); //Make it unique
-			dummyStack.setTag(nbt); // dummyStack: yay, I am unique
+			CustomDataUtil.setTag(dummyStack, nbt); // dummyStack: yay, I am unique
 			result.set(dummyStack);
 			for (int i = 0; i < util.getContainerSize(); i++) {
 				if (dummyStack == util.getItem(i)) {

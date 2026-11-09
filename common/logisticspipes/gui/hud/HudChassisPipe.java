@@ -1,6 +1,6 @@
 package logisticspipes.gui.hud;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.client.Minecraft;
 
 
@@ -96,7 +96,7 @@ public class HudChassisPipe extends BasicHUDGui {
 		LPGuiGraphics.drawGuiBackGround(minecraft, -50, -50, 50, 50, 0, false);
 		LPGuiGraphics.setHudColor(day, 127);
 		super.renderHeadUpDisplay(distance, day, shifted, minecraft, config);
-		net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		net.minecraft.client.gui.GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		int textColor = 0xff000000;
 		if (selected != -1) {
 			LogisticsModule selectedmodule = pipe.getSubModule(selected);
@@ -133,9 +133,9 @@ public class HudChassisPipe extends BasicHUDGui {
 				}
 			} else {
 				if (gg != null) {
-					gg.drawString(minecraft.font, "Nothing", -5, -15, textColor, false);
-					gg.drawString(minecraft.font, "to", 9, -5, textColor, false);
-					gg.drawString(minecraft.font, "display", -5, 5, textColor, false);
+					SimpleGraphics.drawString(gg, minecraft.font, "Nothing", -5, -15, textColor, false);
+					SimpleGraphics.drawString(gg, minecraft.font, "to", 9, -5, textColor, false);
+					SimpleGraphics.drawString(gg, minecraft.font, "display", -5, 5, textColor, false);
 				}
 			}
 		} else {
@@ -223,19 +223,18 @@ public class HudChassisPipe extends BasicHUDGui {
 		@Override
 		public void renderButton(boolean hover, boolean clicked, boolean shifted) {
 			Minecraft mc = Minecraft.getInstance();
-			RenderSystem.enableBlend();
 
 			if (shifted || hover || isSlotSelected(position)) {
-				RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1F);
+				SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1F);
 			} else {
-				RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.5F);
+				SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 0.5F);
 			}
 
-			net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+			net.minecraft.client.gui.GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 			if (gg != null) {
-				gg.pose().pushPose();
-				gg.pose().translate(0.0F, 0.0F, -0.001F);
-				gg.pose().scale(0.5F, 0.5F, 1.0F);
+				gg.pose().pushMatrix();
+				gg.pose().translate(0.0F, 0.0F);
+				gg.pose().scale(0.5F, 0.5F);
 			}
 			if (isSlotSelected(position)) {
 				LPGuiGraphics.drawGuiBackGround(mc, posX * 2, posY * 2, (posX + sizeX) * 2 + 19, (posY + sizeY) * 2, 0, false, true, true, true, false);
@@ -243,7 +242,7 @@ public class HudChassisPipe extends BasicHUDGui {
 				LPGuiGraphics.drawGuiBackGround(mc, posX * 2, posY * 2, (posX + sizeX) * 2, (posY + sizeY) * 2, 0, false);
 			}
 			if (gg != null) {
-				gg.pose().popPose();
+				gg.pose().popMatrix();
 			}
 
 			ItemIdentifierStack module = inv.getIDStackInSlot(position);
@@ -260,21 +259,20 @@ public class HudChassisPipe extends BasicHUDGui {
 		@Override
 		public void renderAlways(boolean shifted) {
 			if (inv.getIDStackInSlot(position) == null && shouldDisplayButton(position)) {
-				RenderSystem.enableBlend();
 				if (shifted) {
-					RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+					SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 				} else {
-					RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.3F);
+					SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 0.3F);
 				}
 				Minecraft mc = Minecraft.getInstance();
-				net.minecraft.client.gui.GuiGraphics gg2 = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+				net.minecraft.client.gui.GuiGraphicsExtractor gg2 = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 				if (gg2 != null) {
-					gg2.pose().pushPose();
-					gg2.pose().scale(0.5F, 0.5F, 1.0F);
+					gg2.pose().pushMatrix();
+					gg2.pose().scale(0.5F, 0.5F);
 				}
 				LPGuiGraphics.drawGuiBackGround(mc, posX * 2, posY * 2, (posX + sizeX) * 2, (posY + sizeY) * 2, 0, false);
 				if (gg2 != null) {
-					gg2.pose().popPose();
+					gg2.pose().popMatrix();
 				}
 			}
 		}

@@ -15,7 +15,6 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.items.IItemHandler;
 
 import logisticspipes.interfaces.IInventoryUtil;
 import logisticspipes.interfaces.ISpecialInsertion;
@@ -24,10 +23,10 @@ import network.rs485.logisticspipes.inventory.ProviderMode;
 
 public class InventoryUtil implements IInventoryUtil, ISpecialInsertion {
 
-	protected final IItemHandler inventory;
+	protected final StorageItemHandler inventory;
 	private final ProviderMode mode;
 
-	public InventoryUtil(IItemHandler inventory, ProviderMode mode) {
+	public InventoryUtil(StorageItemHandler inventory, ProviderMode mode) {
 		this.inventory = inventory;
 		this.mode = mode;
 	}

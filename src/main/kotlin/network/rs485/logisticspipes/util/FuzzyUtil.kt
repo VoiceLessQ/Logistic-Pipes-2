@@ -55,7 +55,7 @@ typealias FuzzyFlagger = (flag: FuzzyFlag) -> Boolean
 object FuzzyUtil {
 
     fun readFromNBT(fuzzyBitSet: IBitSet, tag: CompoundTag) =
-        FuzzyFlag.values().forEach { fuzzyBitSet[it.bit] = tag.getBoolean(it.nbtName) }
+        FuzzyFlag.values().forEach { fuzzyBitSet[it.bit] = tag.getBooleanOr(it.nbtName, false) }
 
 //    fun writeToNBT(fuzzyBitSet: IBitSet, tag: CompoundTag) =
 //        FuzzyFlag.values().forEach { tag.putBoolean(it.nbtName, fuzzyBitSet[it.bit]) }
@@ -96,12 +96,12 @@ object FuzzyUtil {
         if (fuzzyFlagger(FuzzyFlag.IGNORE_NBT)) {
             return true
         }
-        if (firstStack.hasTag() xor secondStack.hasTag()) {
+        if (firstStack.componentsPatch.isEmpty xor secondStack.componentsPatch.isEmpty) {
             return false
         }
-        return if (!firstStack.hasTag() && !secondStack.hasTag()) {
+        return if (firstStack.componentsPatch.isEmpty && secondStack.componentsPatch.isEmpty) {
             true
-        } else ItemStack.isSameItemSameTags(firstStack, secondStack)
+        } else ItemStack.isSameItemSameComponents(firstStack, secondStack)
     }
 
 }

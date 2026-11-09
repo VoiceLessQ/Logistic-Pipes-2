@@ -1,5 +1,6 @@
 package logisticspipes.gui.hud;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.client.Minecraft;
 
 
@@ -25,10 +26,10 @@ public class HUDInvSysConnector extends BasicHUDGui {
 		LPGuiGraphics.drawGuiBackGround(minecraft, -50, -50, 50, 50, 0, false);
 		LPGuiGraphics.setHudColor(day, 127);
 		super.renderHeadUpDisplay(distance, day, shifted, minecraft, config);
-		net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		net.minecraft.client.gui.GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		if (gg != null) {
 			int textColor = 0xff000000;
-			gg.drawString(minecraft.font, "Expected:", -28, -25, textColor, false);
+			SimpleGraphics.drawString(gg, minecraft.font, "Expected:", -28, -25, textColor, false);
 		}
 		ItemStackRenderer.renderItemIdentifierStackListIntoGui(pipe.displayList, null, 0, -37, -18, 3, 9, 18, 18, 100.0F, DisplayAmount.ALWAYS, false, shifted);
 	}

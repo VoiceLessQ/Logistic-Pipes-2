@@ -8,7 +8,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 
-import net.minecraftforge.fluids.FluidStack;
 
 import logisticspipes.logisticspipes.IRoutedItem;
 import logisticspipes.logisticspipes.IRoutedItem.TransportMode;
@@ -52,13 +51,13 @@ public class PipeFluidInsertion extends FluidRoutedPipe {
 		}
 		PipeFluidTransportLogistics transport = (PipeFluidTransportLogistics) this.transport;
 		for (Direction dir : Direction.values()) {
-			FluidStack stack = transport.sideTanks[dir.ordinal()].getFluid();
+			FluidIdentifierStack stack = transport.sideTanks[dir.ordinal()].getFluid();
 			if (stack == null) {
 				continue;
 			}
 			stack = stack.copy();
 
-			if (nextSendMax[dir.ordinal()] > 0 && stack.getAmount() < transport.sideTanks[dir.ordinal()].getCapacity()) {
+			if (nextSendMax[dir.ordinal()] > 0 && stack.getAmount() < transport.sideTanks[dir.ordinal()].getCapacityMb()) {
 				nextSendMax[dir.ordinal()]--;
 				continue;
 			}
@@ -67,7 +66,7 @@ public class PipeFluidInsertion extends FluidRoutedPipe {
 				continue;
 			}
 
-			Pair<Integer, FluidSinkReply> result = SimpleServiceLocator.logisticsFluidManager.getBestReply(FluidIdentifierStack.getFromStack(stack), getRouter(), tempJamList);
+			Pair<Integer, FluidSinkReply> result = SimpleServiceLocator.logisticsFluidManager.getBestReply(stack, getRouter(), tempJamList);
 			if (result == null || result.getValue2().sinkAmount <= 0) {
 				nextSendMax[dir.ordinal()] = 100;
 				nextSendMin[dir.ordinal()] = 10;
@@ -80,8 +79,8 @@ public class PipeFluidInsertion extends FluidRoutedPipe {
 				continue;
 			}
 
-			FluidStack toSend = transport.sideTanks[dir.ordinal()].drain(result.getValue2().getSinkAmountInt(), net.minecraftforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
-			ItemIdentifierStack liquidContainer = SimpleServiceLocator.logisticsFluidManager.getFluidContainer(FluidIdentifierStack.getFromStack(toSend));
+			FluidIdentifierStack toSend = transport.sideTanks[dir.ordinal()].drain(result.getValue2().getSinkAmountInt(), true);
+			ItemIdentifierStack liquidContainer = SimpleServiceLocator.logisticsFluidManager.getFluidContainer(toSend);
 			IRoutedItem routed = SimpleServiceLocator.routedItemHelper.createNewTravelItem(liquidContainer);
 			routed.setDestination(result.getValue1());
 			routed.setTransportMode(TransportMode.Passive);
@@ -101,11 +100,11 @@ public class PipeFluidInsertion extends FluidRoutedPipe {
 	@Override
 	public void readFromNBT(@Nonnull CompoundTag tag) {
 		super.readFromNBT(tag);
-		nextSendMax = tag.getIntArray("nextSendMax");
+		nextSendMax = tag.getIntArray("nextSendMax").orElse(new int[0]);
 		if (nextSendMax.length < 6) {
 			nextSendMax = new int[6];
 		}
-		nextSendMin = tag.getIntArray("nextSendMin");
+		nextSendMin = tag.getIntArray("nextSendMin").orElse(new int[0]);
 		if (nextSendMin.length < 6) {
 			nextSendMin = new int[6];
 		}

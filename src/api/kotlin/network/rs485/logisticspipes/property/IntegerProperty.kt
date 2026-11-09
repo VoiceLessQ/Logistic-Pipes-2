@@ -42,7 +42,7 @@ import net.minecraft.nbt.CompoundTag
 class IntegerProperty(initialValue: Int, override val tagKey: String) : ValueProperty<Int>(initialValue) {
 
     override fun readFromNBT(tag: CompoundTag) {
-        if (tag.contains(tagKey)) value = tag.getInt(tagKey)
+        if (tag.contains(tagKey)) value = tag.getIntOr(tagKey, 0)
     }
 
     override fun writeToNBT(tag: CompoundTag) = tag.putInt(tagKey, value)

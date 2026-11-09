@@ -1,5 +1,6 @@
 package logisticspipes.network.packets.upgrade;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.Objects;
 
 import net.minecraft.world.entity.player.Player;
@@ -35,15 +36,12 @@ public class ToogleDisconnectionUpgradeSidePacket extends SlotPacket {
 		ItemStack stack = slot.getItem();
 		if (stack.isEmpty()) return;
 
-		if (!stack.hasTag()) {
-			stack.setTag(new CompoundTag());
-		}
 
-		CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		CompoundTag tag = CustomDataUtil.getOrCreateTag(stack);
 		String sideName = ConnectionUpgradeConfig.Sides.getNameForDirection(side);
-		tag.putBoolean(sideName, !tag.getBoolean(sideName));
+		tag.putBoolean(sideName, !tag.getBooleanOr(sideName, false));
 
-		stack.setTag(tag);
+		CustomDataUtil.setTag(stack, tag);
 
 		slot.set(stack);
 	}

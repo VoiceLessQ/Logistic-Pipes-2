@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 
@@ -23,10 +23,10 @@ import net.minecraft.world.item.Item;
 public class DictIdentifier {
 
 	private static final List<DictIdentifier> identifiers = new ArrayList<>();
-	private static final ConcurrentHashMap<ResourceLocation, Integer> tagToId = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<Identifier, Integer> tagToId = new ConcurrentHashMap<>();
 
 	static synchronized DictIdentifier getForTag(@Nonnull TagKey<Item> tag) {
-		ResourceLocation loc = tag.location();
+		Identifier loc = tag.location();
 		Integer existing = tagToId.get(loc);
 		if (existing != null) {
 			return identifiers.get(existing);
@@ -46,7 +46,7 @@ public class DictIdentifier {
 	private final String name;
 	private final String category;
 
-	private DictIdentifier(int id, ResourceLocation loc) {
+	private DictIdentifier(int id, Identifier loc) {
 		this.id = id;
 		this.name = loc.toString();
 		int slash = this.name.lastIndexOf('/');

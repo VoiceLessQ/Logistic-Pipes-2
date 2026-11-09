@@ -1,6 +1,6 @@
 package logisticspipes.gui.popup;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.renderer.RenderPipelines;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -13,12 +13,12 @@ import net.minecraft.world.level.block.Block;
 
 import logisticspipes.LogisticsPipes;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas; // was TextureAtlas
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 
 
@@ -31,6 +31,7 @@ import logisticspipes.utils.gui.LPGuiGraphics;
 import logisticspipes.utils.gui.SimpleGraphics;
 import logisticspipes.utils.gui.SubGuiScreen;
 import logisticspipes.utils.item.ItemIdentifierStack;
+import logisticspipes.renderer.OffscreenGui;
 import logisticspipes.utils.string.ChatColor;
 import network.rs485.logisticspipes.util.TextUtil;
 
@@ -78,7 +79,7 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		}
 	}
 
-	private static final ResourceLocation achievementTextures = new ResourceLocation("logisticspipes", "textures/gui/gui_border.png");
+	private static final Identifier achievementTextures = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/gui_border.png");
 	private final PipeBlockRequestTable _table;
 	private final int orderId;
 
@@ -138,14 +139,14 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		if (tooltip != null && tooltip.length >= 5) {
 			@SuppressWarnings("unchecked")
 			List<String> lines = (List<String>) tooltip[4];
-			getGuiGraphics().renderComponentTooltip(minecraft.font,
+			getGuiGraphics().setComponentTooltipForNextFrame(minecraft.font,
 					lines.stream().map(net.minecraft.network.chat.Component::literal).collect(java.util.stream.Collectors.toList()),
 					(int) tooltip[0], (int) tooltip[1]);
 		}
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 
 	}
 
@@ -198,8 +199,6 @@ public class RequestMonitorPopup extends SubGuiScreen {
 	}
 
 	private void saveTreeToImage() {
-		// Renders the whole request tree into an offscreen framebuffer and saves it as a PNG,
-		// replacing LP1's glReadPixels tile-stitching which is gone in 1.20.1.
 		if (!_table.watchedRequests.containsKey(orderId)) {
 			return;
 		}
@@ -208,61 +207,46 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		int imgHeight = Math.max(256, treeDepth(list) * 48 + 140);
 		int anchorX = imgWidth / 2 - 8;
 		int anchorY = 60;
+		int pixelScale = (int) minecraft.getWindow().getGuiScale();
+		OffscreenGui.renderToImage(imgWidth, imgHeight, pixelScale, gg -> drawWholeTree(gg, list, imgWidth, imgHeight, anchorX, anchorY), this::saveImage);
+	}
 
+	/** The tree at zoom 1 without the popup frame, for the PNG; LP1 stitched screen tiles instead. */
+	private void drawWholeTree(GuiGraphicsExtractor gg, LinkedLogisticsOrderList list, int imgWidth, int imgHeight, int anchorX, int anchorY) {
 		int oldGuiLeft = guiLeft, oldGuiTop = guiTop, oldXSize = xSize, oldYSize = ySize;
-		GuiGraphics oldStored = getGuiGraphics();
-		com.mojang.blaze3d.pipeline.TextureTarget target = new com.mojang.blaze3d.pipeline.TextureTarget(imgWidth, imgHeight, true, Minecraft.ON_OSX);
-		com.mojang.blaze3d.vertex.PoseStack modelView = RenderSystem.getModelViewStack();
+		ZOOM_LEVEL oldZoom = zoom;
+		GuiGraphicsExtractor oldStored = storedGuiGraphics;
+		GuiGraphicsExtractor oldSimple = SimpleGraphics.guiGraphics;
 		try {
-			target.setClearColor(0.15F, 0.15F, 0.15F, 1.0F);
-			target.clear(Minecraft.ON_OSX);
-			target.bindWrite(true);
-			RenderSystem.setProjectionMatrix(new org.joml.Matrix4f().setOrtho(0.0F, imgWidth, imgHeight, 0.0F, 1000.0F, 21000.0F),
-					com.mojang.blaze3d.vertex.VertexSorting.ORTHOGRAPHIC_Z);
-			modelView.pushPose();
-			modelView.setIdentity();
-			modelView.translate(0.0D, 0.0D, -11000.0D);
-			RenderSystem.applyModelViewMatrix();
-
-			GuiGraphics gg = new GuiGraphics(minecraft, minecraft.renderBuffers().bufferSource());
 			storedGuiGraphics = gg;
 			SimpleGraphics.guiGraphics = gg;
-			// Widen the clip rect so renderItemAt draws the full tree instead of the popup viewport
+			zoom = ZOOM_LEVEL.NORMAL;
+			// widen renderItemAt's clip test to the whole image
 			guiLeft = -1;
 			guiTop = -1;
 			xSize = imgWidth + 17;
 			ySize = imgHeight + 17;
 
-			RenderSystem.disableBlend();
+			gg.fill(0, 0, imgWidth, imgHeight, 0xFF262626);
 			if (!list.isEmpty()) {
 				SimpleGraphics.drawVerticalLine(anchorX + 8, anchorY - 17, anchorY, Color.GREEN, 1);
 			}
 			renderLinkedOrderListLines(list, anchorX, anchorY);
-			RenderSystem.setShaderColor(0.7F, 0.7F, 0.7F, 1.0F);
+			SimpleGraphics.setColor(0.7F, 0.7F, 0.7F, 1.0F);
 			String s = Integer.toString(orderId);
 			int badgeY = list.isEmpty() ? anchorY + 18 : anchorY - 40;
-			gg.blit(RequestMonitorPopup.achievementTextures, anchorX - 5, badgeY, 0.0f, 202.0f, 26, 26, 256, 256);
-			gg.drawString(minecraft.font, s, anchorX + 9 - minecraft.font.width(s) / 2, badgeY + 10, 16777215, true);
+			gg.blit(RenderPipelines.GUI_TEXTURED, RequestMonitorPopup.achievementTextures, anchorX - 5, badgeY, 0.0f, 202.0f, 26, 26, 256, 256, SimpleGraphics.color);
+			SimpleGraphics.drawString(gg, minecraft.font, s, anchorX + 9 - minecraft.font.width(s) / 2, badgeY + 10, 16777215, true);
 			renderLinkedOrderListItems(list, anchorX, anchorY, Integer.MIN_VALUE / 2, Integer.MIN_VALUE / 2);
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-			RenderSystem.enableBlend();
-			gg.flush();
-
-			com.mojang.blaze3d.platform.NativeImage image = net.minecraft.client.Screenshot.takeScreenshot(target);
-			saveImage(image);
-		} catch (Exception e) {
-			LogisticsPipes.log.error("Failed to render tree view PNG", e);
 		} finally {
+			SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 			guiLeft = oldGuiLeft;
 			guiTop = oldGuiTop;
 			xSize = oldXSize;
 			ySize = oldYSize;
+			zoom = oldZoom;
 			storedGuiGraphics = oldStored;
-			SimpleGraphics.guiGraphics = oldStored;
-			modelView.popPose();
-			RenderSystem.applyModelViewMatrix();
-			target.destroyBuffers();
-			Minecraft.getInstance().getMainRenderTarget().bindWrite(true);
+			SimpleGraphics.guiGraphics = oldSimple;
 		}
 	}
 
@@ -304,12 +288,12 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		int leftSide = ((width - xSize) / 2);
 		int topSide = ((height - ySize) / 2);
 
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		getGuiGraphics().blit(RequestMonitorPopup.achievementTextures, leftSide, topSide, 0.0f, 0.0f, xSize, ySize, 256, 256);
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+		getGuiGraphics().blit(RenderPipelines.GUI_TEXTURED, RequestMonitorPopup.achievementTextures, leftSide, topSide, 0.0f, 0.0f, xSize, ySize, 256, 256, SimpleGraphics.color);
 		// LP1 masked the map to the frame's hole with depth; clip to it instead
 		getGuiGraphics().enableScissor(leftSide + 22, topSide + 23, leftSide + 234, topSide + 164);
-		getGuiGraphics().pose().pushPose();
-		getGuiGraphics().pose().scale(zoom.zoom, zoom.zoom, 1);
+		getGuiGraphics().pose().pushMatrix();
+		getGuiGraphics().pose().scale(zoom.zoom, zoom.zoom);
 
 		guiTop *= 1 / zoom.zoom;
 		guiLeft *= 1 / zoom.zoom;
@@ -326,15 +310,14 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		int moveBackgroundX = (mapX - minX) % 16;
 		int moveBackgroundY = (mapY - minY) % 16;
 		TextureAtlasSprite stone = getTexture(Blocks.STONE);
-		RenderSystem.setShaderColor(0.7F, 0.7F, 0.7F, 1.0F);
+		SimpleGraphics.setColor(0.7F, 0.7F, 0.7F, 1.0F);
 		for (int yVar = 0; yVar * 16 - moveBackgroundY < zoom.bottomRenderBorder; yVar++) {
 			for (int xVar = 0; xVar * 16 - moveBackgroundX < zoom.rightRenderBorder; xVar++) {
-				getGuiGraphics().blit(innerLeftSide + xVar * 16 - moveBackgroundX, innerTopSide + yVar * 16 - moveBackgroundY, 0, 16, 16, stone);
+				getGuiGraphics().blitSprite(RenderPipelines.GUI_TEXTURED, stone, innerLeftSide + xVar * 16 - moveBackgroundX, innerTopSide + yVar * 16 - moveBackgroundY, 16, 16, SimpleGraphics.color);
 			}
 		}
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-		RenderSystem.disableBlend();
 		LinkedLogisticsOrderList list = _table.watchedRequests.get(orderId).getValue2();
 		if (!list.isEmpty()) {
 			SimpleGraphics.drawVerticalLine(innerLeftSide - mapX + 110, innerTopSide - mapY - 197, innerTopSide - mapY - 180, Color.GREEN, zoom.line);
@@ -345,19 +328,18 @@ public class RequestMonitorPopup extends SubGuiScreen {
 			drawProgressPoint(innerLeftSide - mapX + 110, innerTopSide - mapY - 197 + pos, 0xff00ff00);
 		}
 
-		RenderSystem.setShaderColor(0.7F, 0.7F, 0.7F, 1.0F);
+		SimpleGraphics.setColor(0.7F, 0.7F, 0.7F, 1.0F);
 		String s = Integer.toString(orderId);
 		if (!list.isEmpty()) {
-			getGuiGraphics().blit(RequestMonitorPopup.achievementTextures, innerLeftSide - mapX + 97, innerTopSide - mapY - 220, 0.0f, 202.0f, 26, 26, 256, 256);
-			getGuiGraphics().drawString(minecraft.font, s, innerLeftSide - mapX + 111 - minecraft.font.width(s) / 2, innerTopSide - mapY - 210, 16777215, true);
+			getGuiGraphics().blit(RenderPipelines.GUI_TEXTURED, RequestMonitorPopup.achievementTextures, innerLeftSide - mapX + 97, innerTopSide - mapY - 220, 0.0f, 202.0f, 26, 26, 256, 256, SimpleGraphics.color);
+			SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, s, innerLeftSide - mapX + 111 - minecraft.font.width(s) / 2, innerTopSide - mapY - 210, 16777215, true);
 		} else {
-			getGuiGraphics().blit(RequestMonitorPopup.achievementTextures, innerLeftSide - mapX + 97, innerTopSide - mapY - 162, 0.0f, 202.0f, 26, 26, 256, 256);
-			getGuiGraphics().drawString(minecraft.font, s, innerLeftSide - mapX + 111 - minecraft.font.width(s) / 2, innerTopSide - mapY - 152, 16777215, true);
+			getGuiGraphics().blit(RenderPipelines.GUI_TEXTURED, RequestMonitorPopup.achievementTextures, innerLeftSide - mapX + 97, innerTopSide - mapY - 162, 0.0f, 202.0f, 26, 26, 256, 256, SimpleGraphics.color);
+			SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, s, innerLeftSide - mapX + 111 - minecraft.font.width(s) / 2, innerTopSide - mapY - 152, 16777215, true);
 		}
 		renderLinkedOrderListItems(list, innerLeftSide - mapX + 102, innerTopSide - mapY - 180, par1, par2);
-		getGuiGraphics().pose().popPose();
+		getGuiGraphics().pose().popMatrix();
 		getGuiGraphics().disableScissor();
-		RenderSystem.enableBlend();
 
 		guiTop *= zoom.zoom;
 		guiLeft *= zoom.zoom;
@@ -366,8 +348,8 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		leftSide *= zoom.zoom;
 		topSide *= zoom.zoom;
 
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		getGuiGraphics().blit(RequestMonitorPopup.achievementTextures, leftSide, topSide, 0.0f, 0.0f, xSize, ySize, 256, 256);
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+		getGuiGraphics().blit(RenderPipelines.GUI_TEXTURED, RequestMonitorPopup.achievementTextures, leftSide, topSide, 0.0f, 0.0f, xSize, ySize, 256, 256, SimpleGraphics.color);
 	}
 
 	private void renderLinkedOrderListItems(LinkedLogisticsOrderList list, int xPos, int yPos, int par1, int par2) {
@@ -376,14 +358,12 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		yPos += 13;
 		for (IOrderInfoProvider aList : list) {
 			if (aList.isInProgress()) {
-				RenderSystem.setShaderColor(0.1F, 0.9F, 0.1F, 1.0F);
+				SimpleGraphics.setColor(0.1F, 0.9F, 0.1F, 1.0F);
 			} else {
-				RenderSystem.setShaderColor(0.7F, 0.7F, 0.7F, 1.0F);
+				SimpleGraphics.setColor(0.7F, 0.7F, 0.7F, 1.0F);
 			}
-			// GL_LIGHTING removed — use shaders
-			RenderSystem.setShaderTexture(0, RequestMonitorPopup.achievementTextures);
-			getGuiGraphics().blit(RequestMonitorPopup.achievementTextures, startLeft - 5, yPos - 5, 0.0f, 202.0f, 26, 26, 256, 256);
-			RenderSystem.setShaderColor(0.7F, 0.7F, 0.7F, 1.0F);
+			getGuiGraphics().blit(RenderPipelines.GUI_TEXTURED, RequestMonitorPopup.achievementTextures, startLeft - 5, yPos - 5, 0.0f, 202.0f, 26, 26, 256, 256, SimpleGraphics.color);
+			SimpleGraphics.setColor(0.7F, 0.7F, 0.7F, 1.0F);
 			renderItemAt(aList.getAsDisplayItem(), startLeft, yPos);
 			if (aList.isInProgress() && aList.getMachineProgress() != 0) {
 				getGuiGraphics().fill(startLeft - 4, yPos + 20, startLeft + 20, yPos + 24, 0xff000000);
@@ -492,10 +472,10 @@ public class RequestMonitorPopup extends SubGuiScreen {
 		if (guiLeft < x && x < guiLeft + xSize - 16 && guiTop < y && y < guiTop + ySize - 16) {
 			net.minecraft.world.item.ItemStack stack = item.getItem().unsafeMakeNormalStack(1);
 			if (!stack.isEmpty()) {
-				getGuiGraphics().renderItem(stack, x, y);
+				getGuiGraphics().item(stack, x, y);
 			}
 			String s = TextUtil.getThreeDigitFormattedNumber(item.getStackSize(), false);
-			getGuiGraphics().drawString(minecraft.font, s, x + 17 - minecraft.font.width(s), y + 9, 16777215, true);
+			SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, s, x + 17 - minecraft.font.width(s), y + 9, 16777215, true);
 		}
 	}
 
@@ -505,6 +485,6 @@ public class RequestMonitorPopup extends SubGuiScreen {
 	}
 
 	private TextureAtlasSprite getTexture(Block blockIn) {
-		return Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getParticleIcon(blockIn.defaultBlockState());
+		return Minecraft.getInstance().getModelManager().getBlockStateModelSet().getParticleMaterial(blockIn.defaultBlockState()).sprite();
 	}
 }

@@ -1,15 +1,14 @@
 package logisticspipes.logic.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 // import net.minecraft.client.gui.Gui; // removed — Gui is HUD class in 1.20.1, not GUI base
 
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 
 
 
@@ -65,9 +64,7 @@ public class LogicLayoutGui extends LogisticsBaseGuiScreen {
 		}
 	}
 
-	private static final ResourceLocation achievementTextures = new ResourceLocation("textures/gui/achievement/achievement_background.png");
-
-	private final ItemRenderer renderItem = net.minecraft.client.Minecraft.getInstance().getItemRenderer();
+	private static final Identifier achievementTextures = Identifier.parse("textures/gui/achievement/achievement_background.png");
 
 	private int isMouseButtonDown;
 	private int mouseX;
@@ -92,8 +89,8 @@ public class LogicLayoutGui extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		super.render(guiGraphics, mouseX, mouseY, partialTicks);
+	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		isMouseButtonDown = 0;
 	}
 
@@ -119,7 +116,7 @@ public class LogicLayoutGui extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int i, int j) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int i, int j) {
 		super.renderBg(guiGraphics, f, i, j);
 		drawTransparentBack();
 		drawMap(i, j);
@@ -136,29 +133,7 @@ public class LogicLayoutGui extends LogisticsBaseGuiScreen {
 		int leftSide = ((width - imageWidth) / 2);
 		int topSide = ((height - imageHeight) / 2);
 
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		guiGraphics.blit(LogicLayoutGui.achievementTextures, leftSide, topSide, 0.0f, 0.0f, 256, 202, 256, 256);
-
-		topPos = (int) (topPos * 1 / zoom.zoom);
-		leftPos = (int) (leftPos * 1 / zoom.zoom);
-		imageWidth = (int) (imageWidth * 1 / zoom.zoom);
-		imageHeight = (int) (imageHeight * 1 / zoom.zoom);
-		leftSide *= 1 / zoom.zoom;
-		topSide *= 1 / zoom.zoom;
-
-		RenderSystem.disableBlend();
-		RenderSystem.setShaderColor(0.7F, 0.7F, 0.7F, 1.0F);
-		RenderSystem.enableBlend();
-
-		topPos = (int) (topPos * zoom.zoom);
-		leftPos = (int) (leftPos * zoom.zoom);
-		imageWidth = (int) (imageWidth * zoom.zoom);
-		imageHeight = (int) (imageHeight * zoom.zoom);
-		leftSide *= zoom.zoom;
-		topSide *= zoom.zoom;
-
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		guiGraphics.blit(LogicLayoutGui.achievementTextures, leftSide, topSide, 0.0f, 0.0f, 256, 202, 256, 256);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, LogicLayoutGui.achievementTextures, leftSide, topSide, 0.0f, 0.0f, 256, 202, 256, 256);
 	}
 
 	private void renderLinkedOrderListItems(LinkedLogisticsOrderList list, int xPos, int yPos, int par1, int par2) {
@@ -166,15 +141,8 @@ public class LogicLayoutGui extends LogisticsBaseGuiScreen {
 		int startLeft = -(size - 1) * (30 / 2) + xPos;
 		yPos += 13;
 		for (IOrderInfoProvider aList : list) {
-			if (aList.isInProgress()) {
-				RenderSystem.setShaderColor(0.1F, 0.9F, 0.1F, 1.0F);
-			} else {
-				RenderSystem.setShaderColor(0.7F, 0.7F, 0.7F, 1.0F);
-			}
-			// GL_LIGHTING removed — use shaders
-			RenderSystem.setShaderTexture(0, LogicLayoutGui.achievementTextures);
-			guiGraphics.blit(LogicLayoutGui.achievementTextures, startLeft - 5, yPos - 5, 0.0f, 202.0f, 26, 26, 256, 256);
-			RenderSystem.setShaderColor(0.7F, 0.7F, 0.7F, 1.0F);
+			int tint = aList.isInProgress() ? 0xFF19E619 : 0xFFB3B3B3;
+			guiGraphics.blit(RenderPipelines.GUI_TEXTURED, LogicLayoutGui.achievementTextures, startLeft - 5, yPos - 5, 0.0f, 202.0f, 26, 26, 256, 256, tint);
 			//renderItemAt(aList.getAsDisplayItem(), startLeft, yPos);
 			if (aList.isInProgress() && aList.getMachineProgress() != 0) {
 				guiGraphics.fill(startLeft - 4, yPos + 20, startLeft + 20, yPos + 24, 0xff000000);

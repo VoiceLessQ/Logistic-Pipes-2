@@ -1,9 +1,0 @@
-{
-  "type": "minecraft:crafting_shaped",
-  "pattern": ["sg", "gs"],
-  "key": {
-    "s": {"tag": "forge:sand"},
-    "g": {"tag": "forge:ingots/copper"}
-  },
-  "result": {"item": "logisticspipes:chip_basic_raw", "count": 2}
-}

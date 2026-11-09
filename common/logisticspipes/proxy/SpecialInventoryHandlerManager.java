@@ -1,19 +1,13 @@
 package logisticspipes.proxy;
 
-import net.minecraftforge.fml.ModList;
 
-import static logisticspipes.LPConstants.appliedenergisticsModID;
-
-import logisticspipes.proxy.specialinventoryhandler.AEInterfaceInventoryHandler;
 import network.rs485.logisticspipes.proxy.StorageDrawersProxy;
 
 public class SpecialInventoryHandlerManager {
 
 	public static void load() {
 
-		if (ModList.get().isLoaded(appliedenergisticsModID)) {
-			SimpleServiceLocator.inventoryUtilFactory.registerHandler(new AEInterfaceInventoryHandler());
-		}
+		// AE2 interface handler is parked until AE2 is wired for Fabric.
 
 		// BuildCraft inventory handler removed — no 1.20.1 port exists.
 

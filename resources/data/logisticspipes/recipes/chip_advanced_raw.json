@@ -1,9 +1,0 @@
-{
-  "type": "minecraft:crafting_shaped",
-  "pattern": ["cd", "dc"],
-  "key": {
-    "c": {"item": "logisticspipes:chip_basic_raw"},
-    "d": {"tag": "forge:gems/diamond"}
-  },
-  "result": {"item": "logisticspipes:chip_advanced_raw", "count": 2}
-}

@@ -1,5 +1,7 @@
 package logisticspipes.asm.td;
 
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 
@@ -23,7 +25,7 @@ public class ThermalDynamicsHooks {
 			return;
 		}
 		((ILPTravelingItemInfo) travelingItem).setLPRoutingInfoAddition(new ItemRoutingInformation());
-		((ItemRoutingInformation) ((ILPTravelingItemInfo) travelingItem).getLPRoutingInfoAddition()).readFromNBT(paramCompoundTag.getCompound("LPRoutingInformation"));
+		((ItemRoutingInformation) ((ILPTravelingItemInfo) travelingItem).getLPRoutingInfoAddition()).readFromNBT(paramCompoundTag.getCompoundOrEmpty("LPRoutingInformation"));
 	}
 
 	public static void renderItemTransportBox(Object /* TravelingItem */ item) {
@@ -34,10 +36,7 @@ public class ThermalDynamicsHooks {
 		// TODO: ThermalDynamics TravelingItem.stack field access deferred — TD not on classpath for 1.20.1
 		if (((ILPTravelingItemInfo) item).getLPRoutingInfoAddition() != null) {
 			stack = stack.copy();
-			if (!stack.hasTag()) {
-				stack.setTag(new CompoundTag());
-			}
-			stack.getTag().putString("LogsitcsPipes_ITEM_ON_TRANSPORTATION", "YES");
+			CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString("LogsitcsPipes_ITEM_ON_TRANSPORTATION", "YES"));
 		}
 		return stack;
 	}

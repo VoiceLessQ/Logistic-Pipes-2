@@ -46,7 +46,7 @@ class EnumProperty<E : Enum<E>>(
 ) : ValueProperty<E>(defaultValue) {
 
     override fun readFromNBT(tag: CompoundTag) {
-        if (tag.contains(tagKey)) value = (enumValues.getOrNull(tag.getInt(tagKey)) ?: defaultValue)
+        if (tag.contains(tagKey)) value = (enumValues.getOrNull(tag.getIntOr(tagKey, -1)) ?: defaultValue)
     }
 
     override fun writeToNBT(tag: CompoundTag) = tag.putInt(tagKey, value.ordinal)

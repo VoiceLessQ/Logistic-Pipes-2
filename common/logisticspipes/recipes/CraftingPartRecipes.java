@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundTag;
 
@@ -33,9 +32,9 @@ public abstract class CraftingPartRecipes implements IRecipeProvider {
 
 			if (true) { // TODO: Add Config Option
 				craftingPartList.add(new CraftingParts(
-						new ItemStack(LPItems.chipFPGA.get(), 1),
-						new ItemStack(LPItems.chipBasic.get(), 1),
-						new ItemStack(LPItems.chipAdvanced.get(), 1)));
+						LPItems.chipFPGA.get(),
+						LPItems.chipBasic.get(),
+						LPItems.chipAdvanced.get()));
 			}
 		}
 
@@ -48,12 +47,10 @@ public abstract class CraftingPartRecipes implements IRecipeProvider {
 	}
 
 	@Nonnull
-	protected Ingredient programmerIngredient(String recipeTarget) {
-		ItemStack programmerStack = new ItemStack(LPItems.logisticsProgrammer.get());
+	protected NBTIngredient programmerIngredient(String recipeTarget) {
 		final CompoundTag tag = new CompoundTag();
 		tag.putString(ItemLogisticsProgrammer.RECIPE_TARGET, recipeTarget);
-		programmerStack.setTag(tag);
-		return NBTIngredient.fromStacks(programmerStack);
+		return NBTIngredient.of(LPItems.logisticsProgrammer.get(), tag);
 	}
 
 	protected abstract void loadRecipes(CraftingParts parts);

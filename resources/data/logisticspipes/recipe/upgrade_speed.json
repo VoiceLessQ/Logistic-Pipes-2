@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "rpr",
+    "ibi",
+    "qnq"
+  ],
+  "key": {
+    "r": "minecraft:redstone",
+    "p": "logisticspipes:logistics_programmer",
+    "i": "minecraft:iron_ingot",
+    "b": "logisticspipes:chip_basic",
+    "q": "minecraft:paper",
+    "n": "minecraft:gold_nugget"
+  },
+  "result": {
+    "id": "logisticspipes:upgrade_speed",
+    "count": 1
+  }
+}

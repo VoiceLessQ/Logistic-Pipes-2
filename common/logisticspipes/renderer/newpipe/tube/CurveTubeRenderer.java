@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.interfaces.ITubeOrientation;
@@ -46,7 +46,7 @@ public class CurveTubeRenderer implements ISpecialPipeRenderer, IHighlightPlacem
 	//Tube global Access
 	public static Map<TurnDirection, IModel3D> tubeCurve = new HashMap<>();
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/blocks/pipes/hs-tube.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath("logisticspipes", "textures/blocks/pipes/hs-tube.png");
 
 	public static void loadModels() {
 		try {
@@ -96,7 +96,7 @@ public class CurveTubeRenderer implements ISpecialPipeRenderer, IHighlightPlacem
 
 	@Nonnull
 	@Override
-	public ResourceLocation getTexture() {
+	public Identifier getTexture() {
 		return CurveTubeRenderer.TEXTURE;
 	}
 

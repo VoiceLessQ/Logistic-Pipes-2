@@ -1,5 +1,8 @@
 package logisticspipes.blocks;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.utils.TagUtil;
 import javax.annotation.Nonnull;
 
 import net.minecraft.world.level.block.state.BlockState;
@@ -10,8 +13,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 // OpenComputers imports removed — OC not on classpath for 1.20.1; interfaces added at runtime via @ModDependentInterface ASM
 
@@ -34,7 +37,7 @@ import network.rs485.logisticspipes.world.WorldCoordinatesWrapper;
 
 @ModDependentInterface(modId = { LPConstants.openComputersModID, LPConstants.openComputersModID, LPConstants.openComputersModID }, interfacePath = { "li.cil.oc.api.network.ManagedPeripheral", "li.cil.oc.api.network.Environment", "li.cil.oc.api.network.SidedEnvironment" })
 @CCType(name = "LogisticsSolidBlock")
-public class LogisticsSolidTileEntity extends BlockEntity implements ITickable, ILPCCTypeHolder, IRotationProvider {
+public class LogisticsSolidTileEntity extends BlockEntity implements ITickable, ILPCCTypeHolder, IRotationProvider, logisticspipes.interfaces.IBlockEntityLifecycle {
 		// ManagedPeripheral, Environment, SidedEnvironment — added at runtime by @ModDependentInterface ASM when OC is present
 
 	private final Object[] ccTypeHolder = new Object[1];
@@ -54,15 +57,21 @@ public class LogisticsSolidTileEntity extends BlockEntity implements ITickable, 
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
-		rotation = nbt.getInt("rotation");
+	public void onLoad() {}
+
+	@Override
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag nbt = TagUtil.read(input);
+		super.loadAdditional(input);
+		rotation = nbt.getIntOr("rotation", 0);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag nbt = new CompoundTag();
+		super.saveAdditional(output);
 		nbt.putInt("rotation", rotation);
+		TagUtil.write(output, nbt);
 	}
 
 	// onChunkUnload() removed in 1.20.1 — handled by level unload events if needed
@@ -83,6 +92,12 @@ public class LogisticsSolidTileEntity extends BlockEntity implements ITickable, 
 	@Override
 	public void setRemoved() {
 		super.setRemoved();
+	}
+
+	@Override
+	public void preRemoveSideEffects(@Nonnull net.minecraft.core.BlockPos pos, @Nonnull net.minecraft.world.level.block.state.BlockState state) {
+		// no super: vanilla would drop Container contents a second time on top of onBlockBreak
+		onBlockBreak();
 	}
 
 	public void onBlockBreak() {
@@ -145,7 +160,7 @@ public class LogisticsSolidTileEntity extends BlockEntity implements ITickable, 
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	@ModDependentMethod(modId = LPConstants.openComputersModID)
 	public boolean canConnect(Direction side) {
 		final NeighborTileEntity<BlockEntity> neighbor = new WorldCoordinatesWrapper(this).getNeighbor(side);

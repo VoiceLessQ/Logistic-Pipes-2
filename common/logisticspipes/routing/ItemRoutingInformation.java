@@ -1,5 +1,6 @@
 package logisticspipes.routing;
 
+import logisticspipes.utils.TagUtil;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -64,12 +65,12 @@ public class ItemRoutingInformation {
 
 	public void readFromNBT(CompoundTag nbttagcompound) {
 		if (nbttagcompound.contains("destinationUUID")) {
-			destinationUUID = UUID.fromString(nbttagcompound.getString("destinationUUID"));
+			destinationUUID = UUID.fromString(nbttagcompound.getStringOr("destinationUUID", ""));
 		}
-		arrived = nbttagcompound.getBoolean("arrived");
-		bufferCounter = nbttagcompound.getInt("bufferCounter");
-		_transportMode = TransportMode.values()[nbttagcompound.getInt("transportMode")];
-		ItemStack stack = ItemStackLoader.loadAndFixItemStackFromNBT(nbttagcompound.getCompound("Item"));
+		arrived = nbttagcompound.getBooleanOr("arrived", false);
+		bufferCounter = nbttagcompound.getIntOr("bufferCounter", 0);
+		_transportMode = TransportMode.values()[nbttagcompound.getIntOr("transportMode", 0)];
+		ItemStack stack = ItemStackLoader.loadAndFixItemStackFromNBT(nbttagcompound.getCompoundOrEmpty("Item"));
 		setItem(ItemIdentifierStack.getFromStack(stack));
 	}
 
@@ -82,7 +83,7 @@ public class ItemRoutingInformation {
 		nbttagcompound.putInt("transportMode", _transportMode.ordinal());
 
 		CompoundTag nbttagcompound2 = new CompoundTag();
-		getItem().makeNormalStack().save(nbttagcompound2);
+		TagUtil.saveStack(getItem().makeNormalStack(), nbttagcompound2);
 		nbttagcompound.put("Item", nbttagcompound2);
 	}
 
@@ -124,7 +125,7 @@ public class ItemRoutingInformation {
 
 	public static ItemRoutingInformation restoreFromNBT(CompoundTag nbtTagCompound) {
 		if (nbtTagCompound.contains("StoreUUID")) {
-			UUID uuid = UUID.fromString(nbtTagCompound.getString("StoreUUID"));
+			UUID uuid = UUID.fromString(nbtTagCompound.getStringOr("StoreUUID", ""));
 			if (storeMap.containsKey(uuid)) {
 				ItemRoutingInformation result = storeMap.get(uuid);
 				storeMap.remove(uuid);

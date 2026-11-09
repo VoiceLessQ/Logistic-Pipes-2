@@ -37,7 +37,7 @@
 
 package network.rs485.logisticspipes.gui.guidebook
 
-import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.client.renderer.RenderPipelines
 import network.rs485.logisticspipes.gui.GuiDrawer
 import network.rs485.logisticspipes.util.IRectangle
 import network.rs485.logisticspipes.util.math.MutableRectangle
@@ -45,7 +45,7 @@ import logisticspipes.LogisticsPipes
 import logisticspipes.utils.MinecraftColor
 import logisticspipes.utils.gui.SimpleGraphics
 import net.minecraft.client.Minecraft
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import java.io.IOException
 
 class DrawableImageParagraph(private val alternativeText: List<DrawableWord>, val image: DrawableImage) : DrawableParagraph() {
@@ -89,7 +89,7 @@ class DrawableImageParagraph(private val alternativeText: List<DrawableWord>, va
     }
 }
 
-class DrawableImage(private var imageResource: ResourceLocation) : Drawable {
+class DrawableImage(private var imageResource: Identifier) : Drawable {
 
     override var relativeBody: MutableRectangle = MutableRectangle()
     override var parent: Drawable? = null
@@ -146,19 +146,17 @@ class DrawableImage(private var imageResource: ResourceLocation) : Drawable {
                 visibleArea.roundedRight,
                 visibleArea.roundedBottom,
             )
-            RenderSystem.enableBlend()
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f)
             guiGraphics.blit(
+                RenderPipelines.GUI_TEXTURED,
                 imageResource,
                 absoluteBody.roundedLeft,
                 absoluteBody.roundedTop,
+                0.0f, 0.0f,
                 absoluteBody.roundedWidth,
                 absoluteBody.roundedHeight,
-                0.0f, 0.0f,
                 imageWidth, imageHeight,
                 imageWidth, imageHeight,
             )
-            RenderSystem.disableBlend()
             guiGraphics.disableScissor()
         } else {
             GuiDrawer.drawOutlineRect(absoluteBody, MinecraftColor.WHITE.colorCode)

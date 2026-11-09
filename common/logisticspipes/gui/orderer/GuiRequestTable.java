@@ -1,5 +1,7 @@
 package logisticspipes.gui.orderer;
 
+import net.minecraft.client.Minecraft;
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import net.minecraft.SharedConstants;
@@ -16,7 +18,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -72,7 +74,7 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 	public final Player _entityPlayer;
 	protected final String _title = "Request items";
 	public ItemDisplay itemDisplay;
-	public net.minecraft.resources.ResourceLocation dimension;
+	public net.minecraft.resources.Identifier dimension;
 	protected DisplayOptions displayOptions = DisplayOptions.Both;
 	private SmallGuiButton macroButton;
 	private InputBar search;
@@ -92,7 +94,7 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 		_table = table;
 		_entityPlayer = entityPlayer;
 		if (GuiOrderer.cachetime + 100 < System.currentTimeMillis()) {
-			dimension = _table.getWorld().dimension().location();
+			dimension = _table.getWorld().dimension().identifier();
 		} else {
 			dimension = GuiOrderer.dimensioncache;
 		}
@@ -195,7 +197,7 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 	}
 
 	@Override
-	public void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int i, int j) {
+	public void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int i, int j) {
 		for (net.minecraft.client.gui.components.AbstractButton cycleButton : cycleButtons) {
 			cycleButton.visible = _table.targetType != null;
 		}
@@ -263,14 +265,14 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 						String s;
 						if (resource != null) {
 							stack = resource.getDisplayItem().makeNormalStack();
-							guiGraphics.renderItem(stack, left + 4, top + 4);
+							guiGraphics.item(stack, left + 4, top + 4);
 							s = TextUtil.getThreeDigitFormattedNumber(stack.getCount(), false);
 						} else {
 							stack = ItemStack.EMPTY;
 							s = "List";
 						}
 						// Draw number
-						guiGraphics.drawString(minecraft.font, s, left + 22 - minecraft.font.width(s), top + 14, 16777215, true);
+						SimpleGraphics.drawString(guiGraphics, minecraft.font, s, left + 22 - minecraft.font.width(s), top + 14, 16777215, true);
 						if (isFullyExtended()) {
 							if (localControlledButton == null || orderIdForButton != entry.getKey()) {
 								if (localControlledButton != null) {
@@ -283,7 +285,7 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 							List<IOrderInfoProvider> list = entry.getValue().getValue2().getList();
 							calculateSize(left, top, list);
 							String ident = String.format("ID: %d", entry.getKey());
-							guiGraphics.drawString(minecraft.font, ident, left + 25, top + 7, 16777215, true);
+							SimpleGraphics.drawString(guiGraphics, minecraft.font, ident, left + 25, top + 7, 16777215, true);
 							int x = left + 6;
 							int y = top + 25;
 							for (IOrderInfoProvider order : list) {
@@ -291,10 +293,10 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 								if (stack.getCount() <= 0) {
 									continue;
 								}
-								guiGraphics.renderItem(stack, x, y);
+								guiGraphics.item(stack, x, y);
 								s = TextUtil.getThreeDigitFormattedNumber(stack.getCount(), false);
 								// Draw number
-								guiGraphics.drawString(minecraft.font, s, x + 17 - minecraft.font.width(s), y + 9, 16777215, true);
+								SimpleGraphics.drawString(guiGraphics, minecraft.font, s, x + 17 - minecraft.font.width(s), y + 9, 16777215, true);
 								ordererPosition.put(new Pair<>(x, y), order);
 								x += 18;
 								if (x > left + getFinalWidth() - 18) {
@@ -365,10 +367,10 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 								list.add(ChatColor.BLUE + "Request Type: " + ChatColor.YELLOW + order.getType().name());
 								list.add(ChatColor.BLUE + "Send to Router ID: " + ChatColor.YELLOW + order
 										.getRouterId());
-								guiGraphics.renderComponentTooltip(font, list.stream().map(net.minecraft.network.chat.Component::literal).collect(Collectors.toList()), xPos, yPos);
+								guiGraphics.setComponentTooltipForNextFrame(font, list.stream().map(net.minecraft.network.chat.Component::literal).collect(Collectors.toList()), xPos, yPos);
 							});
 						} else if (entry.getValue() != null && entry.getValue().getValue1() != null && entry.getValue().getValue1().getDisplayItem() != null) {
-							guiGraphics.renderTooltip(font, entry.getValue().getValue1().getDisplayItem().makeNormalStack(), xPos, yPos);
+							guiGraphics.setTooltipForNextFrame(font, entry.getValue().getValue1().getDisplayItem().makeNormalStack(), xPos, yPos);
 						}
 					}
 				});
@@ -496,10 +498,11 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 			ArrayList<ItemIdentifierStack> list = new ArrayList<>(9);
 			list.addAll(_table.matrix.getItemsAndCount().entrySet().stream()
 					.map(e -> e.getKey().makeStack(e.getValue())).collect(Collectors.toList()));
-			for (Pair<ItemStack, Integer> entry : _table.inv) {
-				if (entry.getValue1().isEmpty()) continue;
-				int size = entry.getValue1().getCount();
-				ItemIdentifier ident = ItemIdentifier.get(entry.getValue1());
+			for (int i = 0; i < _table.inv.getContainerSize(); i++) {
+				ItemStack invStack = _table.inv.getItem(i);
+				if (invStack.isEmpty()) continue;
+				int size = invStack.getCount();
+				ItemIdentifier ident = ItemIdentifier.get(invStack);
 				for (ItemIdentifierStack stack : list) {
 					if (!stack.getItem().equals(ident)) continue;
 					int toUse = Math.min(size, stack.getStackSize());
@@ -537,19 +540,19 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 	}
 
 	@Override
-	public void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	public void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
 		if (super.hasSubGui()) {
 			return;
 		}
 		macroButton.active = !_table.diskInv.getItem(0).isEmpty() && _table.diskInv.getItem(0).getItem().equals(LPItems.disk.get());
-		guiGraphics.drawString(minecraft.font, "Sort:", 136, 55, 0xffffff, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "Sort:", 136, 55, 0xffffff, false);
 		if (showRequest) {
-			guiGraphics.drawString(minecraft.font, _title, 180 + minecraft.font.width(_title) / 2, 6, 0x404040, false);
+			SimpleGraphics.drawString(guiGraphics, minecraft.font, _title, 180 + minecraft.font.width(_title) / 2, 6, 0x404040, false);
 			if (popupCheck != null && popupCheck.getState()) {
-				guiGraphics.drawString(minecraft.font, "Popup", 225, bottom - topPos - 56, 0x404040, false);
+				SimpleGraphics.drawString(guiGraphics, minecraft.font, "Popup", 225, bottom - topPos - 56, 0x404040, false);
 			} else {
-				guiGraphics.drawString(minecraft.font, "Popup", 225, bottom - topPos - 56, Color.getValue(Color.GREY), false);
+				SimpleGraphics.drawString(guiGraphics, minecraft.font, "Popup", 225, bottom - topPos - 56, Color.getValue(Color.GREY), false);
 			}
 		}
 	}
@@ -564,10 +567,9 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 		}
 		//if(isSearched(String.valueOf(BuiltInRegistries.ITEM.getId(item.item)), search.getContent())) return true;
 		//Enchantment? Enchantment!
-		Map<Enchantment, Integer> enchantIdLvlMap = EnchantmentHelper.getEnchantments(item.unsafeMakeNormalStack(1));
-		for (Entry<Enchantment, Integer> e : enchantIdLvlMap.entrySet()) {
-			if (e.getKey() != null) {
-				String enchantname = e.getKey().getDescriptionId();
+		for (net.minecraft.core.Holder<Enchantment> e : EnchantmentHelper.getEnchantmentsForCrafting(item.unsafeMakeNormalStack(1)).keySet()) {
+			if (e != null) {
+				String enchantname = e.value().description().getString();
 				if (enchantname != null) {
 					if (isSearched(enchantname.toLowerCase(Locale.US), search.getText().toLowerCase(Locale.US))) {
 						return true;
@@ -629,16 +631,16 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 		if (hasSubGui()) {
 			return super.keyPressed(keyCode, scanCode, modifiers);
 		}
-		if (search.isFocused() && !search.isEmpty() && search.keyPressed(keyCode, scanCode, modifiers)) {
+		if (search.isFocused() && !search.isEmpty() && search.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 			return true;
 		}
 		if (itemDisplay.keyPressed(keyCode, scanCode, modifiers)) {
 			return true;
 		}
-		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_A && Screen.hasControlDown()) {
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_A && Minecraft.getInstance().hasControlDown()) {
 			itemDisplay.setMaxAmount();
 			return true;
-		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_D && Screen.hasControlDown()) {
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_D && Minecraft.getInstance().hasControlDown()) {
 			itemDisplay.resetAmount();
 			return true;
 		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP) {
@@ -649,7 +651,7 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 			return true;
 		}
 		// Track everything except Escape when in search bar
-		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || !search.keyPressed(keyCode, scanCode, modifiers)) {
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || !search.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 			return super.keyPressed(keyCode, scanCode, modifiers);
 		}
 		return true;
@@ -660,7 +662,7 @@ public class GuiRequestTable extends LogisticsBaseGuiScreen implements IItemSear
 		if (search.isFocused()) {
 			if (!search.isEmpty() && search.handleKey(c, i))
 				return true;
-		} else if (Screen.hasAltDown() && SharedConstants.isAllowedChatCharacter(c)) {
+		} else if (Minecraft.getInstance().hasAltDown() && net.minecraft.util.StringUtil.isAllowedChatCharacter(c)) {
 			itemDisplay.setFocused(false);
 			search.setFocused(true);
 			search.setText("");

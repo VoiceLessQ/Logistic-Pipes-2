@@ -28,7 +28,7 @@ public class DictItemIdentifier {
 		}
 		// 1.20.1 replacement for OreDictionary.getOreIDs: walk the item's tag keys and
 		// assign each TagKey a stable int id via DictIdentifier.
-		for (TagKey<Item> tag : stack.getTags().toList()) {
+		for (TagKey<Item> tag : stack.typeHolder().tags().toList()) {
 			DictIdentifier ident = DictIdentifier.getForTag(tag);
 			ids.set(ident.getId());
 			hasDict = true;

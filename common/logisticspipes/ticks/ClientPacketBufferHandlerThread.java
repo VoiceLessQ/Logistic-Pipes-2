@@ -12,7 +12,6 @@ import java.util.zip.GZIPOutputStream;
 
 import net.minecraft.world.entity.player.Player;
 
-import net.minecraftforge.event.TickEvent;
 
 import logisticspipes.network.PacketHandler;
 import logisticspipes.network.abstractpackets.ModernPacket;
@@ -224,22 +223,16 @@ public class ClientPacketBufferHandlerThread {
 
 				handlePacketData(part);
 			}
-			Pair<Player, ModernPacket> partB;
-			while (true) {
-				partB = null;
-				retryPacketsLock.lock();
-				try {
-					if (retryPackets.size() > 0) {
-						partB = retryPackets.pop();
-					}
-				} finally {
-					retryPacketsLock.unlock();
-				}
-
-				if (partB == null) {
-					break;
-				}
-
+			// only this tick's retries: a packet that fails again is re-queued for the next tick
+			LinkedList<Pair<Player, ModernPacket>> retries;
+			retryPacketsLock.lock();
+			try {
+				retries = new LinkedList<>(retryPackets);
+				retryPackets.clear();
+			} finally {
+				retryPacketsLock.unlock();
+			}
+			for (Pair<Player, ModernPacket> partB : retries) {
 				PacketHandler.onPacketData(partB.getValue2(), partB.getValue1());
 			}
 		}

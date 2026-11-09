@@ -1,9 +1,12 @@
 package logisticspipes.utils.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 
 import lombok.Getter;
 
@@ -28,7 +31,9 @@ public abstract class SubGuiScreen extends Screen implements ISubGuiControler, I
 	protected int yCenterOffset;
 	protected ISubGuiControler controler;
 	private SubGuiScreen subGui;
-	protected net.minecraft.client.gui.GuiGraphics storedGuiGraphics;
+	private int inputModifiers;
+	private boolean inputDoubleClick;
+	protected net.minecraft.client.gui.GuiGraphicsExtractor storedGuiGraphics;
 
 	public SubGuiScreen(int xSize, int ySize, int xOffset, int yOffset) {
 		super(net.minecraft.network.chat.Component.empty());
@@ -60,7 +65,44 @@ public abstract class SubGuiScreen extends Screen implements ISubGuiControler, I
 		controler.resetSubGui();
 	}
 
+	protected MouseButtonEvent mouseEvent(double x, double y, int button) {
+		return new MouseButtonEvent(x, y, new MouseButtonInfo(button, inputModifiers));
+	}
+
 	@Override
+	public final boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		inputModifiers = event.modifiers();
+		inputDoubleClick = doubleClick;
+		return mouseClicked(event.x(), event.y(), event.button());
+	}
+
+	@Override
+	public final boolean mouseReleased(MouseButtonEvent event) {
+		inputModifiers = event.modifiers();
+		return mouseReleased(event.x(), event.y(), event.button());
+	}
+
+	@Override
+	public final boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+		inputModifiers = event.modifiers();
+		return mouseDragged(event.x(), event.y(), event.button(), dragX, dragY);
+	}
+
+	@Override
+	public final boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		return mouseScrolled(mouseX, mouseY, scrollY);
+	}
+
+	@Override
+	public final boolean keyPressed(KeyEvent event) {
+		return keyPressed(event.key(), event.scancode(), event.modifiers());
+	}
+
+	@Override
+	public final boolean charTyped(CharacterEvent event) {
+		return charTyped((char) event.codepoint(), 0);
+	}
+
 	public boolean charTyped(char par1, int par2) {
 		if (subGui != null) {
 			return subGui.charTyped(par1, par2);
@@ -72,7 +114,6 @@ public abstract class SubGuiScreen extends Screen implements ISubGuiControler, I
 		return false;
 	}
 
-	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 		if (subGui != null) {
 			return subGui.keyPressed(keyCode, scanCode, modifiers);
@@ -81,85 +122,71 @@ public abstract class SubGuiScreen extends Screen implements ISubGuiControler, I
 			exitGui();
 			return true;
 		}
-		return super.keyPressed(keyCode, scanCode, modifiers);
+		return super.keyPressed(new KeyEvent(keyCode, scanCode, modifiers));
 	}
 
-	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
 		if (subGui != null) {
 			return subGui.mouseClicked(mouseX, mouseY, button);
 		}
-		return super.mouseClicked(mouseX, mouseY, button);
+		return super.mouseClicked(mouseEvent(mouseX, mouseY, button), inputDoubleClick);
 	}
 
-	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button) {
 		if (subGui != null) {
 			return subGui.mouseReleased(mouseX, mouseY, button);
 		}
-		return super.mouseReleased(mouseX, mouseY, button);
+		return super.mouseReleased(mouseEvent(mouseX, mouseY, button));
 	}
 
-	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
 		if (subGui != null) {
 			return subGui.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 		}
-		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+		return super.mouseDragged(mouseEvent(mouseX, mouseY, button), dragX, dragY);
 	}
 
-	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 		if (subGui != null) {
 			return subGui.mouseScrolled(mouseX, mouseY, delta);
 		}
-		return super.mouseScrolled(mouseX, mouseY, delta);
+		return super.mouseScrolled(mouseX, mouseY, 0, delta);
 	}
 
 	@Override
-	public net.minecraft.client.gui.GuiGraphics getGuiGraphics() {
+	public net.minecraft.client.gui.GuiGraphicsExtractor getGuiGraphics() {
 		return storedGuiGraphics;
 	}
 
 	@Override
-	public void renderBackground(net.minecraft.client.gui.GuiGraphics guiGraphics) {
-		// Background is drawn by renderGuiBackground() — suppress Screen's renderMenuBackground overlay
-	}
-
-	@Override
-	public final void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	public final void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		this.storedGuiGraphics = guiGraphics;
 		SimpleGraphics.guiGraphics = guiGraphics;
 		renderGuiBackground(mouseX, mouseY);
-		RenderSystem.disableDepthTest();
-		super.render(guiGraphics, mouseX, mouseY, partialTicks);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 		this.renderLabels(guiGraphics, mouseX, mouseY);
-		RenderSystem.enableDepthTest();
 		if (subGui != null) {
-			// commit the host's batched text and items, then clear depth so overlay and popup draw over all of it
-			guiGraphics.flush();
-			RenderSystem.clear(com.mojang.blaze3d.platform.GlConst.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+			guiGraphics.nextStratum();
 			if (!subGui.hasSubGui()) {
-				super.renderBackground(guiGraphics);
+				extractTransparentBackground(guiGraphics);
 			}
-			guiGraphics.flush();
-			subGui.render(guiGraphics, mouseX, mouseY, partialTicks);
+			subGui.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		}
 		renderToolTips(mouseX, mouseY, partialTicks);
 	}
 
 	protected void renderToolTips(int mouseX, int mouseY, float par3) {}
 
-	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {}
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {}
 
 	protected abstract void renderGuiBackground(int mouseX, int mouseY);
 
 	@Override
-	public void resize(Minecraft mc, int width, int height) {
-		super.resize(mc, width, height);
+	public void resize(int width, int height) {
+		super.resize(width, height);
 		if (subGui != null) {
-			subGui.resize(mc, width, height);
+			subGui.resize(width, height);
 		}
 	}
 
@@ -183,7 +210,7 @@ public abstract class SubGuiScreen extends Screen implements ISubGuiControler, I
 		if (subGui == null) {
 			subGui = gui;
 			subGui.register(this);
-			subGui.init(minecraft, width, height);
+			subGui.init(width, height);
 		}
 	}
 

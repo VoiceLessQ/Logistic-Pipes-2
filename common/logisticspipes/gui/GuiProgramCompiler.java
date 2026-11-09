@@ -1,7 +1,8 @@
 
 package logisticspipes.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -14,7 +15,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 
 
@@ -66,7 +67,7 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 				}
 				ListTag list = compiler.getListTagForKey("compilerCategories");
 				return (int) LogisticsProgramCompilerTileEntity.programByCategory.keySet().stream()
-						.filter(it -> StreamSupport.stream(list.spliterator(), false).noneMatch(nbtBase -> ((StringTag) nbtBase).getAsString().equals(it.toString()))).count();
+						.filter(it -> StreamSupport.stream(list.spliterator(), false).noneMatch(nbtBase -> ((StringTag) nbtBase).value().equals(it.toString()))).count();
 			}
 
 			@Override
@@ -76,7 +77,7 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 				}
 				ListTag list = compiler.getListTagForKey("compilerCategories");
 				return TextUtil.translate("gui.compiler." + LogisticsProgramCompilerTileEntity.programByCategory.keySet().stream()
-						.filter(it -> StreamSupport.stream(list.spliterator(), false).noneMatch(nbtBase -> ((StringTag) nbtBase).getAsString().equals(it.toString())))
+						.filter(it -> StreamSupport.stream(list.spliterator(), false).noneMatch(nbtBase -> ((StringTag) nbtBase).value().equals(it.toString())))
 						.skip(index)
 						.findFirst()
 						.map(it -> String.format("%s.%s", it.getNamespace(), it.getPath()))
@@ -107,9 +108,9 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 					return "";
 				}
 				ListTag list = compiler.getListTagForKey("compilerCategories");
-				ResourceLocation sel = getProgramListForSelectionIndex(list).get(index);
+				Identifier sel = getProgramListForSelectionIndex(list).get(index);
 
-				Item selItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(sel);
+				Item selItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(sel);
 				if (selItem != null) {
 					return TextUtil.translate(selItem.getDescriptionId());
 				}
@@ -122,10 +123,10 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 					return 0xFFFFFF;
 				}
 				ListTag list = compiler.getListTagForKey("compilerCategories");
-				ResourceLocation sel = getProgramListForSelectionIndex(list).get(index);
+				Identifier sel = getProgramListForSelectionIndex(list).get(index);
 
 				ListTag listPrograms = compiler.getListTagForKey("compilerPrograms");
-				return StreamSupport.stream(listPrograms.spliterator(), false).anyMatch(it -> new ResourceLocation(((StringTag) it).getAsString()).equals(sel))
+				return StreamSupport.stream(listPrograms.spliterator(), false).anyMatch(it -> Identifier.parse(((StringTag) it).value()).equals(sel))
 						? 0xAAFFAA : 0xFFAAAA;
 			}
 		};
@@ -157,7 +158,7 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 			if (categoryList.getSelected() != -1) {
 				ListTag list = compiler.getListTagForKey("compilerCategories");
 				LogisticsProgramCompilerTileEntity.programByCategory.keySet().stream()
-						.filter(it -> StreamSupport.stream(list.spliterator(), false).noneMatch(nbtBase -> ((StringTag) nbtBase).getAsString().equals(it.toString())))
+						.filter(it -> StreamSupport.stream(list.spliterator(), false).noneMatch(nbtBase -> ((StringTag) nbtBase).value().equals(it.toString())))
 						.skip(categoryList.getSelected())
 						.findFirst()
 						.ifPresent(it -> MainProxy.sendPacketToServer(PacketHandler.getPacket(CompilerTriggerTaskPacket.class).setCategory(it).setType("category").setTilePos(compiler)));
@@ -184,10 +185,10 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 			}
 			if (selIndex != -1) {
 				ListTag list = compiler.getListTagForKey("compilerCategories");
-				ResourceLocation sel = getProgramListForSelectionIndex(list).get(selIndex);
+				Identifier sel = getProgramListForSelectionIndex(list).get(selIndex);
 				ListTag listPrograms = compiler.getListTagForKey("compilerPrograms");
 				boolean flag = StreamSupport.stream(listPrograms.spliterator(), false)
-						.anyMatch(it -> new ResourceLocation(((StringTag) it).getAsString()).equals(sel));
+						.anyMatch(it -> Identifier.parse(((StringTag) it).value()).equals(sel));
 				MainProxy.sendPacketToServer(PacketHandler.getPacket(CompilerTriggerTaskPacket.class).setCategory(sel).setType(flag ? "flash" : "program").setTilePos(compiler));
 			}
 		});
@@ -203,7 +204,7 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float var1, int var2, int var3) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float var1, int var2, int var3) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, right, bottom, 0.0f, true);
 		LPGuiGraphics.drawPlayerInventoryBackground(minecraft, leftPos + 10, topPos + 105);
 		LPGuiGraphics.drawSlotDiskBackground(minecraft, leftPos + 9, topPos + 9);
@@ -249,10 +250,10 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 
 			if (selIndex != -1) {
 				ListTag list = compiler.getListTagForKey("compilerCategories");
-				ResourceLocation sel = getProgramListForSelectionIndex(list).get(selIndex);
+				Identifier sel = getProgramListForSelectionIndex(list).get(selIndex);
 
 				ListTag listPrograms = compiler.getListTagForKey("compilerPrograms");
-				if (StreamSupport.stream(listPrograms.spliterator(), false).anyMatch(it -> new ResourceLocation(((StringTag) it).getAsString()).equals(sel))) {
+				if (StreamSupport.stream(listPrograms.spliterator(), false).anyMatch(it -> Identifier.parse(((StringTag) it).value()).equals(sel))) {
 					programmerButton.setMessage(net.minecraft.network.chat.Component.literal("Flash"));
 					programmerButton.active = !compiler.getInventory().getItem(1).isEmpty();
 				} else {
@@ -263,13 +264,13 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 		}
 	}
 
-	private List<ResourceLocation> getProgramListForSelectionIndex(ListTag list) {
+	private List<Identifier> getProgramListForSelectionIndex(ListTag list) {
 		return StreamSupport.stream(list.spliterator(), false).flatMap(
-				nbtBase -> LogisticsProgramCompilerTileEntity.programByCategory.get(new ResourceLocation(((StringTag) nbtBase).getAsString()))
+				nbtBase -> LogisticsProgramCompilerTileEntity.programByCategory.get(Identifier.parse(((StringTag) nbtBase).value()))
 						.stream())
-				.filter(it -> TextUtil.translate(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(it).getDescriptionId()).toLowerCase().contains(search.getText().toLowerCase()))
-				.sorted(Comparator.<ResourceLocation, Integer>comparing(o -> getSortingClass(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(o)))
-						.<String>thenComparing(o -> TextUtil.translate(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(o).getDescriptionId()).toLowerCase())
+				.filter(it -> TextUtil.translate(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(it).getDescriptionId()).toLowerCase().contains(search.getText().toLowerCase()))
+				.sorted(Comparator.<Identifier, Integer>comparing(o -> getSortingClass(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(o)))
+						.<String>thenComparing(o -> TextUtil.translate(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(o).getDescriptionId()).toLowerCase())
 				)
 				.collect(Collectors.toList());
 	}
@@ -310,7 +311,7 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		if (compiler.getCurrentTask() == null && search.keyPressed(keyCode, scanCode, modifiers)) {
+		if (compiler.getCurrentTask() == null && search.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 			return true;
 		}
 		return super.keyPressed(keyCode, scanCode, modifiers);
@@ -343,11 +344,11 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
 		if (compiler.getCurrentTask() != null) {
-			guiGraphics.drawString(font, TextUtil.translate("gui.compiler.processing"), 10, 39, 0x000000, false);
-			Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(compiler.getCurrentTask());
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate("gui.compiler.processing"), 10, 39, 0x000000, false);
+			Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(compiler.getCurrentTask());
 			String name;
 			if (item != null) {
 				name = item.getDescriptionId();
@@ -355,10 +356,10 @@ public class GuiProgramCompiler extends LogisticsBaseGuiScreen {
 				name = "gui.compiler." + compiler.getCurrentTask().toString().replace(':', '.');
 			}
 			String text = TextUtil.getTrimmedString(TextUtil.translate(name), 160, font, "...");
-			guiGraphics.drawString(font, text, 10, 70, 0x000000, false);
+			SimpleGraphics.drawString(guiGraphics, font, text, 10, 70, 0x000000, false);
 			if (!compiler.isWasAbleToConsumePower()) {
-				guiGraphics.drawString(font, TextUtil.translate("gui.compiler.nopower.1"), 68, 10, 0x000000, false);
-				guiGraphics.drawString(font, TextUtil.translate("gui.compiler.nopower.2"), 35, 20, 0x000000, false);
+				SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate("gui.compiler.nopower.1"), 68, 10, 0x000000, false);
+				SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate("gui.compiler.nopower.2"), 35, 20, 0x000000, false);
 			}
 		} else {
 			if (categoryTextList.getSize() == 0 && programTextList.getSize() != 0) {

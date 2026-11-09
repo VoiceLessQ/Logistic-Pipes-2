@@ -87,8 +87,8 @@ public class PipeController extends CoordinatesGuiProvider {
 			if (LogisticsItemCard.getCardType(itemStack) != LogisticsItemCard.SEC_CARD) {
 				return false;
 			}
-			final CompoundTag tag = Objects.requireNonNull(itemStack.getTag());
-			return SimpleServiceLocator.securityStationManager.isAuthorized(UUID.fromString(tag.getString("UUID")));
+			final CompoundTag tag = Objects.requireNonNull(itemStack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA)).copyTag();
+			return SimpleServiceLocator.securityStationManager.isAuthorized(UUID.fromString(tag.getStringOr("UUID", "")));
 		}, 1);
 		dummy.addRestrictedSlot(0, tile.logicController.diskInv, 14, 36, LPItems.disk.get());
 		return dummy;

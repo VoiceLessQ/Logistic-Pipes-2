@@ -3,10 +3,17 @@ package logisticspipes.items;
 import javax.annotation.Nonnull;
 
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.equipment.EquipmentAsset;
+import net.minecraft.world.item.equipment.EquipmentAssets;
+import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.Level;
 
@@ -14,38 +21,25 @@ import logisticspipes.api.IHUDArmor;
 import logisticspipes.interfaces.ILogisticsItem;
 import logisticspipes.proxy.MainProxy;
 
-public class ItemHUDArmor extends ArmorItem implements IHUDArmor, ILogisticsItem {
+public class ItemHUDArmor extends Item implements IHUDArmor, ILogisticsItem {
 
-	/** LP1 HUD glasses: no armour points, not dyeable (leather tinted the texture brown). */
-	private static final net.minecraft.world.item.ArmorMaterial HUD_MATERIAL = new net.minecraft.world.item.ArmorMaterial() {
-		@Override public int getDurabilityForType(@Nonnull ArmorItem.Type type) { return 0; }
-		@Override public int getDefenseForType(@Nonnull ArmorItem.Type type) { return 0; }
-		@Override public int getEnchantmentValue() { return 0; }
-		@Override @Nonnull public net.minecraft.sounds.SoundEvent getEquipSound() { return net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_LEATHER; }
-		@Override @Nonnull public net.minecraft.world.item.crafting.Ingredient getRepairIngredient() { return net.minecraft.world.item.crafting.Ingredient.EMPTY; }
-		@Override @Nonnull public String getName() { return logisticspipes.LPConstants.LP_MOD_ID + ":hud"; }
-		@Override public float getToughness() { return 0f; }
-		@Override public float getKnockbackResistance() { return 0f; }
-	};
+	/** LP1 HUD glasses: no armour points, not dyeable; model texture from assets/logisticspipes/equipment/logisticshud.json. */
+	private static final ResourceKey<EquipmentAsset> HUD_ASSET = ResourceKey.create(EquipmentAssets.ROOT_ID,
+			Identifier.fromNamespaceAndPath(logisticspipes.LPConstants.LP_MOD_ID, "logisticshud"));
 
 	public ItemHUDArmor() {
-		super(HUD_MATERIAL, ArmorItem.Type.HELMET, new Properties());
-	}
-
-	@Override
-	public String getArmorTexture(ItemStack stack, net.minecraft.world.entity.Entity entity, net.minecraft.world.entity.EquipmentSlot slot, String type) {
-		return logisticspipes.LPConstants.LP_MOD_ID + ":textures/armor/logisticshud_1.png";
+		super(logisticspipes.LPRegistries.itemProperties().stacksTo(1).component(DataComponents.EQUIPPABLE,
+				Equippable.builder(EquipmentSlot.HEAD).setEquipSound(SoundEvents.ARMOR_EQUIP_LEATHER).setAsset(HUD_ASSET).build()));
 	}
 
 	@Nonnull
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, @Nonnull InteractionHand handIn) {
-		ItemStack stack = player.getItemInHand(handIn);
+	public InteractionResult use(Level world, Player player, @Nonnull InteractionHand handIn) {
 		if (MainProxy.isClient(world)) {
-			return InteractionResultHolder.pass(stack);
+			return InteractionResult.PASS;
 		}
 		useItem(player, world);
-		return InteractionResultHolder.success(stack);
+		return InteractionResult.SUCCESS;
 	}
 
 	@Nonnull
@@ -63,7 +57,7 @@ public class ItemHUDArmor extends ArmorItem implements IHUDArmor, ILogisticsItem
 	private void useItem(Player player, Level world) {
 		if (MainProxy.isServer(world)) {
 			logisticspipes.network.NewGuiHandler.getGui(logisticspipes.network.guis.item.HUDSettingsGui.class)
-					.setSlot(player.getInventory().selected)
+					.setSlot(player.getInventory().getSelectedSlot())
 					.open(player);
 		}
 	}

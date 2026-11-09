@@ -32,7 +32,7 @@ public class PlayerIdentifier {
 	}
 
 	public static PlayerIdentifier get(Player player) {
-		return PlayerIdentifier.get(player.getGameProfile().getName(), player.getGameProfile().getId());
+		return PlayerIdentifier.get(player.getGameProfile().name(), player.getGameProfile().id());
 	}
 
 	public static PlayerIdentifier get(String username, UUID id) {
@@ -65,12 +65,12 @@ public class PlayerIdentifier {
 	public static PlayerIdentifier readFromNBT(CompoundTag nbt, String prefix) {
 		UUID id = null;
 		if (nbt.contains(prefix + "_id")) {
-			String tmp = nbt.getString(prefix + "_id");
+			String tmp = nbt.getStringOr(prefix + "_id", "");
 			try {
 				id = UUID.fromString(tmp);
 			} catch (Exception ignored) {}
 		}
-		String username = nbt.getString(prefix + "_name");
+		String username = nbt.getStringOr(prefix + "_name", "");
 		return PlayerIdentifier.get(username, id);
 	}
 

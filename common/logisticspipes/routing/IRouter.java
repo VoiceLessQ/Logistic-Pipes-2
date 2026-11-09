@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.api.ILogisticsPowerProvider;
 import logisticspipes.interfaces.ISubSystemPowerProvider;
@@ -48,9 +48,9 @@ public interface IRouter extends LPFinalSerializable {
 
 	CoreRoutedPipe getCachedPipe();
 
-	boolean isInDim(ResourceLocation dimension);
+	boolean isInDim(Identifier dimension);
 
-	boolean isAt(ResourceLocation dimension, int xCoord, int yCoord, int zCoord);
+	boolean isAt(Identifier dimension, int xCoord, int yCoord, int zCoord);
 
 	UUID getId();
 

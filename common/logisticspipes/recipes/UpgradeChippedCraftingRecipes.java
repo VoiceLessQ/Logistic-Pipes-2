@@ -9,9 +9,8 @@ import java.util.stream.Collectors;
 
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.LPItems;
 import logisticspipes.blocks.LogisticsProgramCompilerTileEntity;
@@ -42,18 +41,18 @@ public class UpgradeChippedCraftingRecipes extends CraftingPartRecipes {
 		LEVEL_4,
 	}
 
-	private void registerUpgradeRecipe(CraftingParts parts, RecipeType type, ResourceLocation recipeCategory, String upgradeName) {
+	private void registerUpgradeRecipe(CraftingParts parts, RecipeType type, Identifier recipeCategory, String upgradeName) {
 		registerUpgradeRecipe(parts, type, recipeCategory, upgradeName, 1);
 	}
 
-	private void registerUpgradeRecipe(CraftingParts parts, RecipeType type, ResourceLocation recipeCategory, String upgradeName, int amount) {
-		ResourceLocation upgradeResource = LPItems.upgrades.get(upgradeName);
+	private void registerUpgradeRecipe(CraftingParts parts, RecipeType type, Identifier recipeCategory, String upgradeName, int amount) {
+		Identifier upgradeResource = LPItems.upgrades.get(upgradeName);
 		if (upgradeResource == null) return;
-		Item upgrade = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(upgradeResource);
+		Item upgrade = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(upgradeResource);
 		if (upgrade == null) return;
 
-		Ingredient programmer = programmerIngredient(upgradeResource.toString());
-		final Set<ResourceLocation> compilerPrograms = LogisticsProgramCompilerTileEntity.programByCategory.computeIfAbsent(recipeCategory, k -> new HashSet<>());
+		NBTIngredient programmer = programmerIngredient(upgradeResource.toString());
+		final Set<Identifier> compilerPrograms = LogisticsProgramCompilerTileEntity.programByCategory.computeIfAbsent(recipeCategory, k -> new HashSet<>());
 		compilerPrograms.add(upgradeResource);
 
 		// Beta style (pre-1.8): drop the Logistics Programmer from the top row, chip-only crafting.
@@ -107,7 +106,7 @@ public class UpgradeChippedCraftingRecipes extends CraftingPartRecipes {
 					.filter(recipeIndex -> !(fLayout.getLine1() + fLayout.getLine2() + fLayout.getLine3()).replace(recipeIndex.getIndex(), ' ')
 							.equals((fLayout.getLine1() + fLayout.getLine2() + fLayout.getLine3()))).collect(Collectors.toCollection(LinkedList::new));
 			indexToUse.addFirst(layout);
-			RecipeManager.craftingManager.addRecipe(new ItemStack(upgrade, amount), indexToUse.toArray());
+			RecipeManager.craftingManager.addRecipe(upgrade, amount, indexToUse.toArray());
 		}
 	}
 

@@ -5,13 +5,13 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.items.IItemHandler;
+import logisticspipes.utils.StorageItemHandler;
 
 class InventoryIteratorSimple implements Iterable<IInvSlot> {
 
-	private final IItemHandler inv;
+	private final StorageItemHandler inv;
 
-	InventoryIteratorSimple(IItemHandler inv) {
+	InventoryIteratorSimple(StorageItemHandler inv) {
 		this.inv = inv;
 	}
 

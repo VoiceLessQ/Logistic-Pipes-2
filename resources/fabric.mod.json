@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "logisticspipes",
+  "version": "${version}",
+  "name": "Logistic Pipes 2",
+  "description": "Request-based item routing, automated crafting and modular chassis pipes. Fabric 26.2 port of Logistic Pipes 2.",
+  "authors": [
+    "flecmen (Fabric 26.2 port)",
+    "NoZeroG (NeoForge port)",
+    "RS485 & LP Team (original 1.12.2)",
+    "Krapht (original concept)"
+  ],
+  "contact": {
+    "sources": "https://github.com/VoiceLessQ/Logistic-Pipes-2"
+  },
+  "license": "MMPL-1.0.1",
+  "icon": "assets/logisticspipes/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "logisticspipes.LogisticsPipes"
+    ],
+    "client": [
+      "logisticspipes.LogisticsPipesClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.2",
+    "java": ">=25",
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*",
+    "team_reborn_energy": ">=5.0.0"
+  },
+  "mixins": [
+    "logisticspipes.mixins.json"
+  ]
+}

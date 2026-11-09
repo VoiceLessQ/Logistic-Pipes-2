@@ -37,17 +37,17 @@ public class MostLikelyRecipeComponentsResponse extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT) {
 			handleClient();
 		}
 	}
 
-	// See OpenChatGui: the client refs (Screen/Minecraft/LP GUI screens) live in this @OnlyIn
+	// See OpenChatGui: the client refs (Screen/Minecraft/LP GUI screens) live in this @Environment
 	// helper so they are stripped before verification on the dedicated server, letting the packet
 	// class link and be sent server-side. processPacket stays free of client classes.
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 	private void handleClient() {
-		Screen firstGui = Minecraft.getInstance().screen;
+		Screen firstGui = Minecraft.getInstance().gui.screen();
 		LogisticsBaseGuiScreen gui;
 		if (firstGui instanceof GuiLogisticsCraftingTable) {
 			gui = (GuiLogisticsCraftingTable) firstGui;

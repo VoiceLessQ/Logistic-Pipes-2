@@ -6,6 +6,18 @@ See the original [CurseForge page](https://www.curseforge.com/minecraft/mc-mods/
 
 > **Beta / work in progress.** Expect bugs, crashes, missing polish, and the occasional broken feature. Back up your worlds before testing, and please open an issue if something goes wrong — noisy reports are more useful than silent frustration.
 
+## Fabric 26.2 port (this branch)
+
+This branch is a port of Logistic Pipes 2 from NeoForge 1.20.1 to **Fabric, Minecraft 26.2** (Fabric Loader 0.20.1, Fabric API 0.161.0+26.2, Java 25).
+
+**Required:** Fabric API, Fabric Language Kotlin 1.14.2+. Team Reborn Energy is bundled.
+
+**Integrations:** Tech Reborn and BuildCraft Refabricated (power through Team Reborn Energy, EU power supplier upgrades LV–EV, EU power provider), IC2 Reborn (pulls EU from adjacent generators), CC:Tweaked peripherals.
+
+**Status:** beta. Playable in singleplayer and on a dedicated server: routing, requesting, chassis modules, crafting, GUIs, HUD glasses, persistence. Remaining gaps are listed in `FABRIC-STUBS.md`; AE2 and EnderStorage have no Fabric 26.x builds and stay disabled.
+
+Build: `./gradlew build` (JDK 25+), jar in `build/libs/`.
+
 ## Forge or NeoForge?
 
 **Both — on this Minecraft version they are the same platform.** NeoForge's 1.20.1 release was its first after forking from Forge and is fully Forge-compatible (it even ships under the `forge` id). The released jar runs unchanged on:

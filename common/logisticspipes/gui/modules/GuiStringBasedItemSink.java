@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import net.minecraft.world.Container;
 
@@ -72,6 +72,18 @@ public class GuiStringBasedItemSink extends ModuleBaseGui {
 		addRenderableWidget(removeButton);
 		addButton.active = false;
 		removeButton.active = false;
+		addButton.setPressListener(b -> {
+			final ItemIdentifierStack analyseStack = tmpInv.getIDStackInSlot(0);
+			if (analyseStack != null) {
+				stringListOverlay.write(strings -> strings.add(stringBasedModule.getStringForItem(analyseStack.getItem())));
+			}
+		});
+		removeButton.setPressListener(b -> {
+			final ItemIdentifierStack analyseStack = tmpInv.getIDStackInSlot(0);
+			final String toRemove = analyseStack != null ? stringBasedModule.getStringForItem(analyseStack.getItem()) : name;
+			stringListOverlay.write(strings -> strings.remove(toRemove));
+			name = "";
+		});
 	}
 
 	@Override
@@ -96,7 +108,7 @@ public class GuiStringBasedItemSink extends ModuleBaseGui {
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float var1, int var2, int var3) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float var1, int var2, int var3) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, right, bottom, 0.0f, true);
 		LPGuiGraphics.drawPlayerInventoryBackground(minecraft, leftPos + 7, topPos + 126);
 		LPGuiGraphics.drawSlotBackground(minecraft, leftPos + 6, topPos + 7);
@@ -157,11 +169,11 @@ public class GuiStringBasedItemSink extends ModuleBaseGui {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
 		for (int i = 0; i < labelTexts.size(); i++) {
 			int[] pos = labelPositions.get(i);
-			guiGraphics.drawString(minecraft.font, labelTexts.get(i), pos[0], pos[1], pos[2], false);
+			SimpleGraphics.drawString(guiGraphics, minecraft.font, labelTexts.get(i), pos[0], pos[1], pos[2], false);
 		}
 	}
 }

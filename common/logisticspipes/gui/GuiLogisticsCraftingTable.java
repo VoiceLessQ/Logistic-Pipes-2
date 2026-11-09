@@ -2,7 +2,7 @@ package logisticspipes.gui;
 
 import java.util.Arrays;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.player.Player;
 
 import logisticspipes.blocks.crafting.LogisticsCraftingTableTileEntity;
@@ -72,7 +72,7 @@ public class GuiLogisticsCraftingTable extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float fA, int iA, int jA) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float fA, int iA, int jA) {
 		for (net.minecraft.client.gui.components.AbstractButton cycleButton : cycleButtons) {
 			cycleButton.visible = _crafter.targetType != null;
 		}

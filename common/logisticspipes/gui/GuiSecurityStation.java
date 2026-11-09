@@ -1,10 +1,11 @@
 package logisticspipes.gui;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 
@@ -161,7 +162,7 @@ public class GuiSecurityStation extends LogisticsBaseGuiScreen implements Player
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float var1, int var2, int var3) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float var1, int var2, int var3) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, right, bottom, 0.0f, true);
 		LPGuiGraphics.drawPlayerInventoryBackground(minecraft, leftPos + 10, topPos + 175);
 		LPGuiGraphics.drawSlotBackground(minecraft, leftPos + 81, topPos + 140);
@@ -193,27 +194,27 @@ public class GuiSecurityStation extends LogisticsBaseGuiScreen implements Player
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
-		guiGraphics.drawString(font, TextUtil.translate(GuiSecurityStation.PREFIX + "SecurityStation"), 105, 10, 0x404040, false);
-		guiGraphics.drawString(font, _tile.getSecId() == null ? "null" : _tile.getSecId().toString(), 32, 25, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(GuiSecurityStation.PREFIX + "SecurityStation"), 105, 10, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, font, _tile.getSecId() == null ? "null" : _tile.getSecId().toString(), 32, 25, 0x404040, false);
 		if (SimpleServiceLocator.ccProxy.isCC() || LogisticsPipes.isDEBUG()) {
-			guiGraphics.drawString(font, TextUtil.translate(GuiSecurityStation.PREFIX + "allowCCAccess") + ":", 10, 46, 0x404040, false);
-			guiGraphics.drawString(font, TextUtil.translate(GuiSecurityStation.PREFIX + "excludeIDs") + ":", 10, 61, 0x404040, false);
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(GuiSecurityStation.PREFIX + "allowCCAccess") + ":", 10, 46, 0x404040, false);
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(GuiSecurityStation.PREFIX + "excludeIDs") + ":", 10, 61, 0x404040, false);
 		}
-		guiGraphics.drawString(font, TextUtil.translate(GuiSecurityStation.PREFIX + "pipeRemove") + ":", 10, 78, 0x404040, false);
-		guiGraphics.drawString(font, TextUtil.translate(GuiSecurityStation.PREFIX + "Player") + ":", 180, 127, 0x404040, false);
-		guiGraphics.drawString(font, TextUtil.translate(GuiSecurityStation.PREFIX + "SecurityCards") + ":", 10, 127, 0x404040, false);
-		guiGraphics.drawString(font, TextUtil.translate(GuiSecurityStation.PREFIX + "Inventory") + ":", 10, 163, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(GuiSecurityStation.PREFIX + "pipeRemove") + ":", 10, 78, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(GuiSecurityStation.PREFIX + "Player") + ":", 180, 127, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(GuiSecurityStation.PREFIX + "SecurityCards") + ":", 10, 127, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(GuiSecurityStation.PREFIX + "Inventory") + ":", 10, 163, 0x404040, false);
 
 		int pos = bottom - topPos - 95;
 		for (String player : players) {
 			if (player.contains(searchBar.getText())) {
-				guiGraphics.drawString(font, player, 180, pos, 0x404040, false);
+				SimpleGraphics.drawString(guiGraphics, font, player, 180, pos, 0x404040, false);
 				pos += 11;
 			}
 			if (pos > bottom - topPos - 12) {
-				guiGraphics.drawString(font, "...", 180, pos - 5, 0x404040, false);
+				SimpleGraphics.drawString(guiGraphics, font, "...", 180, pos - 5, 0x404040, false);
 				break;
 			}
 		}
@@ -239,7 +240,7 @@ public class GuiSecurityStation extends LogisticsBaseGuiScreen implements Player
 				searchBar.setFocused(false);
 				return true;
 			}
-			if (searchBar.keyPressed(keyCode, scanCode, modifiers)) {
+			if (searchBar.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 				return true;
 			}
 		}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "gbg",
+    "rsl",
+    "rrl"
+  ],
+  "key": {
+    "g": "#c:ingots/gold",
+    "b": "logisticspipes:chip_basic",
+    "r": "minecraft:redstone",
+    "s": "#c:glass_blocks",
+    "l": "#c:gems/lapis"
+  },
+  "result": {
+    "id": "logisticspipes:pipe_controller"
+  }
+}

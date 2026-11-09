@@ -153,15 +153,15 @@ public class RequestHandler {
 			player.sendSystemMessage(Component.translatable("lp.misc.noenergy"));
 			return;
 		}
-		ListTag list = itemlist.getList("inventar", 10);
+		ListTag list = itemlist.getListOrEmpty("inventar");
 		final List<ItemIdentifierStack> transaction = new ArrayList<>(list.size());
 		for (int i = 0; i < list.size(); i++) {
-			CompoundTag itemnbt = list.getCompound(i);
-			CompoundTag itemNBTContent = itemnbt.getCompound("nbt");
+			CompoundTag itemnbt = list.getCompoundOrEmpty(i);
+			CompoundTag itemNBTContent = itemnbt.getCompoundOrEmpty("nbt");
 			if (!itemnbt.contains("nbt")) {
 				itemNBTContent = null;
 			}
-			ItemIdentifierStack stack = ItemIdentifier.get(BuiltInRegistries.ITEM.byId(itemnbt.getInt("id")), itemnbt.getInt("data"), itemNBTContent).makeStack(itemnbt.getInt("amount"));
+			ItemIdentifierStack stack = ItemIdentifier.get(BuiltInRegistries.ITEM.byId(itemnbt.getIntOr("id", 0)), itemnbt.getIntOr("data", 0), itemNBTContent).makeStack(itemnbt.getIntOr("amount", 0));
 			transaction.add(stack);
 		}
 		RequestTree.request(transaction, requester, new RequestLog() {

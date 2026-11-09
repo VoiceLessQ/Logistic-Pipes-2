@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " a ",
+    "ifi",
+    "gmg"
+  ],
+  "key": {
+    "a": "logisticspipes:chip_advanced",
+    "i": "#c:ingots/iron",
+    "f": "logisticspipes:chip_fpga",
+    "g": "#c:ingots/gold",
+    "m": "logisticspipes:module_blank"
+  },
+  "result": {
+    "id": "logisticspipes:logistics_programmer"
+  }
+}

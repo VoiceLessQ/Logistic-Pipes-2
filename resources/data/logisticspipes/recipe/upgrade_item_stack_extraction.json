@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "rpr",
+    "gag",
+    "qnq"
+  ],
+  "key": {
+    "r": "minecraft:redstone",
+    "p": "logisticspipes:logistics_programmer",
+    "g": "minecraft:gold_ingot",
+    "a": "logisticspipes:chip_advanced",
+    "q": "minecraft:paper",
+    "n": "minecraft:gold_nugget"
+  },
+  "result": {
+    "id": "logisticspipes:upgrade_item_stack_extraction",
+    "count": 1
+  }
+}

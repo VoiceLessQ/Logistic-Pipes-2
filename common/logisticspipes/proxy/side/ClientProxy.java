@@ -6,13 +6,13 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.gui.popup.SelectItemOutOfList;
 import logisticspipes.items.ItemLogisticsPipe;
@@ -30,7 +30,7 @@ import logisticspipes.utils.gui.SubGuiScreen;
 import logisticspipes.utils.item.ItemIdentifier;
 import logisticspipes.utils.item.ItemIdentifierStack;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public class ClientProxy implements IProxy {
 
 	int renderIndex = 0;
@@ -107,10 +107,10 @@ public class ClientProxy implements IProxy {
 	public void sendNameUpdateRequest(Player player) {}
 
 	@Override
-	public LogisticsTileGenericPipe getPipeInDimensionAt(ResourceLocation dimension, int x, int y, int z, Player player) {
+	public LogisticsTileGenericPipe getPipeInDimensionAt(Identifier dimension, int x, int y, int z, Player player) {
 		Level level = Minecraft.getInstance().level;
 		if (level == null) return null;
-		if (!level.dimension().location().equals(dimension)) return null;
+		if (!level.dimension().identifier().equals(dimension)) return null;
 		return getPipe(level, x, y, z);
 	}
 
@@ -161,7 +161,7 @@ public class ClientProxy implements IProxy {
 
 	@Override
 	public LogisticsModule getModuleFromGui() {
-		var screen = Minecraft.getInstance().screen;
+		var screen = Minecraft.getInstance().gui.screen();
 		if (screen instanceof logisticspipes.gui.modules.ModuleBaseGui g) return g.getModule();
 		if (screen instanceof logisticspipes.gui.GuiCraftingPipe g)        return g.getCraftingModule();
 		return null;
@@ -175,7 +175,7 @@ public class ClientProxy implements IProxy {
 
 	@Override
 	public void openFluidSelectGui(final int slotId) {
-		if (Minecraft.getInstance().screen instanceof LogisticsBaseGuiScreen) {
+		if (Minecraft.getInstance().gui.screen() instanceof LogisticsBaseGuiScreen) {
 			final List<ItemIdentifierStack> list = new ArrayList<>();
 			for (FluidIdentifier fluid : FluidIdentifier.all()) {
 				if (fluid == null) {
@@ -189,7 +189,7 @@ public class ClientProxy implements IProxy {
 				}
 				MainProxy.sendPacketToServer(PacketHandler.getPacket(DummyContainerSlotClick.class).setSlotId(slotId).setStack(list.get(slot).makeNormalStack()).setButton(0));
 			});
-			LogisticsBaseGuiScreen gui = (LogisticsBaseGuiScreen) Minecraft.getInstance().screen;
+			LogisticsBaseGuiScreen gui = (LogisticsBaseGuiScreen) Minecraft.getInstance().gui.screen();
 			if (!gui.hasSubGui()) {
 				gui.setSubGui(subGui);
 			} else {
@@ -200,7 +200,7 @@ public class ClientProxy implements IProxy {
 				nextGui.setSubGui(subGui);
 			}
 		} else {
-			throw new UnsupportedOperationException(String.valueOf(Minecraft.getInstance().screen));
+			throw new UnsupportedOperationException(String.valueOf(Minecraft.getInstance().gui.screen()));
 		}
 	}
 

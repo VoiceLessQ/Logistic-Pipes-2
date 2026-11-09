@@ -17,8 +17,8 @@ public class AmountTaskSubGui extends InventoryModuleCoordinatesPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (Minecraft.getInstance().screen instanceof GuiStatistics) {
-			((GuiStatistics) Minecraft.getInstance().screen).handlePacket1(getIdentList());
+		if (Minecraft.getInstance().gui.screen() instanceof GuiStatistics) {
+			((GuiStatistics) Minecraft.getInstance().gui.screen()).handlePacket1(getIdentList());
 		}
 	}
 

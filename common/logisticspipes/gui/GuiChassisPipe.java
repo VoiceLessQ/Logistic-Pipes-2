@@ -7,10 +7,11 @@
 
 package logisticspipes.gui;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
@@ -138,7 +139,7 @@ public class GuiChassisPipe extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
 		for (int i = 0; i < chassisPipe.getChassisSize(); i++) {
 			updateModuleConfigButtonVisibility(i);
@@ -149,7 +150,7 @@ public class GuiChassisPipe extends LogisticsBaseGuiScreen {
 			}
 		}
 		for (int i = 0; i < chassisPipe.getChassisSize(); i++)
-			guiGraphics.drawString(minecraft.font, getModuleName(i), 40, 14 + 20 * i, 0x404040, false);
+			SimpleGraphics.drawString(guiGraphics, minecraft.font, getModuleName(i), 40, 14 + 20 * i, 0x404040, false);
 	}
 
 	private String getModuleName(int slot) {
@@ -170,7 +171,7 @@ public class GuiChassisPipe extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int x, int y) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int x, int y) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, right, bottom, 0.0f, true);
 		for (int i = 0; i < chassisPipe.getChassisSize(); i++)
 			LPGuiGraphics.drawSlotBackground(minecraft, leftPos + 17, topPos + 8 + 20 * i);

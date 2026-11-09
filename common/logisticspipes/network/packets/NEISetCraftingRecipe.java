@@ -1,5 +1,6 @@
 package logisticspipes.network.packets;
 
+import logisticspipes.utils.TagUtil;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
@@ -46,7 +47,7 @@ public class NEISetCraftingRecipe extends CoordinatesPacket {
 	@Override
 	public void writeData(LPDataOutput output) {
 		super.writeData(output);
-		output.writeCollection(stackList, (out, stack) -> out.writeCompoundTag(stack.isEmpty() ? null : stack.save(new CompoundTag())));
+		output.writeCollection(stackList, (out, stack) -> out.writeCompoundTag(stack.isEmpty() ? null : TagUtil.saveStack(stack, new CompoundTag())));
 	}
 
 	@Override
@@ -54,7 +55,7 @@ public class NEISetCraftingRecipe extends CoordinatesPacket {
 		super.readData(input);
 		NonNullList<ItemStack> readList = input.readNonNullList(inp -> {
 			CompoundTag tag = inp.readCompoundTag();
-			return tag == null ? null : ItemStack.of(tag);
+			return tag == null ? null : TagUtil.loadStack(tag);
 		}, ItemStack.EMPTY);
 		if (readList != null) stackList = readList;
 	}

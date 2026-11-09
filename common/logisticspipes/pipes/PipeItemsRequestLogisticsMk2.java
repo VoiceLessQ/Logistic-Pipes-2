@@ -1,5 +1,6 @@
 package logisticspipes.pipes;
 
+import logisticspipes.utils.TagUtil;
 import javax.annotation.Nonnull;
 
 import net.minecraft.world.entity.item.ItemEntity;
@@ -67,7 +68,7 @@ public class PipeItemsRequestLogisticsMk2 extends PipeItemsRequestLogistics {
 		super.writeToNBT(nbttagcompound);
 		if (!disk.isEmpty()) {
 			CompoundTag itemNBT = new CompoundTag();
-			disk.save(itemNBT);
+			TagUtil.saveStack(disk, itemNBT);
 			nbttagcompound.put("Disk", itemNBT);
 		}
 	}
@@ -76,7 +77,7 @@ public class PipeItemsRequestLogisticsMk2 extends PipeItemsRequestLogistics {
 	public void readFromNBT(CompoundTag nbttagcompound) {
 		super.readFromNBT(nbttagcompound);
 		if (nbttagcompound.contains("Disk")) {
-			CompoundTag item = nbttagcompound.getCompound("Disk");
+			CompoundTag item = nbttagcompound.getCompoundOrEmpty("Disk");
 			disk = ItemStackLoader.loadAndFixItemStackFromNBT(item);
 		}
 	}

@@ -7,10 +7,11 @@
 
 package logisticspipes.gui;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.io.IOException;
 import javax.annotation.Nonnull;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import logisticspipes.utils.gui.DummyContainer;
@@ -61,20 +62,20 @@ public class GuiSatellitePipe extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
-		guiGraphics.drawCenteredString(font, TextUtil.translate("gui.satellite.SatelliteName"), 59, 7, 0x404040);
+		SimpleGraphics.drawCenteredString(guiGraphics, font, TextUtil.translate("gui.satellite.SatelliteName"), 59, 7, 0x404040);
 		String name = TextUtil.getTrimmedString(satellitePipe.getSatellitePipeName(), 100, minecraft.font, "...");
 		int yOffset = 0;
 		if (!response.isEmpty()) {
-			guiGraphics.drawCenteredString(font, TextUtil.translate("gui.satellite.naming_result." + response), imageWidth / 2, 30, response.equals("success") ? 0x404040 : 0x5c1111);
+			SimpleGraphics.drawCenteredString(guiGraphics, font, TextUtil.translate("gui.satellite.naming_result." + response), imageWidth / 2, 30, response.equals("success") ? 0x404040 : 0x5c1111);
 			yOffset = 4;
 		}
-		guiGraphics.drawCenteredString(font, name, imageWidth / 2, 24 - yOffset, 0x404040);
+		SimpleGraphics.drawCenteredString(guiGraphics, font, name, imageWidth / 2, 24 - yOffset, 0x404040);
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int x, int y) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int x, int y) {
 		super.renderBg(guiGraphics, f, x, y);
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, right, bottom, 0.0f, true);
 		input.drawTextBox();
@@ -90,7 +91,7 @@ public class GuiSatellitePipe extends LogisticsBaseGuiScreen {
 
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		if (input.keyPressed(keyCode, scanCode, modifiers)) {
+		if (input.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 			return true;
 		}
 		return super.keyPressed(keyCode, scanCode, modifiers);

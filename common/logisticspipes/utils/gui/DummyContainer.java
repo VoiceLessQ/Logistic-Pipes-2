@@ -17,7 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerListener;
@@ -25,8 +25,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.interfaces.IFuzzySlot;
@@ -50,7 +50,7 @@ import network.rs485.logisticspipes.property.IBitSet;
 
 public class DummyContainer extends AbstractContainerMenu {
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public LogisticsBaseGuiScreen guiHolderForJEI; // This is not set for every GUI. Only for the one needed by JEI.
 
 	public List<BitSet> slotsFuzzyFlags = new ArrayList<>();
@@ -137,23 +137,28 @@ public class DummyContainer extends AbstractContainerMenu {
 	}
 
 	public Slot addRestrictedSlot(int slotId, Container inventory, int xCoord, int yCoord, Class<? extends Item> itemClass) {
-		return addSlot(new RestrictedSlot(inventory, slotId, xCoord, yCoord, itemClass));
+		return addTransferTop(addSlot(new RestrictedSlot(inventory, slotId, xCoord, yCoord, itemClass)));
 	}
 
 	public Slot addRestrictedSlot(int slotId, Container inventory, int xCoord, int yCoord, Item item) {
-		return addSlot(new RestrictedSlot(inventory, slotId, xCoord, yCoord, item));
+		return addTransferTop(addSlot(new RestrictedSlot(inventory, slotId, xCoord, yCoord, item)));
 	}
 
 	public Slot addStaticRestrictedSlot(int slotId, Container inventory, int xCoord, int yCoord, Item item, int stackLimit) {
-		return addSlot(new StaticRestrictedSlot(inventory, slotId, xCoord, yCoord, item, stackLimit));
+		return addTransferTop(addSlot(new StaticRestrictedSlot(inventory, slotId, xCoord, yCoord, item, stackLimit)));
 	}
 
 	public Slot addRestrictedSlot(int slotId, Container inventory, int xCoord, int yCoord, ISlotCheck slotCheck) {
-		return addSlot(new RestrictedSlot(inventory, slotId, xCoord, yCoord, slotCheck));
+		return addTransferTop(addSlot(new RestrictedSlot(inventory, slotId, xCoord, yCoord, slotCheck)));
 	}
 
 	public Slot addStaticRestrictedSlot(int slotId, Container inventory, int xCoord, int yCoord, ISlotCheck slotCheck, int stackLimit) {
-		return addSlot(new StaticRestrictedSlot(inventory, slotId, xCoord, yCoord, slotCheck, stackLimit));
+		return addTransferTop(addSlot(new StaticRestrictedSlot(inventory, slotId, xCoord, yCoord, slotCheck, stackLimit)));
+	}
+
+	private Slot addTransferTop(Slot slot) {
+		transferTop.add(slot);
+		return slot;
 	}
 
 	public void addModuleSlot(int slotId, Container inventory, int xCoord, int yCoord, PipeLogisticsChassis pipe) {
@@ -253,7 +258,7 @@ public class DummyContainer extends AbstractContainerMenu {
 			return false;
 		}
 		from.onTake(player, out);
-		if (to.hasItem() && ItemStack.isSameItem(to.getItem(), out) && ItemStack.isSameItemSameTags(to.getItem(), from.getItem())) {
+		if (to.hasItem() && ItemStack.isSameItem(to.getItem(), out) && ItemStack.isSameItemSameComponents(to.getItem(), from.getItem())) {
 			int free = Math.min(to.getMaxStackSize(), to.getItem().getMaxStackSize()) - to.getItem().getCount();
 			if (free > 0) {
 				ItemStack toInsert = from.remove(free);
@@ -269,7 +274,7 @@ public class DummyContainer extends AbstractContainerMenu {
 		return false;
 	}
 
-	public void superSlotClick(int slotId, int dragType, ClickType clickTypeIn, Player player) {
+	public void superSlotClick(int slotId, int dragType, ContainerInput clickTypeIn, Player player) {
 		super.clicked(slotId, dragType, clickTypeIn, player);
 	}
 
@@ -290,7 +295,7 @@ private void handleSwitch(Slot slot2, @Nonnull ItemStack out, @Nonnull ItemStack
 	 * Clone/clear itemstacks for items
 	 */
 	@Override
-	public void clicked(int slotId, int mouseButton, @Nonnull ClickType shiftMode, @Nonnull Player player) {
+	public void clicked(int slotId, int mouseButton, @Nonnull ContainerInput shiftMode, @Nonnull Player player) {
 		lastClicked = System.currentTimeMillis();
 		if (slotId < 0) {
 			superSlotClick(slotId, mouseButton, shiftMode, player);
@@ -301,7 +306,7 @@ private void handleSwitch(Slot slot2, @Nonnull ItemStack out, @Nonnull ItemStack
 		if (LogisticsPipes.isDEBUG() && slot != null) {
 			ItemStack stack = slot.getItem();
 			if (!stack.isEmpty()) {
-				ItemIdentifier.get(stack).debugDumpData(player.level().isClientSide);
+				ItemIdentifier.get(stack).debugDumpData(player.level().isClientSide());
 			}
 		}
 		if (slot == null) return;
@@ -320,7 +325,7 @@ private void handleSwitch(Slot slot2, @Nonnull ItemStack out, @Nonnull ItemStack
 		ItemStack currentlyEquippedStack = this.getCarried();
 
 		// we get a leftclick *and* a doubleclick message if there's a doubleclick with no item on the pointer, filter it out
-		if (currentlyEquippedStack.isEmpty() && shiftMode == ClickType.PICKUP_ALL) {
+		if (currentlyEquippedStack.isEmpty() && shiftMode == ContainerInput.PICKUP_ALL) {
 			return;
 		}
 
@@ -339,7 +344,7 @@ private void handleSwitch(Slot slot2, @Nonnull ItemStack out, @Nonnull ItemStack
 		handleDummyClick(slot, slotId, currentlyEquippedStack, mouseButton, shiftMode, player);
 	}
 
-	public void handleDummyClick(Slot slot, int slotId, @Nonnull ItemStack currentlyEquippedStack, int mouseButton, ClickType shiftMode, Player entityplayer) {
+	public void handleDummyClick(Slot slot, int slotId, @Nonnull ItemStack currentlyEquippedStack, int mouseButton, ContainerInput shiftMode, Player entityplayer) {
 		if (slot instanceof FluidSlot) {
 			if (!currentlyEquippedStack.isEmpty()) {
 				FluidIdentifier ident = FluidIdentifier.get(currentlyEquippedStack);
@@ -417,7 +422,7 @@ private void handleSwitch(Slot slot2, @Nonnull ItemStack out, @Nonnull ItemStack
 		if (currentlyEquippedStack.isEmpty()) {
 			if (!slot.getItem().isEmpty() && mouseButton == 1) {
 				ItemStack tstack = slot.getItem();
-				if (shiftMode == ClickType.QUICK_MOVE) {
+				if (shiftMode == ContainerInput.QUICK_MOVE) {
 					tstack.setCount(Math.min(slot.getMaxStackSize(), tstack.getCount() * 2));
 				} else {
 					tstack.setCount(tstack.getCount() / 2);
@@ -452,7 +457,7 @@ private void handleSwitch(Slot slot2, @Nonnull ItemStack out, @Nonnull ItemStack
 		if (currentItem.equals(slotItem)) {
 			ItemStack tstack = slot.getItem();
 			// Do manual shift-checking to play nice with NEI
-			int counter = shiftMode == ClickType.QUICK_MOVE ? 10 : 1;
+			int counter = shiftMode == ContainerInput.QUICK_MOVE ? 10 : 1;
 			if (mouseButton == 1) {
 				if (tstack.getCount() + counter <= slot.getMaxStackSize()) {
 					tstack.grow(counter);

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "sg",
+    "gs"
+  ],
+  "key": {
+    "s": "#c:sands",
+    "g": "#c:ingots/copper"
+  },
+  "result": {
+    "id": "logisticspipes:chip_basic_raw",
+    "count": 2
+  }
+}

@@ -1,5 +1,6 @@
 package logisticspipes.pipes;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -50,14 +51,14 @@ public class PipeItemsSystemDestinationLogistics extends CoreRoutedPipe {
 			return null;
 		}
 		final ItemStack stack = itemIdent.makeNormalStack();
-		if (!stack.hasTag()) {
+		if (!CustomDataUtil.hasTag(stack)) {
 			return null;
 		}
-		if (!Objects.requireNonNull(stack.getTag()).contains("UUID")) {
+		if (!CustomDataUtil.getOrCreateTag(stack).contains("UUID")) {
 			return null;
 		}
 		spawnParticle(Particles.WhiteParticle, 2);
-		return UUID.fromString(stack.getTag().getString("UUID"));
+		return UUID.fromString(CustomDataUtil.getTag(stack).getStringOr("UUID", ""));
 	}
 
 	@Override

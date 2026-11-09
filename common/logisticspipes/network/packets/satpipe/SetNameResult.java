@@ -43,8 +43,8 @@ public class SetNameResult extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (Minecraft.getInstance().screen instanceof GuiSatellitePipe) {
-			((GuiSatellitePipe) Minecraft.getInstance().screen).handleResponse(result, newName);
+		if (Minecraft.getInstance().gui.screen() instanceof GuiSatellitePipe) {
+			((GuiSatellitePipe) Minecraft.getInstance().gui.screen()).handleResponse(result, newName);
 		}
 	}
 

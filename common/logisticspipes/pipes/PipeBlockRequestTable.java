@@ -22,8 +22,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 
 
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import logisticspipes.LPItems;
 import logisticspipes.LogisticsPipes;
@@ -193,7 +191,7 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 		if (!diskInv.getItem(0).isEmpty()) {
 			if (!entityplayer.getMainHandItem().isEmpty() && entityplayer.getMainHandItem().getItem().equals(LPItems.disk.get())) {
 				diskInv.setItem(0, entityplayer.getMainHandItem());
-				entityplayer.getInventory().setItem(entityplayer.getInventory().selected, ItemStack.EMPTY);
+				entityplayer.getInventory().setItem(entityplayer.getInventory().getSelectedSlot(), ItemStack.EMPTY);
 				flag = false;
 			}
 		}
@@ -276,13 +274,13 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 		}
 		List<Recipe> list = new ArrayList<>();
 		for (Recipe r : CraftingUtil.getRecipeList(getWorld())) {
-			if (r.matches(craftInv, getWorld())) {
+			if (r.matches(craftInv.asCraftInput(), getWorld())) {
 				list.add(r);
 			}
 		}
 		if (list.size() == 1) {
 			cache = list.get(0);
-			resultInv.setItem(0, cache.assemble(craftInv, getWorld().registryAccess()));
+			resultInv.setItem(0, cache.assemble(craftInv.asCraftInput()));
 			targetType = null;
 		} else if (list.size() > 1) {
 			if (targetType != null) {
@@ -291,7 +289,7 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 					for (int i = 0; i < 9; i++) {
 						craftInv.setItem(i, matrix.getItem(i));
 					}
-					ItemStack result = recipe.assemble(craftInv, getWorld().registryAccess());
+					ItemStack result = recipe.assemble(craftInv.asCraftInput());
 					if (targetType == ItemIdentifier.get(result)) {
 						resultInv.setItem(0, result);
 						cache = recipe;
@@ -301,7 +299,7 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 			}
 			if (cache == null) {
 				cache = list.get(0);
-				ItemStack result = cache.assemble(craftInv, getWorld().registryAccess());
+				ItemStack result = cache.assemble(craftInv.asCraftInput());
 				resultInv.setItem(0, result);
 				targetType = ItemIdentifier.get(result);
 			}
@@ -325,7 +323,7 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 		}
 		List<Recipe> list = new ArrayList<>();
 		for (Recipe r : CraftingUtil.getRecipeList(getWorld())) {
-			if (r.matches(craftInv, getWorld())) {
+			if (r.matches(craftInv.asCraftInput(), getWorld())) {
 				list.add(r);
 			}
 		}
@@ -341,7 +339,7 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 				for (int i = 0; i < 9; i++) {
 					craftInv.setItem(i, matrix.getItem(i));
 				}
-				if (targetType == ItemIdentifier.get(recipe.assemble(craftInv, getWorld().registryAccess()))) {
+				if (targetType == ItemIdentifier.get(recipe.assemble(craftInv.asCraftInput()))) {
 					if (down) {
 						found = true;
 					} else {
@@ -362,7 +360,7 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 			for (int i = 0; i < 9; i++) {
 				craftInv.setItem(i, matrix.getItem(i));
 			}
-			targetType = ItemIdentifier.get(cache.assemble(craftInv, getWorld().registryAccess()));
+			targetType = ItemIdentifier.get(cache.assemble(craftInv.asCraftInput()));
 		}
 		if (!localGuiWatcher.isEmpty() && getWorld() != null && MainProxy.isServer(getWorld())) {
 			MainProxy.sendToPlayerList(PacketHandler.getPacket(CraftingSetType.class).setTargetType(targetType).setTilePos(container), localGuiWatcher);
@@ -425,10 +423,10 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 				crafter.setItem(i, inv.getItem(j));
 			}
 		}
-		if (!cache.matches(crafter, getWorld())) {
+		if (!cache.matches(crafter.asCraftInput(), getWorld())) {
 			return ItemStack.EMPTY; //Fix MystCraft
 		}
-		ItemStack result = cache.assemble(crafter, getWorld().registryAccess());
+		ItemStack result = cache.assemble(crafter.asCraftInput());
 		if (result.isEmpty()) {
 			return ItemStack.EMPTY;
 		}
@@ -442,14 +440,13 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 				crafter.setItem(i, inv.removeItem(j, 1));
 			}
 		}
-		result = cache.assemble(crafter, getWorld().registryAccess());
+		result = cache.assemble(crafter.asCraftInput());
 		if (fake == null) {
 			fake = MainProxy.getFakePlayer(getWorld());
 		}
 		result = result.copy();
 
 		ResultSlot craftingSlot = new ResultSlot(fake, crafter, resultInv, 0, 0, 0);
-		vanillaResult.setRecipeUsed(cache);
 		craftingSlot.onTake(fake, result);
 		for (int i = 0; i < 9; i++) {
 			ItemStack left = crafter.getItem(i);
@@ -515,7 +512,7 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 		matrix.readFromNBT(par1nbtTagCompound, "matrix");
 		toSortInv.readFromNBT(par1nbtTagCompound, "toSortInv");
 		diskInv.readFromNBT(par1nbtTagCompound, "diskInv");
-		rotation = par1nbtTagCompound.getInt("blockRotation");
+		rotation = par1nbtTagCompound.getIntOr("blockRotation", 0);
 		// cacheRecipe() skipped here — world/registry not available during NBT load; cache is rebuilt lazily on first use
 		//cacheRecipe();
 	}
@@ -627,9 +624,8 @@ public class PipeBlockRequestTable extends PipeItemsRequestLogistics implements 
 		return false;
 	}
 
-	@SubscribeEvent
-	public void onWorldUnload(LevelEvent.Unload worldEvent) {
-		if (fake != null && fake.level() == worldEvent.getLevel())
+	public void onWorldUnload(net.minecraft.world.level.Level level) {
+		if (fake != null && fake.level() == level)
 			fake = null;
 	}
 

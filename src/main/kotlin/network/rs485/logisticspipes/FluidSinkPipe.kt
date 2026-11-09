@@ -69,7 +69,7 @@ abstract class FluidSinkPipe(
             return null // don't sink when the gui is open
         }
 
-        for (i in sinkInv.indices) {
+        for (i in 0 until sinkInv.containerSize) {
             val identStack = sinkInv.getIDStackInSlot(i) ?: continue
             if (stack.fluid != FluidIdentifier.get(identStack.item)) {
                 continue
@@ -77,10 +77,9 @@ abstract class FluidSinkPipe(
             val onTheWay: Int = this.countOnRoute(stack.fluid)
             var freeSpace = -onTheWay.toLong()
             for (pair in getAdjacentTanks(true)) {
-                val dir = pair.component1().direction
-                val tank = (transport as PipeFluidTransportLogistics).getIFluidHandler(dir)
+                val sideTank = (transport as PipeFluidTransportLogistics).sideTanks[pair.component1().direction.ordinal]
                 freeSpace += pair.component2().getFreeSpaceInsideTank(stack.fluid).toLong()
-                freeSpace += stack.fluid.getFreeSpaceInsideTank(tank).toLong()
+                freeSpace += sideTank.fill(stack.fluid.makeFluidIdentifierStack(Int.MAX_VALUE), false).toLong()
                 if (freeSpace >= stack.amount) {
                     return FluidSinkReply(priority, stack.amount.toLong())
                 }

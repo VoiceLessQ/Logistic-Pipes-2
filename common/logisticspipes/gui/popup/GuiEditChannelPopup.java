@@ -1,6 +1,7 @@
 package logisticspipes.gui.popup;
 
-import net.minecraft.client.gui.GuiGraphics;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.util.UUID;
 
@@ -57,13 +58,13 @@ public class GuiEditChannelPopup extends GuiAddChannelPopup {
 	@Override
 	protected void renderGuiBackground(int mouseX, int mouseY) {
 		super.renderGuiBackground(mouseX, mouseY);
-		getGuiGraphics().drawString(minecraft.font, TextUtil.translate(GUI_LANG_KEY + "owner") + ": ", guiLeft + 10, guiTop + 115, 0x404040, false);
-		getGuiGraphics().drawString(minecraft.font, toInit.getOwner().getUsername(), guiLeft + 10, guiTop + 127, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, TextUtil.translate(GUI_LANG_KEY + "owner") + ": ", guiLeft + 10, guiTop + 115, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, toInit.getOwner().getUsername(), guiLeft + 10, guiTop + 127, 0x404040, false);
 	}
 
 	@Override
-	protected void drawTitle(GuiGraphics guiGraphics) {
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GUI_LANG_KEY + "title"), xCenter - (minecraft.font.width(TextUtil.translate(GUI_LANG_KEY + "title")) / 2f), guiTop + 6, 0xFFFFFF, true);
+	protected void drawTitle(GuiGraphicsExtractor guiGraphics) {
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GUI_LANG_KEY + "title"), xCenter - (minecraft.font.width(TextUtil.translate(GUI_LANG_KEY + "title")) / 2f), guiTop + 6, 0xFFFFFF, true);
 	}
 
 }

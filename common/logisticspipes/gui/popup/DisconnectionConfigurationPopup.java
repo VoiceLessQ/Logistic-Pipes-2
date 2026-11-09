@@ -1,9 +1,9 @@
 package logisticspipes.gui.popup;
-import net.minecraft.client.gui.GuiGraphics;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.awt.Rectangle;
 
-import net.minecraft.client.Minecraft;
 
 
 import logisticspipes.network.PacketHandler;
@@ -57,28 +57,19 @@ public class DisconnectionConfigurationPopup extends SubGuiScreen {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		guiGraphics.fill(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y + bounds.height, 0xff000000);
 
-		Minecraft mc = Minecraft.getInstance();
-		int vpx = bounds.x * (int) Minecraft.getInstance().getWindow().getGuiScale();
-		int vpy = (bounds.y + 10) * (int) Minecraft.getInstance().getWindow().getGuiScale();
-		int w = bounds.width * (int) Minecraft.getInstance().getWindow().getGuiScale();
-		int h = (bounds.height - 1) * (int) Minecraft.getInstance().getWindow().getGuiScale();
 
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(PREFIX + "disconnectTitle"), guiLeft + 8, guiTop + 8, logisticspipes.utils.Color.getValue(logisticspipes.utils.Color.DARKER_GREY), false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(PREFIX + "disconnectTitle"), guiLeft + 8, guiTop + 8, logisticspipes.utils.Color.getValue(logisticspipes.utils.Color.DARKER_GREY), false);
 
-		configDisplay.drawScreen(mouseX, mouseY, 0.0f, new Rectangle(vpx, vpy, w, h), bounds);
+		configDisplay.drawScreen(guiGraphics, mouseX, mouseY, bounds);
 	}
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
 		if (button == 0 && bounds != null && bounds.contains((int) mouseX, (int) mouseY)) {
-			int vpx = bounds.x * (int) Minecraft.getInstance().getWindow().getGuiScale();
-			int vpy = (bounds.y + 10) * (int) Minecraft.getInstance().getWindow().getGuiScale();
-			int w = bounds.width * (int) Minecraft.getInstance().getWindow().getGuiScale();
-			int h = (bounds.height - 1) * (int) Minecraft.getInstance().getWindow().getGuiScale();
-			configDisplay.onMouseClicked((int) mouseX, (int) mouseY, new java.awt.Rectangle(vpx, vpy, w, h));
+			configDisplay.onMouseClicked((int) mouseX, (int) mouseY, bounds);
 			return true;
 		}
 		return super.mouseClicked(mouseX, mouseY, button);

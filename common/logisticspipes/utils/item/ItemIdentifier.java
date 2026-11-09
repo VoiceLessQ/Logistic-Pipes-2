@@ -8,6 +8,7 @@
 
 package logisticspipes.utils.item;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import logisticspipes.LogisticsPipes;
@@ -29,7 +30,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.world.level.block.Block;
-// net.minecraft.world.item.CreativeModeTab removed — use CreativeModeTab
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.Item;
@@ -46,10 +46,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.ShortTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.fml.ModList;
 
 import lombok.AllArgsConstructor;
 
@@ -58,7 +57,6 @@ import logisticspipes.asm.addinfo.IAddInfoProvider;
 import logisticspipes.items.LogisticsFluidContainer;
 import logisticspipes.proxy.MainProxy;
 import logisticspipes.proxy.computers.interfaces.ILPCCTypeHolder;
-import logisticspipes.utils.FinalCompoundTag;
 import logisticspipes.utils.ReflectionHelper;
 
 /**
@@ -76,9 +74,9 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 
 		public final Item item;
 		public final int itemDamage;
-		public final FinalCompoundTag tag;
+		public final CompoundTag tag;
 
-		public ItemKey(Item i, int d, FinalCompoundTag t) {
+		public ItemKey(Item i, int d, CompoundTag t) {
 			item = i;
 			itemDamage = d;
 			tag = t;
@@ -231,7 +229,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 	private static final ItemIdentifierCleanupThread cleanupThread = new ItemIdentifierCleanupThread();
 
 	//Hide default constructor
-	private ItemIdentifier(Item item, int itemDamage, FinalCompoundTag tag, int uniqueID) {
+	private ItemIdentifier(Item item, int itemDamage, CompoundTag tag, int uniqueID) {
 		this.item = item;
 		this.itemDamage = itemDamage;
 		this.tag = tag;
@@ -240,7 +238,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 
 	public final Item item;
 	public final int itemDamage;
-	public final FinalCompoundTag tag;
+	public final CompoundTag tag;
 	public final int uniqueID;
 
 	private int maxStackSize = 0;
@@ -278,7 +276,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		//again no locking, we can end up removing or overwriting ItemIdentifiers concurrently added by another thread, but that doesn't affect anything.
 		IDamagedIdentifierHolder damages = ItemIdentifier.damageIdentifiers.get(item);
 		if (damages == null) {
-			if (item.getMaxDamage() < 32767) {
+			if (item.getDefaultInstance().getMaxDamage() < 32767) {
 				damages = new ArrayDamagedItentifierHolder(damage);
 			} else {
 				damages = new MapDamagedItentifierHolder();
@@ -296,7 +294,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		return ret;
 	}
 
-	private static ItemIdentifier getOrCreateTag(Item item, int damage, FinalCompoundTag tag) {
+	private static ItemIdentifier getOrCreateTag(Item item, int damage, CompoundTag tag) {
 		ItemKey k = new ItemKey(item, damage, tag);
 		ItemIdentifier.keyRefRlock.lock();
 		IDReference r = ItemIdentifier.keyRefMap.get(k);
@@ -327,7 +325,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		} else {
 			nextUniqueID = r.uniqueID;
 		}
-		FinalCompoundTag finaltag = new FinalCompoundTag(tag);
+		CompoundTag finaltag = tag.copy();
 		ItemKey realKey = new ItemKey(item, damage, finaltag);
 		ItemIdentifier ret = new ItemIdentifier(item, damage, finaltag, nextUniqueID);
 		ItemIdentifier.keyRefMap.put(realKey, new IDReference(realKey, nextUniqueID, ret));
@@ -351,7 +349,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 			return ItemIdentifier.getOrCreateDamage(item, itemUndamagableDamage, proposal);
 		} else {
 			//tag
-			return ItemIdentifier.getOrCreateTag(item, itemUndamagableDamage, new FinalCompoundTag(tag));
+			return ItemIdentifier.getOrCreateTag(item, itemUndamagableDamage, tag.copy());
 		}
 	}
 
@@ -366,15 +364,15 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 	public static ItemIdentifier get(@Nonnull ItemStack itemStack) {
 		ItemIdentifier proposal = null;
 		IAddInfoProvider prov = null;
-		if (((Object) itemStack) instanceof IAddInfoProvider && !itemStack.hasTag()) {
+		if (((Object) itemStack) instanceof IAddInfoProvider && !CustomDataUtil.hasTag(itemStack)) {
 			prov = (IAddInfoProvider) (Object) itemStack;
 			ItemStackAddInfo info = prov.getLogisticsPipesAddInfo(ItemStackAddInfo.class);
 			if (info != null) {
 				proposal = info.ident;
 			}
 		}
-		ItemIdentifier ident = ItemIdentifier.get(itemStack.getItem(), itemStack.getDamageValue(), itemStack.getTag(), proposal);
-		if (ident != proposal && prov != null && !itemStack.hasTag()) {
+		ItemIdentifier ident = ItemIdentifier.get(itemStack.getItem(), itemStack.getDamageValue(), CustomDataUtil.getTag(itemStack), proposal);
+		if (ident != proposal && prov != null && !CustomDataUtil.hasTag(itemStack)) {
 			prov.setLogisticsPipesAddInfo(new ItemStackAddInfo(ident));
 		}
 		return ident;
@@ -451,10 +449,10 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 
 	public String getModName() {
 		if (modName == null) {
-			ResourceLocation rl = BuiltInRegistries.ITEM.getKey(item);
+			Identifier rl = BuiltInRegistries.ITEM.getKey(item);
 			if (rl != null) {
-				modName = ModList.get().getModContainerById(rl.getNamespace())
-						.map(mc -> mc.getModInfo().getDisplayName())
+				modName = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer(rl.getNamespace())
+						.map(mc -> mc.getMetadata().getName())
 						.orElse("UNKNOWN");
 			} else {
 				modName = "UNKNOWN";
@@ -482,14 +480,14 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 			net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters params =
 					new net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters(
 							net.minecraft.world.flag.FeatureFlags.REGISTRY.allFlags(), false,
-							net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+							logisticspipes.utils.TagUtil.registries());
 			for (net.minecraft.world.item.CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
 				// SEARCH aggregates every other tab's items and HOTBAR/INVENTORY are synthetic;
 				// only CATEGORY tabs correspond to LP1's per-item CreativeTabs#tabLabel.
 				if (tab == null || tab.getType() != net.minecraft.world.item.CreativeModeTab.Type.CATEGORY) {
 					continue;
 				}
-				ResourceLocation key = BuiltInRegistries.CREATIVE_MODE_TAB.getKey(tab);
+				Identifier key = BuiltInRegistries.CREATIVE_MODE_TAB.getKey(tab);
 				String tabName = key != null ? key.getPath() : tab.getDisplayName().getString();
 				// The client's creative screen may rebuild tab contents concurrently (integrated
 				// server thread vs render thread), so guard the whole per-tab read.
@@ -512,29 +510,10 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		}
 	}
 
-	/**
-	 * Forge's CreativeModeTab.buildContents goes through ForgeHooksClient, which a dedicated server cannot load.
-	 * Same steps without it: the tab's generator, then the mod bus event, deduplicated like Forge does.
-	 */
 	private static java.util.Collection<ItemStack> buildTabContents(net.minecraft.world.item.CreativeModeTab tab,
-			net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters params) throws IllegalAccessException {
-		var key = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(tab).orElseThrow();
-		var entries = new net.minecraftforge.common.util.MutableHashedLinkedMap<ItemStack, net.minecraft.world.item.CreativeModeTab.TabVisibility>(
-				net.minecraft.world.item.ItemStackLinkedSet.TYPE_AND_TAG,
-				(stack, left, right) -> net.minecraft.world.item.CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
-		// the only field of this type; found by type since the name differs between dev (Mojmap) and SRG runtimes
-		for (java.lang.reflect.Field field : net.minecraft.world.item.CreativeModeTab.class.getDeclaredFields()) {
-			if (field.getType() == net.minecraft.world.item.CreativeModeTab.DisplayItemsGenerator.class) {
-				field.setAccessible(true);
-				((net.minecraft.world.item.CreativeModeTab.DisplayItemsGenerator) field.get(tab)).accept(params, entries::put);
-			}
-		}
-		net.minecraftforge.fml.ModLoader.get().postEvent(new net.minecraftforge.event.BuildCreativeModeTabContentsEvent(tab, key, params, entries));
-		List<ItemStack> stacks = new ArrayList<>();
-		for (var entry : entries) {
-			stacks.add(entry.getKey());
-		}
-		return stacks;
+			net.minecraft.world.item.CreativeModeTab.ItemDisplayParameters params) {
+		tab.buildContents(params);
+		return tab.getDisplayItems();
 	}
 
 	public String getCreativeTabName() {
@@ -559,7 +538,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 	public ItemStack unsafeMakeNormalStack(int stackSize) {
 		ItemStack stack = new ItemStack(item, stackSize);
 		if (itemDamage != 0) stack.setDamageValue(itemDamage);
-		stack.setTag(tag);
+		CustomDataUtil.setTag(stack, tag);
 		return stack;
 	}
 
@@ -568,7 +547,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		ItemStack stack = new ItemStack(item, stackSize);
 		if (itemDamage != 0) stack.setDamageValue(itemDamage);
 		if (tag != null) {
-			stack.setTag(tag.copy());
+			CustomDataUtil.setTag(stack, tag.copy());
 		}
 		return stack;
 	}
@@ -617,7 +596,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		if (nbt instanceof ByteTag) {
 			HashMap<Object, Object> map = new HashMap<>();
 			map.put("type", "ByteTag");
-			map.put("value", ((ByteTag) nbt).getAsByte());
+			map.put("value", ((ByteTag) nbt).value());
 			return map;
 		} else if (nbt instanceof ByteArrayTag) {
 			HashMap<Object, Object> map = new HashMap<>();
@@ -627,17 +606,17 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		} else if (nbt instanceof DoubleTag) {
 			HashMap<Object, Object> map = new HashMap<>();
 			map.put("type", "DoubleTag");
-			map.put("value", ((DoubleTag) nbt).getAsDouble());
+			map.put("value", ((DoubleTag) nbt).value());
 			return map;
 		} else if (nbt instanceof FloatTag) {
 			HashMap<Object, Object> map = new HashMap<>();
 			map.put("type", "FloatTag");
-			map.put("value", ((FloatTag) nbt).getAsFloat());
+			map.put("value", ((FloatTag) nbt).value());
 			return map;
 		} else if (nbt instanceof IntTag) {
 			HashMap<Object, Object> map = new HashMap<>();
 			map.put("type", "IntTag");
-			map.put("value", ((IntTag) nbt).getAsInt());
+			map.put("value", ((IntTag) nbt).value());
 			return map;
 		} else if (nbt instanceof IntArrayTag) {
 			HashMap<Object, Object> map = new HashMap<>();
@@ -661,7 +640,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 			HashMap<Object, Object> content = new HashMap<>();
 			HashMap<Integer, Object> keys = new HashMap<>();
 			int i = 1;
-			for (String key : ((CompoundTag) nbt).getAllKeys()) {
+			for (String key : ((CompoundTag) nbt).keySet()) {
 				net.minecraft.nbt.Tag value = ((CompoundTag) nbt).get(key);
 				content.put(key, ItemIdentifier.getNBTBaseAsMap(value));
 				keys.put(i, key);
@@ -675,17 +654,17 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 		} else if (nbt instanceof LongTag) {
 			HashMap<Object, Object> map = new HashMap<>();
 			map.put("type", "LongTag");
-			map.put("value", ((LongTag) nbt).getAsLong());
+			map.put("value", ((LongTag) nbt).value());
 			return map;
 		} else if (nbt instanceof ShortTag) {
 			HashMap<Object, Object> map = new HashMap<>();
 			map.put("type", "ShortTag");
-			map.put("value", ((ShortTag) nbt).getAsShort());
+			map.put("value", ((ShortTag) nbt).value());
 			return map;
 		} else if (nbt instanceof StringTag) {
 			HashMap<Object, Object> map = new HashMap<>();
 			map.put("type", "StringTag");
-			map.put("value", ((StringTag) nbt).getAsString());
+			map.put("value", ((StringTag) nbt).value());
 			return map;
 		} else {
 			throw new UnsupportedOperationException("Unsupported net.minecraft.nbt.Tag of type:" + nbt.getClass().getName());
@@ -797,19 +776,19 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 			return;
 		}
 		if (nbt instanceof ByteTag) {
-			sb.append("TagByte(data=").append(((ByteTag) nbt).getAsByte()).append(")");
+			sb.append("TagByte(data=").append(((ByteTag) nbt).value()).append(")");
 		} else if (nbt instanceof ShortTag) {
-			sb.append("TagShort(data=").append(((ShortTag) nbt).getAsShort()).append(")");
+			sb.append("TagShort(data=").append(((ShortTag) nbt).value()).append(")");
 		} else if (nbt instanceof IntTag) {
-			sb.append("TagInt(data=").append(((IntTag) nbt).getAsInt()).append(")");
+			sb.append("TagInt(data=").append(((IntTag) nbt).value()).append(")");
 		} else if (nbt instanceof LongTag) {
-			sb.append("TagLong(data=").append(((LongTag) nbt).getAsLong()).append(")");
+			sb.append("TagLong(data=").append(((LongTag) nbt).value()).append(")");
 		} else if (nbt instanceof FloatTag) {
-			sb.append("TagFloat(data=").append(((FloatTag) nbt).getAsFloat()).append(")");
+			sb.append("TagFloat(data=").append(((FloatTag) nbt).value()).append(")");
 		} else if (nbt instanceof DoubleTag) {
-			sb.append("TagDouble(data=").append(((DoubleTag) nbt).getAsDouble()).append(")");
+			sb.append("TagDouble(data=").append(((DoubleTag) nbt).value()).append(")");
 		} else if (nbt instanceof StringTag) {
-			sb.append("TagString(data=\"").append(((StringTag) nbt).getAsString()).append("\")");
+			sb.append("TagString(data=\"").append(((StringTag) nbt).value()).append("\")");
 		} else if (nbt instanceof ByteArrayTag) {
 			sb.append("TagByteArray(data=");
 			for (int i = 0; i < ((ByteArrayTag) nbt).getAsByteArray().length; i++) {
@@ -839,7 +818,7 @@ public final class ItemIdentifier implements Comparable<ItemIdentifier>, ILPCCTy
 			sb.append(")");
 		} else if (nbt instanceof CompoundTag) {
 			sb.append("TagCompound(data=");
-			for (Iterator<String> iter = ((CompoundTag) nbt).getAllKeys().iterator(); iter.hasNext(); ) {
+			for (Iterator<String> iter = ((CompoundTag) nbt).keySet().iterator(); iter.hasNext(); ) {
 				String key = iter.next();
 				net.minecraft.nbt.Tag value = ((CompoundTag) nbt).get(key);
 				sb.append("\"").append(key).append("\"=");

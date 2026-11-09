@@ -123,10 +123,10 @@ public class LogicController {
 
 	private void readTasks(CompoundTag nbt) {
 		tasks.clear();
-		ListTag list = nbt.getList("LogicTasks", Tag.TAG_COMPOUND);
+		ListTag list = nbt.getListOrEmpty("LogicTasks");
 		for (int i = 0; i < list.size(); i++) {
-			CompoundTag entry = list.getCompound(i);
-			String typeName = entry.getString("taskType");
+			CompoundTag entry = list.getCompoundOrEmpty(i);
+			String typeName = entry.getStringOr("taskType", "");
 			Function<CompoundTag, BaseLogicTask> factory = TASK_TYPES.get(typeName);
 			if (factory != null) {
 				tasks.add(factory.apply(entry));
@@ -161,19 +161,19 @@ public class LogicController {
 			byUUID.put(task.getUuid(), task);
 		}
 
-		ListTag list = nbt.getList("LogicConnections", Tag.TAG_COMPOUND);
+		ListTag list = nbt.getListOrEmpty("LogicConnections");
 		for (int i = 0; i < list.size(); i++) {
-			CompoundTag entry = list.getCompound(i);
+			CompoundTag entry = list.getCompoundOrEmpty(i);
 			try {
-				UUID sourceUUID = UUID.fromString(entry.getString("sourceUUID"));
-				UUID targetUUID = UUID.fromString(entry.getString("targetUUID"));
+				UUID sourceUUID = UUID.fromString(entry.getStringOr("sourceUUID", ""));
+				UUID targetUUID = UUID.fromString(entry.getStringOr("targetUUID", ""));
 				BaseLogicTask source = byUUID.get(sourceUUID);
 				BaseLogicTask target = byUUID.get(targetUUID);
 				if (source == null || target == null) continue; // dangling reference
 
-				int sourceIndex = entry.getInt("sourceIndex");
-				int targetIndex = entry.getInt("targetIndex");
-				LogicParameterType type = LogicParameterType.valueOf(entry.getString("type"));
+				int sourceIndex = entry.getIntOr("sourceIndex", 0);
+				int targetIndex = entry.getIntOr("targetIndex", 0);
+				LogicParameterType type = LogicParameterType.valueOf(entry.getStringOr("type", ""));
 
 				connections.add(new BaseLogicConnection(source, sourceIndex, target, targetIndex, type) {});
 			} catch (IllegalArgumentException ignored) {

@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "logisticspipes:item/module_enchantment_sink_mk2"
+  }
+}

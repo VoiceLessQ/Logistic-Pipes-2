@@ -8,7 +8,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.commands.abstracts.ICommandHandler;
@@ -32,7 +31,7 @@ public class LogisticsPipesCommand {
 	public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(
 			Commands.literal("logisticspipes")
-				.requires(src -> src.hasPermission(0))
+				.requires(Commands.hasPermission(Commands.LEVEL_ALL))
 				.then(Commands.literal("help")
 					.executes(ctx -> {
 						executeForSource(ctx.getSource(), new String[]{"help"});
@@ -52,7 +51,7 @@ public class LogisticsPipesCommand {
 		// Short alias: /lp ... → /logisticspipes ...
 		dispatcher.register(
 			Commands.literal("lp")
-				.requires(src -> src.hasPermission(0))
+				.requires(Commands.hasPermission(Commands.LEVEL_ALL))
 				.redirect(dispatcher.getRoot().getChild("logisticspipes"))
 		);
 	}
@@ -78,9 +77,9 @@ public class LogisticsPipesCommand {
 	public static boolean isOP(CommandSourceStack sender) {
 		if (sender.getPlayer() == null) {
 			// console and RCON; command blocks and functions stay at level 2
-			return sender.hasPermission(4);
+			return Commands.LEVEL_OWNERS.check(sender.permissions());
 		}
-		return Arrays.asList(ServerLifecycleHooks.getCurrentServer().getPlayerList().getOps().getUserList())
+		return Arrays.asList(logisticspipes.LogisticsPipes.getServer().getPlayerList().getOps().getUserList())
 				.contains(sender.getTextName().toLowerCase(Locale.US)) || (MainProxy.proxy.checkSinglePlayerOwner(sender.getTextName()));
 	}
 }

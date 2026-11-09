@@ -83,7 +83,7 @@ abstract class ListProperty<T>(
     override fun readFromNBT(tag: CompoundTag) {
         if (tag.contains(sizeTagKey(tagKey))) {
             replaceContent(
-                MutableList(tag.getInt(sizeTagKey(tagKey))) { idx ->
+                MutableList(tag.getIntOr(sizeTagKey(tagKey), 0)) { idx ->
                     if (tag.contains(itemTagKey(tagKey, idx))) {
                         readSingleFromNBT(tag, itemTagKey(tagKey, idx))
                     } else defaultValue(idx)
@@ -153,7 +153,7 @@ class IntListProperty : ListProperty<Int> {
     override fun defaultValue(idx: Int): Int = 0
 
     override fun readFromNBT(tag: CompoundTag) {
-        if (tag.contains(tagKey)) replaceContent(tag.getIntArray(tagKey))
+        if (tag.contains(tagKey)) replaceContent(tag.getIntArray(tagKey).orElse(IntArray(0)).toList())
     }
 
     override fun writeToNBT(tag: CompoundTag) = tag.putIntArray(tagKey, list.toIntArray())
@@ -162,7 +162,7 @@ class IntListProperty : ListProperty<Int> {
 
     override fun copyProperty(): IntListProperty = IntListProperty(tagKey = tagKey, list = copyValue())
 
-    override fun readSingleFromNBT(tag: CompoundTag, key: String): Int = tag.getInt(key)
+    override fun readSingleFromNBT(tag: CompoundTag, key: String): Int = tag.getIntOr(key, 0)
 
     override fun writeSingleToNBT(tag: CompoundTag, key: String, value: Int) = tag.putInt(key, value)
 
@@ -182,7 +182,7 @@ class StringListProperty : ListProperty<String> {
 
     override fun defaultValue(idx: Int): String = ""
 
-    override fun readSingleFromNBT(tag: CompoundTag, key: String): String = tag.getString(key)
+    override fun readSingleFromNBT(tag: CompoundTag, key: String): String = tag.getStringOr(key, "")
 
     override fun writeSingleToNBT(tag: CompoundTag, key: String, value: String) = tag.putString(key, value)
 

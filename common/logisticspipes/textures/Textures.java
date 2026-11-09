@@ -1,10 +1,9 @@
 package logisticspipes.textures;
 
 import net.minecraft.client.renderer.texture.TextureAtlas; // was TextureAtlas
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.fabricmc.api.EnvType;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.proxy.MainProxy;
@@ -308,7 +307,7 @@ public class Textures {
 
 	private int registerSingleTexture(Object par1IIconRegister, String fileName) {
 		int texture = index++;
-		if (FMLEnvironment.dist == Dist.CLIENT) {
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			MainProxy.proxy.addLogisticsPipesOverride(par1IIconRegister, texture, fileName, Textures.LOGISTICSPIPE_UN_OVERLAY_TEXTURE_FILE, true);
 		}
 		return texture;

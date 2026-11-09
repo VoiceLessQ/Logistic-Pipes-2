@@ -1,5 +1,6 @@
 package logisticspipes.logistics;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,6 @@ import javax.annotation.Nullable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 
-import net.minecraftforge.fluids.FluidStack;
 
 import logisticspipes.LPItems;
 import logisticspipes.interfaces.routing.IFluidSink;
@@ -61,8 +61,8 @@ public class LogisticsFluidManager implements ILogisticsFluidManager {
 	public ItemIdentifierStack getFluidContainer(FluidIdentifierStack stack) {
 		ItemStack item = new ItemStack(LPItems.fluidContainer.get(), 1);
 		CompoundTag nbt = new CompoundTag();
-		stack.makeFluidStack().writeToNBT(nbt);
-		item.setTag(nbt);
+		stack.writeToNBT(nbt);
+		CustomDataUtil.setTag(item, nbt);
 		return ItemIdentifierStack.getFromStack(item);
 	}
 
@@ -70,7 +70,7 @@ public class LogisticsFluidManager implements ILogisticsFluidManager {
 	public FluidIdentifierStack getFluidFromContainer(ItemIdentifierStack stack) {
 		ItemStack itemStack = stack.makeNormalStack();
 		if (itemStack.getItem() instanceof LogisticsFluidContainer && stack.getItem().tag != null) {
-			return FluidIdentifierStack.getFromStack(FluidStack.loadFluidStackFromNBT(stack.getItem().tag));
+			return FluidIdentifierStack.readFromNBT(stack.getItem().tag);
 		}
 		return null;
 	}

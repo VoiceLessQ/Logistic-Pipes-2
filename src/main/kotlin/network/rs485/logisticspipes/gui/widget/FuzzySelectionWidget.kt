@@ -99,7 +99,7 @@ class FuzzySelectionWidget(
             if ((isMouseHovering(
                     mouseX,
                     mouseY,
-                ) || (Minecraft.getInstance().screen as? BaseGuiContainer)?.currentHoveredSlot == currentSlot) && currentSlot != null
+                ) || (Minecraft.getInstance().gui.screen() as? BaseGuiContainer)?.currentHoveredSlot == currentSlot) && currentSlot != null
             ) {
                 currentSlot?.let { slot ->
                     GuiDrawer.drawGuiBackground(relativeBody)
@@ -114,7 +114,7 @@ class FuzzySelectionWidget(
                         }
                         if (gg != null) {
                             val label = TextUtil.translate("$flagPrefix${flag.name.lowercase()}")
-                            gg.drawString(
+                            gg.text(
                                 GuiDrawer.mcFontRenderer,
                                 label,
                                 relativeBody.roundedLeft + border,
@@ -138,7 +138,7 @@ class FuzzySelectionWidget(
         currentSlot?.let { currentSlot ->
             getHoveredFlag(mouseX, mouseY)?.let { clickedFlag ->
                 fuzzyFlagOverlay.write { p ->
-                    p.flip(currentSlot.slotIndex * 4 + clickedFlag.bit)
+                    p.flip(currentSlot.containerSlot * 4 + clickedFlag.bit)
                 }
                 return true
             }

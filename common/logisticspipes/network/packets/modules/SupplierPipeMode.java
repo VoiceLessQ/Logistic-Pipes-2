@@ -43,8 +43,8 @@ public class SupplierPipeMode extends IntegerModuleCoordinatesPacket {
 		} else {
 			module.requestMode.setValue(SupplyMode.values()[getInteger()]);
 		}
-		if (Minecraft.getInstance().screen instanceof GuiSupplierPipe) {
-			((GuiSupplierPipe) Minecraft.getInstance().screen).refreshMode();
+		if (Minecraft.getInstance().gui.screen() instanceof GuiSupplierPipe) {
+			((GuiSupplierPipe) Minecraft.getInstance().gui.screen()).refreshMode();
 		}
 	}
 

@@ -1,5 +1,9 @@
 package logisticspipes.blocks.powertile;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.proxy.interfaces.IEnergyStorage;
+import logisticspipes.utils.TagUtil;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -7,14 +11,15 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 
 
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
+
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+
+import team.reborn.energy.api.EnergyStorage;
 
 import logisticspipes.pipes.basic.CoreRoutedPipe;
 import logisticspipes.proxy.MainProxy;
 import logisticspipes.proxy.SimpleServiceLocator;
+import logisticspipes.proxy.TREnergyStorage;
 import logisticspipes.proxy.interfaces.ICoFHEnergyStorage;
 
 public class LogisticsRFPowerProviderTileEntity extends LogisticsPowerProviderTileEntity {
@@ -55,6 +60,8 @@ public class LogisticsRFPowerProviderTileEntity extends LogisticsPowerProviderTi
 			return true;
 		}
 	};
+
+	private final TREnergyStorage trEnergy = new TREnergyStorage(energyInterface);
 
 	private ICoFHEnergyStorage storage;
 
@@ -99,11 +106,19 @@ public class LogisticsRFPowerProviderTileEntity extends LogisticsPowerProviderTi
 	private int pullFromNeighbor(net.minecraft.world.level.Level world, Direction dir, int remaining) {
 		net.minecraft.world.level.block.entity.BlockEntity neighbor = world.getBlockEntity(getBlockPos().relative(dir));
 		if (neighbor == null) return remaining;
-		LazyOptional<IEnergyStorage> cap = neighbor.getCapability(ForgeCapabilities.ENERGY, dir.getOpposite());
-		if (!cap.isPresent()) return remaining;
-		IEnergyStorage neighborStorage = cap.orElseThrow(IllegalStateException::new);
-		if (!neighborStorage.canExtract()) return remaining;
-		int extracted = neighborStorage.extractEnergy(remaining, false);
+		IEnergyStorage neighborStorage = IEnergyStorage.SIDED.find(world, neighbor.getBlockPos(), neighbor.getBlockState(), neighbor, dir.getOpposite());
+		int extracted;
+		if (neighborStorage != null) {
+			if (!neighborStorage.canExtract()) return remaining;
+			extracted = neighborStorage.extractEnergy(remaining, false);
+		} else {
+			EnergyStorage trStorage = EnergyStorage.SIDED.find(world, neighbor.getBlockPos(), neighbor.getBlockState(), neighbor, dir.getOpposite());
+			if (trStorage == null || !trStorage.supportsExtraction()) return remaining;
+			try (Transaction transaction = Transaction.openOuter()) {
+				extracted = (int) trStorage.extract(remaining, transaction);
+				transaction.commit();
+			}
+		}
 		if (extracted > 0) {
 			addEnergy(extracted);
 			return remaining - extracted;
@@ -135,15 +150,18 @@ public class LogisticsRFPowerProviderTileEntity extends LogisticsPowerProviderTi
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag nbt = TagUtil.read(input);
+		super.loadAdditional(input);
 		storage.readFromNBT(nbt);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag nbt = new CompoundTag();
+		super.saveAdditional(output);
 		storage.writeToNBT(nbt);
+		TagUtil.write(output, nbt);
 	}
 
 	@Override
@@ -166,16 +184,11 @@ public class LogisticsRFPowerProviderTileEntity extends LogisticsPowerProviderTi
 		return LogisticsPowerProviderTileEntity.RF_COLOR;
 	}
 
-	@Nonnull
-	@Override
-	public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-		if (cap == ForgeCapabilities.ENERGY) {
-			return ForgeCapabilities.ENERGY.orEmpty(cap, LazyOptional.of(() -> energyInterface));
-		}
-		return super.getCapability(cap, side);
-	}
-
 	public IEnergyStorage getEnergyInterface() {
 		return energyInterface;
+	}
+
+	public TREnergyStorage getTREnergy() {
+		return trEnergy;
 	}
 }

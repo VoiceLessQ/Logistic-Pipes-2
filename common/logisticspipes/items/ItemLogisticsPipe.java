@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
-import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,8 +26,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import lombok.Getter;
 // import org.apache.logging.log4j.Level; // conflicts with net.minecraft.world.level.Level — use fully qualified
@@ -100,7 +100,7 @@ public class ItemLogisticsPipe extends LogisticsItem {
 							CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayer) player, pos, itemstack);
 
 						BlockState newBlockState = world.getBlockState(pos);
-						SoundType soundtype = newBlockState.getBlock().getSoundType(newBlockState, world, pos, player);
+						SoundType soundtype = newBlockState.getSoundType();
 						world.playSound(player, pos, soundtype.getPlaceSound(), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F,
 								soundtype.getPitch() * 0.8F);
 
@@ -161,7 +161,7 @@ public class ItemLogisticsPipe extends LogisticsItem {
 							CriteriaTriggers.PLACED_BLOCK.trigger((ServerPlayer) player, placeAt.getBlockPos(), itemstack);
 
 						BlockState newBlockState = world.getBlockState(placeAt.getBlockPos());
-						SoundType soundtype = newBlockState.getBlock().getSoundType(newBlockState, world, placeAt.getBlockPos(), player);
+						SoundType soundtype = newBlockState.getSoundType();
 						world.playSound(player, placeAt.getBlockPos(), soundtype.getPlaceSound(), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F,
 								soundtype.getPitch() * 0.8F);
 
@@ -176,7 +176,7 @@ public class ItemLogisticsPipe extends LogisticsItem {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public void setPipesIcons(IIconProvider iconProvider) {
 	}
 
@@ -209,20 +209,4 @@ public class ItemLogisticsPipe extends LogisticsItem {
 				&& world.isUnobstructed(block.defaultBlockState(), pos, net.minecraft.world.phys.shapes.CollisionContext.empty());
 	}
 
-	@Override
-	public void initializeClient(Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
-		consumer.accept(ClientExtensionsHolder.EXTENSIONS);
-	}
-
-	/** Holds client-only references; loaded lazily so dedicated servers never touch
-	 *  client-only classes like BlockEntityWithoutLevelRenderer. */
-	private static final class ClientExtensionsHolder {
-		static final net.minecraftforge.client.extensions.common.IClientItemExtensions EXTENSIONS =
-			new net.minecraftforge.client.extensions.common.IClientItemExtensions() {
-				@Override
-				public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
-					return logisticspipes.renderer.LogisticsPipeItemRenderer.instance();
-				}
-			};
-	}
 }

@@ -14,8 +14,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.interfaces.ITankUtil;
@@ -113,7 +111,7 @@ public class PipeItemsFluidSupplier extends CoreRoutedPipe implements IRequestIt
 		if (idStack == null) {
 			return;
 		}
-		FluidIdentifierStack liquidId = FluidUtil.getFluidContained(idStack.makeNormalStack()).map(FluidIdentifierStack::getFromStack).orElse(null);
+		FluidIdentifierStack liquidId = FluidIdentifierStack.getFromContainer(idStack.makeNormalStack());
 		if (liquidId == null) {
 			return;
 		}
@@ -121,9 +119,9 @@ public class PipeItemsFluidSupplier extends CoreRoutedPipe implements IRequestIt
 			util.fill(liquidId, true);
 			idStack.lowerStackSize(1);
 			Item item = idStack.getItem().item;
-			if (item.hasCraftingRemainingItem()) {
-				Item containerItem = Objects.requireNonNull(item.getCraftingRemainingItem());
-				transport.sendItem(new ItemStack(containerItem, 1));
+			net.minecraft.world.item.ItemStackTemplate container = item.getCraftingRemainder();
+			if (container != null) {
+				transport.sendItem(container.create());
 			}
 		}
 	}
@@ -155,18 +153,18 @@ public class PipeItemsFluidSupplier extends CoreRoutedPipe implements IRequestIt
 			HashMap<FluidIdentifier, Integer> wantFluids = new HashMap<>();
 			for (Entry<ItemIdentifier, Integer> item : wantContainers.entrySet()) {
 				ItemStack wantItem = item.getKey().unsafeMakeNormalStack(1);
-				FluidStack liquidStack = FluidUtil.getFluidContained(wantItem).orElse(null);
+				FluidIdentifierStack liquidStack = FluidIdentifierStack.getFromContainer(wantItem);
 				if (liquidStack == null) {
 					continue;
 				}
-				wantFluids.put(FluidIdentifier.get(liquidStack), item.getValue() * liquidStack.getAmount());
+				wantFluids.put(liquidStack.getFluid(), item.getValue() * liquidStack.getAmount());
 			}
 
 			//How much do I have?
 			HashMap<FluidIdentifier, Integer> haveFluids = new HashMap<>();
 
 			tankUtil.tanks()
-					.map(tank -> FluidIdentifierStack.getFromStack(tank))
+					
 					.filter(Objects::nonNull)
 					.forEach(fluid -> {
 						if (wantFluids.containsKey(fluid.getFluid())) {
@@ -184,11 +182,11 @@ public class PipeItemsFluidSupplier extends CoreRoutedPipe implements IRequestIt
 			}
 			for (Entry<ItemIdentifier, Integer> requestedItem : _requestedItems.entrySet()) {
 				ItemStack wantItem = requestedItem.getKey().unsafeMakeNormalStack(1);
-				FluidStack requestedFluidId = FluidUtil.getFluidContained(wantItem).orElse(null);
+				FluidIdentifierStack requestedFluidId = FluidIdentifierStack.getFromContainer(wantItem);
 				if (requestedFluidId == null) {
 					continue;
 				}
-				FluidIdentifier requestedFluid = FluidIdentifier.get(requestedFluidId);
+				FluidIdentifier requestedFluid = requestedFluidId.getFluid();
 				Integer want = wantFluids.get(requestedFluid);
 				if (want != null) {
 					wantFluids.put(requestedFluid, want - requestedItem.getValue() * requestedFluidId.getAmount());
@@ -200,14 +198,14 @@ public class PipeItemsFluidSupplier extends CoreRoutedPipe implements IRequestIt
 			//Make request
 
 			for (ItemIdentifier need : wantContainers.keySet()) {
-				FluidStack requestedFluidId = FluidUtil.getFluidContained(need.unsafeMakeNormalStack(1)).orElse(null);
+				FluidIdentifierStack requestedFluidId = FluidIdentifierStack.getFromContainer(need.unsafeMakeNormalStack(1));
 				if (requestedFluidId == null) {
 					continue;
 				}
-				if (!wantFluids.containsKey(FluidIdentifier.get(requestedFluidId))) {
+				if (!wantFluids.containsKey(requestedFluidId.getFluid())) {
 					continue;
 				}
-				int countToRequest = wantFluids.get(FluidIdentifier.get(requestedFluidId)) / requestedFluidId.getAmount();
+				int countToRequest = wantFluids.get(requestedFluidId.getFluid()) / requestedFluidId.getAmount();
 				if (countToRequest < 1) {
 					continue;
 				}
@@ -245,7 +243,7 @@ public class PipeItemsFluidSupplier extends CoreRoutedPipe implements IRequestIt
 	public void readFromNBT(CompoundTag nbttagcompound) {
 		super.readFromNBT(nbttagcompound);
 		dummyInventory.readFromNBT(nbttagcompound, "");
-		_requestPartials = nbttagcompound.getBoolean("requestpartials");
+		_requestPartials = nbttagcompound.getBooleanOr("requestpartials", false);
 	}
 
 	@Override

@@ -11,9 +11,8 @@ import javax.annotation.Nullable;
 
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.LPItems;
 import logisticspipes.blocks.LogisticsProgramCompilerTileEntity;
@@ -52,20 +51,20 @@ public class ModuleChippedCraftingRecipes extends CraftingPartRecipes {
 		ADVANCED_4
 	}
 
-	private void registerModuleRecipe(CraftingParts parts, RecipeType type, ResourceLocation recipeCategory, @Nonnull String moduleName, @Nullable String baseModuleName) {
-		final ResourceLocation moduleResource = LPItems.modules.get(moduleName);
-		Item module = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(moduleResource);
+	private void registerModuleRecipe(CraftingParts parts, RecipeType type, Identifier recipeCategory, @Nonnull String moduleName, @Nullable String baseModuleName) {
+		final Identifier moduleResource = LPItems.modules.get(moduleName);
+		Item module = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(moduleResource);
 		if (module == null) return;
 		Item baseModule;
 		if (baseModuleName == null) {
 			baseModule = LPItems.blankModule.get();
 		} else {
-			baseModule = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(LPItems.modules.get(baseModuleName));
+			baseModule = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(LPItems.modules.get(baseModuleName));
 		}
 		if (baseModule == null) return;
 
-		Ingredient programmer = programmerIngredient(moduleResource.toString());
-		final Set<ResourceLocation> compilerPrograms = LogisticsProgramCompilerTileEntity.programByCategory.computeIfAbsent(recipeCategory, k -> new HashSet<>());
+		NBTIngredient programmer = programmerIngredient(moduleResource.toString());
+		final Set<Identifier> compilerPrograms = LogisticsProgramCompilerTileEntity.programByCategory.computeIfAbsent(recipeCategory, k -> new HashSet<>());
 		compilerPrograms.add(moduleResource);
 
 		RecipeManager.RecipeLayout layout = null;
@@ -186,7 +185,7 @@ public class ModuleChippedCraftingRecipes extends CraftingPartRecipes {
 					.filter(recipeIndex -> !(fLayout.getLine1() + fLayout.getLine2() + fLayout.getLine3()).replace(recipeIndex.getIndex(), ' ')
 							.equals((fLayout.getLine1() + fLayout.getLine2() + fLayout.getLine3()))).collect(Collectors.toCollection(LinkedList::new));
 			indexToUse.addFirst(layout);
-			RecipeManager.craftingManager.addRecipe(new ItemStack(module), indexToUse.toArray());
+			RecipeManager.craftingManager.addRecipe(module, 1, indexToUse.toArray());
 		}
 	}
 

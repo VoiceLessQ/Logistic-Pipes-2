@@ -23,7 +23,7 @@
 package network.rs485.logisticspipes.gui.guidebook
 
 import logisticspipes.utils.MinecraftColor
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import network.rs485.logisticspipes.gui.GuiDrawer
 import network.rs485.logisticspipes.gui.HorizontalAlignment
 import network.rs485.logisticspipes.gui.VerticalAlignment
@@ -54,7 +54,7 @@ class HomeButton(x: Int, y: Int, onClickAction: (Int) -> Boolean) :
 
     override fun getTooltipText(): String = TextUtil.translate("misc.guide_book.home_button")
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    override fun extractContents(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
         if (!visible) return
         val hovered = isHovered(mouseX, mouseY)
         // Button background.

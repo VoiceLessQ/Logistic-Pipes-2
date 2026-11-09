@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iri",
+    "   ",
+    "w w"
+  ],
+  "key": {
+    "i": "#c:ingots/iron",
+    "r": "minecraft:redstone",
+    "w": "#minecraft:planks"
+  },
+  "result": {
+    "id": "logisticspipes:frame"
+  }
+}

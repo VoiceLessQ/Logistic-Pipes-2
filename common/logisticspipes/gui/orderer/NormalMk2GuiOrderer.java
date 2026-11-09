@@ -1,7 +1,7 @@
 
 package logisticspipes.gui.orderer;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import javax.annotation.Nonnull;
 
@@ -29,7 +29,7 @@ public class NormalMk2GuiOrderer extends NormalGuiOrderer implements IDiskProvid
 	private SmallGuiButton macroButton;
 
 	public NormalMk2GuiOrderer(PipeItemsRequestLogisticsMk2 RequestPipeMK2, Player entityPlayer) {
-		super(RequestPipeMK2.getX(), RequestPipeMK2.getY(), RequestPipeMK2.getZ(), RequestPipeMK2.getWorld().dimension().location(), entityPlayer);
+		super(RequestPipeMK2.getX(), RequestPipeMK2.getY(), RequestPipeMK2.getZ(), RequestPipeMK2.getWorld().dimension().identifier(), entityPlayer);
 		pipe = RequestPipeMK2;
 		MainProxy.sendPacketToServer(PacketHandler.getPacket(DiskRequestConectPacket.class).setPosX(pipe.getX()).setPosY(pipe.getY()).setPosZ(pipe.getZ()));
 	}
@@ -47,14 +47,14 @@ public class NormalMk2GuiOrderer extends NormalGuiOrderer implements IDiskProvid
 	}
 
 	@Override
-	public void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int i, int j) {
+	public void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int i, int j) {
 		super.renderBg(guiGraphics, f, i, j);
 
 		guiGraphics.fill(right - 39, bottom - 47, right - 19, bottom - 27, Color.getValue(Color.BLACK));
 		guiGraphics.fill(right - 37, bottom - 45, right - 21, bottom - 29, Color.getValue(Color.DARKER_GREY));
 
 		if (pipe.getDisk() != null) {
-			guiGraphics.renderItem(pipe.getDisk(), right - 36, bottom - 44);
+			guiGraphics.item(pipe.getDisk(), right - 36, bottom - 44);
 			macroButton.active = true;
 		} else {
 			macroButton.active = false;

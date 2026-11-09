@@ -4,19 +4,26 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Direction;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
 
-import net.minecraftforge.items.IItemHandler;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 
 import logisticspipes.interfaces.ILPItemAcceptor;
 
-public class ItemInsertionHandler implements IItemHandler {
+/** Insert-only item storage exposed on each pipe side; items enter the pipe when the outer transaction commits. */
+public class ItemInsertionHandler extends SnapshotParticipant<List<ItemStack>> implements InsertionOnlyStorage<ItemVariant> {
 
 	public static final List<ILPItemAcceptor> ACCEPTORS = new ArrayList<>();
 
 	private final LogisticsTileGenericPipe pipe;
 	private final Direction dir;
+	private List<ItemStack> pending = new ArrayList<>();
 
 	public ItemInsertionHandler(LogisticsTileGenericPipe pipe, Direction dir) {
 		this.pipe = pipe;
@@ -24,39 +31,35 @@ public class ItemInsertionHandler implements IItemHandler {
 	}
 
 	@Override
-	public int getSlots() {
-		return 1;
+	public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
+		StoragePreconditions.notBlankNotNegative(resource, maxAmount);
+		int amount = (int) Math.min(maxAmount, resource.getItem().getDefaultMaxStackSize());
+		if (amount <= 0) return 0;
+		updateSnapshots(transaction);
+		pending.add(resource.toStack(amount));
+		return amount;
 	}
 
-	@Nonnull
 	@Override
-	public ItemStack getStackInSlot(int slot) { // getItem → getStackInSlot in IItemHandler 1.20.1
-		return ItemStack.EMPTY;
+	protected List<ItemStack> createSnapshot() {
+		return new ArrayList<>(pending);
 	}
 
 	@Override
-	public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-		return true;
+	protected void readSnapshot(List<ItemStack> snapshot) {
+		pending = snapshot;
 	}
 
-	@Nonnull
 	@Override
-	public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-		if (!simulate) {
-			return handleItemInsetion(pipe, dir, stack);
+	protected void onFinalCommit() {
+		List<ItemStack> stacks = pending;
+		pending = new ArrayList<>();
+		for (ItemStack stack : stacks) {
+			ItemStack left = handleItemInsetion(pipe, dir, stack);
+			if (!left.isEmpty() && pipe.getLevel() != null) {
+				Containers.dropItemStack(pipe.getLevel(), pipe.getX() + 0.5, pipe.getY() + 0.5, pipe.getZ() + 0.5, left);
+			}
 		}
-		return ItemStack.EMPTY;
-	}
-
-	@Nonnull
-	@Override
-	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		return ItemStack.EMPTY;
-	}
-
-	@Override
-	public int getSlotLimit(int slot) {
-		return 64;
 	}
 
 	@Nonnull

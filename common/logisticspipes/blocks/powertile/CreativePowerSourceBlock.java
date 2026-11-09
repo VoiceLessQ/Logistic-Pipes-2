@@ -20,7 +20,7 @@ import logisticspipes.LPRegistries;
 public class CreativePowerSourceBlock extends Block implements EntityBlock {
 
 	public CreativePowerSourceBlock() {
-		super(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_RED).strength(1.0F).sound(SoundType.METAL));
+		super(logisticspipes.LPRegistries.blockProperties().mapColor(MapColor.COLOR_RED).strength(1.0F).sound(SoundType.METAL));
 	}
 
 	@Override
@@ -31,7 +31,7 @@ public class CreativePowerSourceBlock extends Block implements EntityBlock {
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-		if (level.isClientSide || type != LPRegistries.BE_CREATIVE_POWER_SOURCE.get()) {
+		if (level.isClientSide() || type != LPRegistries.BE_CREATIVE_POWER_SOURCE.get()) {
 			return null;
 		}
 		return (lvl, pos, st, be) -> CreativePowerSourceTileEntity.serverTick(lvl, pos, st, (CreativePowerSourceTileEntity) be);

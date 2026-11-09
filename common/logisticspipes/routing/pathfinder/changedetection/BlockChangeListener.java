@@ -5,8 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 
 import logisticspipes.asm.te.ILPTEInformation;
 import logisticspipes.proxy.MainProxy;
@@ -20,7 +19,7 @@ import network.rs485.logisticspipes.world.DoubleCoordinates;
  * tile cache when a non-LP neighbour appears or disappears.
  *
  * Previously handled globally via ASM injection into all TileEntities; now done
- * via NeoForge block events registered on {@code MinecraftForge.EVENT_BUS}.
+ * via {@code BlockItemMixin} (placement) and Fabric {@link PlayerBlockBreakEvents} (breaking).
  *
  * <p>Both events fire BEFORE the change is committed, so notifications are
  * queued via {@link QueuedTasks} to run on the next server tick when the new
@@ -32,11 +31,16 @@ public class BlockChangeListener {
      * Fired before a block is placed.  Queue a cache refresh so adjacent LP
      * pipes pick up the new neighbour on the next tick.
      */
-    @SubscribeEvent
-    public void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
-        if (!(event.getLevel() instanceof Level world)) return;
+    public static void register() {
+        BlockChangeListener listener = new BlockChangeListener();
+        PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
+            listener.onBlockBroken(world, pos);
+            return true;
+        });
+    }
+
+    public static void onBlockPlaced(Level world, BlockPos pos) {
         if (!MainProxy.isServer(world)) return;
-        final BlockPos pos = event.getPos();
         QueuedTasks.queueTask(() -> {
             notifyAdjacentPipes(world, pos);
             return null;
@@ -47,11 +51,8 @@ public class BlockChangeListener {
      * Fired before a block is broken.  Queue a cache refresh so adjacent LP
      * pipes notice the neighbour is gone on the next tick.
      */
-    @SubscribeEvent
-    public void onBlockBroken(BlockEvent.BreakEvent event) {
-        if (!(event.getLevel() instanceof Level world)) return;
+    public void onBlockBroken(Level world, BlockPos pos) {
         if (!MainProxy.isServer(world)) return;
-        final BlockPos pos = event.getPos();
         QueuedTasks.queueTask(() -> {
             notifyAdjacentPipes(world, pos);
             return null;

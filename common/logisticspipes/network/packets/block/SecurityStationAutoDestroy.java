@@ -3,8 +3,8 @@ package logisticspipes.network.packets.block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.blocks.LogisticsSecurityTileEntity;
 import logisticspipes.gui.GuiSecurityStation;
@@ -38,10 +38,10 @@ public class SecurityStationAutoDestroy extends IntegerCoordinatesPacket {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	private void handleClientSide(Player player) {
-		if (Minecraft.getInstance().screen instanceof GuiSecurityStation) {
-			((GuiSecurityStation) Minecraft.getInstance().screen).refreshCheckBoxes();
+		if (Minecraft.getInstance().gui.screen() instanceof GuiSecurityStation) {
+			((GuiSecurityStation) Minecraft.getInstance().gui.screen()).refreshCheckBoxes();
 		}
 	}
 }

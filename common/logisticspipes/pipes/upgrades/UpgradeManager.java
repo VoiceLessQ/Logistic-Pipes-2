@@ -1,5 +1,6 @@
 package logisticspipes.pipes.upgrades;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.UUID;
@@ -97,7 +98,6 @@ public class UpgradeManager implements ISimpleInventoryEventHandler, ISlotUpgrad
 		inv.writeToNBT(nbttagcompound, "UpgradeInventory_");
 		sneakyInv.writeToNBT(nbttagcompound, "SneakyUpgradeInventory_");
 		secInv.writeToNBT(nbttagcompound, "SecurityInventory_");
-		InventoryChanged(inv);
 	}
 
 	private boolean updateModule(int slot, IPipeUpgrade[] upgrades, Container inv) {
@@ -251,13 +251,13 @@ public class UpgradeManager implements ISimpleInventoryEventHandler, ISlotUpgrad
 		if (stack.getItem() != LPItems.itemCard.get() || LogisticsItemCard.getCardType(stack) != LogisticsItemCard.SEC_CARD) {
 			return;
 		}
-		if (!stack.hasTag()) {
+		if (!CustomDataUtil.hasTag(stack)) {
 			return;
 		}
-		if (!stack.getTag().contains("UUID")) {
+		if (!CustomDataUtil.getTag(stack).contains("UUID")) {
 			return;
 		}
-		uuid = UUID.fromString(stack.getTag().getString("UUID"));
+		uuid = UUID.fromString(CustomDataUtil.getTag(stack).getStringOr("UUID", ""));
 		uuidS = uuid.toString();
 	}
 

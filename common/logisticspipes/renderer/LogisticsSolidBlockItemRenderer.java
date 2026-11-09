@@ -1,51 +1,55 @@
 package logisticspipes.renderer;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import java.util.function.Consumer;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.geom.EntityModelSet;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
-import net.minecraft.world.item.ItemDisplayContext;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.serialization.MapCodec;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
+
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.world.item.ItemStack;
 
 import logisticspipes.items.LogisticsSolidBlockItem;
 
 /**
- * BEWLR that draws an LP solid block item using the same OBJ geometry as
- * {@link LogisticsSolidBlockRenderer}. Vanilla ItemRenderer pre-applies the
- * {@code -0.5,-0.5,-0.5} centring translation before invoking this renderer, so
- * the shared draw path can be used unmodified.
+ * Special item model that draws an LP solid block item using the same OBJ geometry as
+ * {@link LogisticsSolidBlockRenderer}.
  */
-public class LogisticsSolidBlockItemRenderer extends BlockEntityWithoutLevelRenderer {
+public class LogisticsSolidBlockItemRenderer implements SpecialModelRenderer<ItemStack> {
 
-	private static LogisticsSolidBlockItemRenderer INSTANCE;
+	public static final LogisticsSolidBlockItemRenderer INSTANCE = new LogisticsSolidBlockItemRenderer();
 
-	public static LogisticsSolidBlockItemRenderer instance() {
-		if (INSTANCE == null) {
-			Minecraft mc = Minecraft.getInstance();
-			INSTANCE = new LogisticsSolidBlockItemRenderer(
-					mc.getBlockEntityRenderDispatcher(),
-					mc.getEntityModels());
+	public record Unbaked() implements SpecialModelRenderer.Unbaked<ItemStack> {
+
+		public static final MapCodec<Unbaked> MAP_CODEC = MapCodec.unit(new Unbaked());
+
+		@Override
+		public SpecialModelRenderer<ItemStack> bake(SpecialModelRenderer.BakingContext context) {
+			return INSTANCE;
 		}
-		return INSTANCE;
-	}
 
-	public LogisticsSolidBlockItemRenderer(BlockEntityRenderDispatcher dispatcher, EntityModelSet modelSet) {
-		super(dispatcher, modelSet);
+		@Override
+		public MapCodec<Unbaked> type() {
+			return MAP_CODEC;
+		}
 	}
 
 	@Override
-	public void renderByItem(ItemStack stack, ItemDisplayContext ctx, PoseStack pose,
-			MultiBufferSource buffers, int light, int overlay) {
-		if (!(stack.getItem() instanceof LogisticsSolidBlockItem)) return;
-		LogisticsSolidBlockItem item = (LogisticsSolidBlockItem) stack.getItem();
-		pose.pushPose();
-		try {
-			LogisticsSolidBlockRenderer.renderSolid(item.getType(), pose, buffers, light, overlay);
-		} finally {
-			pose.popPose();
-		}
+	public ItemStack extractArgument(ItemStack stack) {
+		return stack;
+	}
+
+	@Override
+	public void getExtents(Consumer<Vector3fc> output) {
+		output.accept(new Vector3f(0.0F, 0.0F, 0.0F));
+		output.accept(new Vector3f(1.0F, 1.0F, 1.0F));
+	}
+
+	@Override
+	public void submit(ItemStack stack, PoseStack pose, SubmitNodeCollector collector, int light, int overlay, boolean hasFoil, int outlineColor) {
+		if (stack == null || !(stack.getItem() instanceof LogisticsSolidBlockItem)) return;
+		LogisticsSolidBlockRenderer.renderSolid(((LogisticsSolidBlockItem) stack.getItem()).getType(), pose, collector, light, overlay);
 	}
 }

@@ -22,8 +22,9 @@
 
 package network.rs485.logisticspipes.gui.guidebook
 
-import com.mojang.blaze3d.systems.RenderSystem
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.renderer.RenderPipelines
 import network.rs485.logisticspipes.util.Rectangle
 import network.rs485.logisticspipes.util.math.MutableRectangle
 import kotlin.math.roundToInt
@@ -46,48 +47,57 @@ class SliderButton(
     private var initialMouseYOffset: Int = 0
     private var hoveredBar: Boolean = false
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    override fun extractContents(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
         if (!visible) return
         val grip = sliderButton.translated(body)
         hoveredBar = grip.contains(mouseX, mouseY)
         // Atlas grip is 12px wide at x=96 with four 16px-tall hover states stacked vertically.
         val hoverState = if (dragging) 3 else if (!active) 2 else if (hoveredBar) 1 else 0
         val src = texture.translated(0, hoverState * texture.roundedHeight)
-        RenderSystem.enableBlend()
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f)
-        // Vertical nine-slice: 2px top/bottom caps from the 12x16 grip region, stretched to grip height.
-        guiGraphics.blitNineSliced(
-            GuideBookGraphics.GUI_ATLAS,
-            grip.roundedLeft,
-            grip.roundedTop,
-            grip.roundedWidth,
-            grip.roundedHeight,
-            0, 2,
-            texture.roundedWidth, texture.roundedHeight,
-            src.roundedLeft, src.roundedTop,
+        // 2px caps, ridged middle tiled (LP1 look; stretching it turns the ridges into blocks)
+        val cap = 2
+        val midSrc = texture.roundedHeight - 2 * cap
+        val u = src.left
+        val w = grip.roundedWidth
+        fun part(y: Int, v: Float, h: Int) = guiGraphics.blit(
+            RenderPipelines.GUI_TEXTURED, GuideBookGraphics.GUI_ATLAS, grip.roundedLeft, y, u, v, w, h, w, h,
+            GuideBookGraphics.ATLAS_SIZE, GuideBookGraphics.ATLAS_SIZE,
         )
-        RenderSystem.disableBlend()
+        part(grip.roundedTop, src.top, cap)
+        var y = grip.roundedTop + cap
+        val midEnd = grip.roundedBottom - cap
+        while (y < midEnd) {
+            val h = minOf(midSrc, midEnd - y)
+            part(y, src.top + cap, h)
+            y += h
+        }
+        part(midEnd, src.top + texture.roundedHeight - cap, cap)
     }
 
-    override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun mouseReleased(event: MouseButtonEvent): Boolean {
+        val mouseY = event.y()
         if (dragging) {
             dragging = false
             setProgressI((mouseY.toInt() - body.roundedY) - initialMouseYOffset)
             initialMouseYOffset = 0
             setProgressCallback(progress)
         }
-        return super.mouseReleased(mouseX, mouseY, button)
+        return super.mouseReleased(event)
     }
 
-    override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, dragX: Double, dragY: Double): Boolean {
+    override fun mouseDragged(event: MouseButtonEvent, dragX: Double, dragY: Double): Boolean {
+        val mouseY = event.y()
         if (dragging) {
             setProgressI((mouseY.toInt() - body.roundedY) - initialMouseYOffset)
             setProgressCallback(progress)
         }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY)
+        return super.mouseDragged(event, dragX, dragY)
     }
 
-    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
+        val mouseX = event.x()
+        val mouseY = event.y()
+        val button = event.button()
         val mouseXi = mouseX.toInt(); val mouseYi = mouseY.toInt()
         hoveredBar = sliderButton.translated(body).contains(mouseXi, mouseYi)
         if (visible && isActive) {

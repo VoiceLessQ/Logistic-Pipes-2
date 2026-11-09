@@ -46,8 +46,8 @@ public class ProvideSatellitePipeListPacket extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (Minecraft.getInstance().screen instanceof LogisticsBaseGuiScreen) {
-			SubGuiScreen subGUI = ((LogisticsBaseGuiScreen) Minecraft.getInstance().screen).getSubGui();
+		if (Minecraft.getInstance().gui.screen() instanceof LogisticsBaseGuiScreen) {
+			SubGuiScreen subGUI = ((LogisticsBaseGuiScreen) Minecraft.getInstance().gui.screen()).getSubGui();
 			if (subGUI instanceof GuiSelectSatellitePopup) {
 				((GuiSelectSatellitePopup) subGUI).handleSatelliteList(list);
 			}

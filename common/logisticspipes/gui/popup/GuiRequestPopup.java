@@ -1,5 +1,6 @@
 package logisticspipes.gui.popup;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -82,7 +83,7 @@ public class GuiRequestPopup extends SubGuiScreen {
 			}
 			String msg = TextUtil.getTrimmedString(text[i], mWidth - 10, font, "...");
 			int stringWidth = minecraft.font.width(msg);
-			getGuiGraphics().drawString(minecraft.font, msg, xCenter - (stringWidth / 2), guiTop + 10 + (i * 10), 0x404040, false);
+			SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, msg, xCenter - (stringWidth / 2), guiTop + 10 + (i * 10), 0x404040, false);
 		}
 	}
 

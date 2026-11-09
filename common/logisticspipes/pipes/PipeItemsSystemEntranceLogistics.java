@@ -1,5 +1,6 @@
 package logisticspipes.pipes;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -32,14 +33,14 @@ public class PipeItemsSystemEntranceLogistics extends CoreRoutedPipe {
 		if (inv.getItem(0) == null) {
 			return null;
 		}
-		if (!inv.getItem(0).hasTag()) {
+		if (!CustomDataUtil.hasTag(inv.getItem(0))) {
 			return null;
 		}
-		if (!inv.getItem(0).getTag().contains("UUID")) {
+		if (!CustomDataUtil.getTag(inv.getItem(0)).contains("UUID")) {
 			return null;
 		}
 		spawnParticle(Particles.WhiteParticle, 2);
-		return UUID.fromString(inv.getItem(0).getTag().getString("UUID"));
+		return UUID.fromString(CustomDataUtil.getTag(inv.getItem(0)).getStringOr("UUID", ""));
 	}
 
 	@Override

@@ -57,13 +57,15 @@ import logisticspipes.utils.gui.SimpleGraphics
 import net.minecraft.world.Container
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.Slot
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.resources.Identifier
 import java.lang.Float.min
 
-// Rendering ported to 1.20.1 GuiGraphics via SimpleGraphics.guiGraphics (set by BaseGuiContainer.render()).
+// Rendering ported to 1.20.1 GuiGraphicsExtractor via SimpleGraphics.guiGraphics (set by BaseGuiContainer.render()).
 
 /**
  * Drawing methods to help with GUIs (rendering implementation deferred for 1.20.1).
@@ -112,7 +114,9 @@ object GuiDrawer {
         // TODO: texture-atlas sprite blit — no widget GUI calls this yet; port alongside guide book work.
     }
 
-    private val VANILLA_WIDGETS = ResourceLocation("textures/gui/widgets.png")
+    private val BUTTON_SPRITE = Identifier.withDefaultNamespace("widget/button")
+    private val BUTTON_HIGHLIGHTED_SPRITE = Identifier.withDefaultNamespace("widget/button_highlighted")
+    private val BUTTON_DISABLED_SPRITE = Identifier.withDefaultNamespace("widget/button_disabled")
 
     fun drawBorderedTile(
         rect: IRectangle,
@@ -122,19 +126,13 @@ object GuiDrawer {
         thickerBottomBorder: Boolean,
     ) {
         val gg = SimpleGraphics.guiGraphics ?: return
-        val textureY = 46 + when {
-            !enabled -> 0
-            hovered -> 2
-            else -> 1
-        } * 20
-        gg.blitNineSliced(
-            VANILLA_WIDGETS,
-            rect.roundedLeft,
-            rect.roundedTop,
-            rect.roundedWidth,
-            rect.roundedHeight,
-            20, 4, 200, 20, 0, textureY,
-        )
+        // widgets.png is gone in 26.x; the button sprites carry their own nine-slice metadata
+        val sprite = when {
+            !enabled -> BUTTON_DISABLED_SPRITE
+            hovered -> BUTTON_HIGHLIGHTED_SPRITE
+            else -> BUTTON_SPRITE
+        }
+        gg.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, rect.roundedLeft, rect.roundedTop, rect.roundedWidth, rect.roundedHeight)
     }
 
     fun drawGuideBookFrame(rect: IRectangle, slider: IRectangle) {
@@ -152,7 +150,7 @@ object GuiDrawer {
         if (text.isEmpty()) return
         val gg = SimpleGraphics.guiGraphics ?: return
         val components = text.map { Component.literal(it) }
-        gg.renderComponentTooltip(mcFontRenderer, components, x, y)
+        gg.setComponentTooltipForNextFrame(mcFontRenderer, components, x, y)
     }
 
     fun drawGuideBookBackground(rect: IRectangle) {
@@ -166,19 +164,19 @@ object GuiDrawer {
     fun drawCenteredString(text: String, x: Int, y: Int, color: Int, shadow: Boolean) {
         val gg = SimpleGraphics.guiGraphics ?: return
         val textWidth = mcFontRenderer.width(text)
-        gg.drawString(mcFontRenderer, text, x - textWidth / 2, y, color, shadow)
+        gg.text(mcFontRenderer, text, x - textWidth / 2, y, color, shadow)
     }
 
     fun drawInteractionIndicator(mouseX: Float, mouseY: Float) {
         val gg = SimpleGraphics.guiGraphics ?: return
         val x = mouseX.toInt()
         val y = mouseY.toInt()
-        gg.pose().pushPose()
-        gg.pose().translate(0.0f, 0.0f, 100f)
+        gg.pose().pushMatrix()
+        gg.pose().translate(0.0f, 0.0f)
         // LP1: a small white plus beside the cursor
         gg.fill(x + 4, y - 5, x + 5, y - 2, MinecraftColor.WHITE.colorCode)
         gg.fill(x + 3, y - 4, x + 6, y - 3, MinecraftColor.WHITE.colorCode)
-        gg.pose().popPose()
+        gg.pose().popMatrix()
     }
 
     fun drawRect(area: IRectangle, color: Int) {
@@ -188,7 +186,7 @@ object GuiDrawer {
 
     fun drawHorizontalGradientRect(area: IRectangle, colorLeft: Int, colorRight: Int) {
         val gg = SimpleGraphics.guiGraphics ?: return
-        // GuiGraphics.fillGradient is vertical-only; approximate horizontal via per-column fills.
+        // GuiGraphicsExtractor.fillGradient is vertical-only; approximate horizontal via per-column fills.
         val left = area.roundedLeft
         val right = area.roundedRight
         val top = area.roundedTop
@@ -249,6 +247,29 @@ object GuiDrawer {
     }
 }
 
-private class Texture(val resource: ResourceLocation, size: Int) {
+private class Texture(val resource: Identifier, size: Int) {
     val factor: Float = 1.0f / size
+}
+
+/**
+ * Replacement for 1.20.1's removed GuiGraphics.blitNineSliced: corners are sliceWidth x sliceHeight,
+ * edges and center are stretched (1.20.1 tiled them; identical for LP's flat-colored centers).
+ */
+fun GuiGraphicsExtractor.blitNineSliced(
+    texture: Identifier, x: Int, y: Int, width: Int, height: Int,
+    sliceWidth: Int, sliceHeight: Int, uWidth: Int, vHeight: Int, u: Int, v: Int,
+    textureWidth: Int = 256, textureHeight: Int = 256, color: Int = -1,
+) {
+    val xs = intArrayOf(x, x + sliceWidth, x + width - sliceWidth, x + width)
+    val ys = intArrayOf(y, y + sliceHeight, y + height - sliceHeight, y + height)
+    val us = intArrayOf(u, u + sliceWidth, u + uWidth - sliceWidth, u + uWidth)
+    val vs = intArrayOf(v, v + sliceHeight, v + vHeight - sliceHeight, v + vHeight)
+    for (i in 0..2) for (j in 0..2) {
+        val w = xs[i + 1] - xs[i]
+        val h = ys[j + 1] - ys[j]
+        val srcW = us[i + 1] - us[i]
+        val srcH = vs[j + 1] - vs[j]
+        if (w <= 0 || h <= 0 || srcW <= 0 || srcH <= 0) continue
+        blit(RenderPipelines.GUI_TEXTURED, texture, xs[i], ys[j], us[i].toFloat(), vs[j].toFloat(), w, h, srcW, srcH, textureWidth, textureHeight, color)
+    }
 }

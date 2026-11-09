@@ -16,8 +16,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.network.abstractguis.GuiProvider;
@@ -119,16 +119,16 @@ public class NewGuiHandler {
 		// perform the server-side container registration that NetworkHooks would do,
 		// and rely on LP's existing OpenGUIPacket to construct the screen client-side.
 		player.doCloseContainer();
-		player.nextContainerCounter();
-		int windowId = player.containerCounter;
+		logisticspipes.mixin.ServerPlayerAccessor playerAccess = (logisticspipes.mixin.ServerPlayerAccessor) player;
+		playerAccess.logisticspipes$nextContainerCounter();
+		int windowId = playerAccess.logisticspipes$getContainerCounter();
 		try {
 			CONTAINER_ID_FIELD.setInt(container, windowId);
 		} catch (IllegalAccessException ex) {
 			throw new RuntimeException("Failed to set LP container windowId", ex);
 		}
 		player.containerMenu = container;
-		net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(
-				new net.minecraftforge.event.entity.player.PlayerContainerEvent.Open(player, player.containerMenu));
+		network.rs485.logisticspipes.property.PropertyUpdaterEventListener.openContainer(player, player.containerMenu);
 
 		// Send OpenGUIPacket BEFORE initMenu so the client's containerMenu is
 		// established before the slot-sync packets (ClientboundContainerSetContent)
@@ -144,18 +144,18 @@ public class NewGuiHandler {
 		// initMenu registers the slot listener and sends the current slot contents.
 		// Sending it AFTER the OpenGUIPacket means the slot-sync arrives on the
 		// client after the GUI has set player.containerMenu — so the ID check passes.
-		player.initMenu(player.containerMenu);
+		playerAccess.logisticspipes$initMenu(player.containerMenu);
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public static void openGui(OpenGUIPacket packet, Player player) {
 		int guiID = packet.getGuiID();
 		GuiProvider provider = NewGuiHandler.guilist.get(guiID).template();
 		LPDataIOWrapper.provideData(packet.getGuiData(), provider::readData);
 
 		if (provider instanceof PopupGuiProvider && packet.getWindowID() == -2) {
-			if (Minecraft.getInstance().screen instanceof LogisticsBaseGuiScreen) {
-				LogisticsBaseGuiScreen baseGUI = (LogisticsBaseGuiScreen) Minecraft.getInstance().screen;
+			if (Minecraft.getInstance().gui.screen() instanceof LogisticsBaseGuiScreen) {
+				LogisticsBaseGuiScreen baseGUI = (LogisticsBaseGuiScreen) Minecraft.getInstance().gui.screen();
 				SubGuiScreen newSub;
 				try {
 					newSub = (SubGuiScreen) provider.getClientGui(player);
@@ -202,7 +202,7 @@ public class NewGuiHandler {
 				LogisticsPipes.log.warn("getClientGui returned null for provider {} (guiID={}) — closing current screen instead of opening a GUI",
 						provider.getClass().getName(), guiID);
 			}
-			Minecraft.getInstance().setScreen(screen);
+			Minecraft.getInstance().gui.setScreen(screen);
 		}
 	}
 }

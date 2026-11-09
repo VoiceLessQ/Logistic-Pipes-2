@@ -119,7 +119,7 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 	int ticksUntillNextInventoryCheck = 0;
 	private EnumSet<Direction> _routedExits = EnumSet.noneOf(Direction.class);
 	private EnumMap<Direction, Integer> _subPowerExits = new EnumMap<>(Direction.class);
-	private final net.minecraft.resources.ResourceLocation _dimension;
+	private final net.minecraft.resources.Identifier _dimension;
 	private WeakReference<CoreRoutedPipe> _myPipeCache = null;
 	private final LinkedList<Pair<Integer, IRouterQueuedTask>> queue = new LinkedList<>();
 	int connectionNeedsChecking = 0;
@@ -151,7 +151,7 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 	private Set<List<ITileEntityChangeListener>> listenedPipes = new HashSet<>();
 	private Set<LPTileEntityObject> oldTouchedPipes = new HashSet<>();
 
-	public ServerRouter(UUID globalID, net.minecraft.resources.ResourceLocation dimension, int xCoord, int yCoord, int zCoord) {
+	public ServerRouter(UUID globalID, net.minecraft.resources.Identifier dimension, int xCoord, int yCoord, int zCoord) {
 		if (globalID != null) {
 			id = globalID;
 		} else {
@@ -276,12 +276,12 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 	}
 
 	@Override
-	public boolean isInDim(net.minecraft.resources.ResourceLocation dimension) {
+	public boolean isInDim(net.minecraft.resources.Identifier dimension) {
 		return _dimension.equals(dimension);
 	}
 
 	@Override
-	public boolean isAt(net.minecraft.resources.ResourceLocation dimension, int xCoord, int yCoord, int zCoord) {
+	public boolean isAt(net.minecraft.resources.Identifier dimension, int xCoord, int yCoord, int zCoord) {
 		return _dimension.equals(dimension) && _xCoord == xCoord && _yCoord == yCoord && _zCoord == zCoord;
 	}
 
@@ -297,7 +297,7 @@ public class ServerRouter implements IRouter, Comparable<ServerRouter> {
 			return crp;
 		}
 		Level world = null;
-		var server = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer();
+		var server = logisticspipes.LogisticsPipes.getServer();
 		if (server != null) {
 			world = server.getLevel(net.minecraft.resources.ResourceKey.create(
 					net.minecraft.core.registries.Registries.DIMENSION, _dimension));

@@ -30,7 +30,6 @@ public class ItemPipeManager extends LogisticsItem implements ILPPipeConfigTool 
 	@Override
 	public void wrenchUsed(Player player, @Nonnull ItemStack wrench, ILPPipeTile pipe) {}
 
-	@Override
 	public boolean doesSneakBypassUse(@Nonnull ItemStack stack, net.minecraft.world.level.LevelReader world, BlockPos pos, Player player) {
 		return true;
 	}
@@ -62,7 +61,7 @@ public class ItemPipeManager extends LogisticsItem implements ILPPipeConfigTool 
 			rotated = state.setValue(BlockStateProperties.HORIZONTAL_FACING, next);
 		} else {
 			// Fall back to Minecraft's built-in rotate() for axis-based blocks etc.
-			BlockState attempt = state.rotate(world, pos, Rotation.CLOCKWISE_90);
+			BlockState attempt = state.rotate(Rotation.CLOCKWISE_90);
 			if (!attempt.equals(state)) rotated = attempt;
 		}
 

@@ -1,7 +1,7 @@
 package logisticspipes.network.packets.block;
 
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +22,7 @@ public class CompilerTriggerTaskPacket extends CoordinatesPacket {
 
 	@Getter
 	@Setter
-	private ResourceLocation category;
+	private Identifier category;
 
 	@Getter
 	@Setter

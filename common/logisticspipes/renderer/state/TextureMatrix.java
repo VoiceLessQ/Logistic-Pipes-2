@@ -1,5 +1,7 @@
 package logisticspipes.renderer.state;
 
+import java.util.Arrays;
+
 import net.minecraft.core.Direction;
 
 import lombok.Getter;
@@ -148,12 +150,24 @@ public class TextureMatrix {
 			textureIndex = newTextureIndex;
 			dirty = true;
 		}
-		isRouted = input.readBoolean();
-		isRoutedInDir = input.readBooleanArray();
-		isSubPowerInDir = input.readBooleanArray();
-		hasPowerUpgrade = input.readBoolean();
-		hasPower = input.readBoolean();
-		isFluid = input.readBoolean();
-		pointedOrientation = input.readFacing();
+		boolean newIsRouted = input.readBoolean();
+		boolean[] newIsRoutedInDir = input.readBooleanArray();
+		boolean[] newIsSubPowerInDir = input.readBooleanArray();
+		boolean newHasPowerUpgrade = input.readBoolean();
+		boolean newHasPower = input.readBoolean();
+		boolean newIsFluid = input.readBoolean();
+		Direction newPointedOrientation = input.readFacing();
+		// the pipe model is cached until dirty: power and routing overlays must invalidate it too
+		if (newIsRouted != isRouted || !Arrays.equals(newIsRoutedInDir, isRoutedInDir) || !Arrays.equals(newIsSubPowerInDir, isSubPowerInDir)
+				|| newHasPowerUpgrade != hasPowerUpgrade || newHasPower != hasPower || newIsFluid != isFluid || newPointedOrientation != pointedOrientation) {
+			dirty = true;
+		}
+		isRouted = newIsRouted;
+		isRoutedInDir = newIsRoutedInDir;
+		isSubPowerInDir = newIsSubPowerInDir;
+		hasPowerUpgrade = newHasPowerUpgrade;
+		hasPower = newHasPower;
+		isFluid = newIsFluid;
+		pointedOrientation = newPointedOrientation;
 	}
 }

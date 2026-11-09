@@ -7,6 +7,7 @@
 
 package logisticspipes.utils.item;
 
+import logisticspipes.utils.TagUtil;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -32,7 +33,7 @@ import logisticspipes.utils.tuples.Pair;
 import network.rs485.logisticspipes.IStore;
 import network.rs485.logisticspipes.util.items.ItemStackLoader;
 
-public class SimpleStackInventory implements Container, IStore, Iterable<Pair<ItemStack, Integer>> {
+public class SimpleStackInventory implements Container, IStore {
 
 	private static final Component TEXT_COMPONENT_EMPTY = Component.literal("");
 
@@ -124,10 +125,10 @@ public class SimpleStackInventory implements Container, IStore, Iterable<Pair<It
 	}
 
 	@Override
-	public void startOpen(@Nonnull Player player) {}
+	public void startOpen(@Nonnull net.minecraft.world.entity.ContainerUser player) {}
 
 	@Override
-	public void stopOpen(@Nonnull Player player) {}
+	public void stopOpen(@Nonnull net.minecraft.world.entity.ContainerUser player) {}
 
 	@Override
 	public void readFromNBT(@Nonnull CompoundTag nbttagcompound) {
@@ -135,11 +136,11 @@ public class SimpleStackInventory implements Container, IStore, Iterable<Pair<It
 	}
 
 	public void readFromNBT(CompoundTag nbttagcompound, String prefix) {
-		ListTag nbttaglist = nbttagcompound.getList(prefix + "items", nbttagcompound.getId());
+		ListTag nbttaglist = nbttagcompound.getListOrEmpty(prefix + "items");
 
 		for (int j = 0; j < nbttaglist.size(); ++j) {
-			CompoundTag nbttagcompound2 = nbttaglist.getCompound(j);
-			int index = nbttagcompound2.getInt("index");
+			CompoundTag nbttagcompound2 = nbttaglist.getCompoundOrEmpty(j);
+			int index = nbttagcompound2.getIntOr("index", 0);
 			if (index < stackList.size()) {
 				stackList.set(index, ItemStackLoader.loadAndFixItemStackFromNBT(nbttagcompound2));
 			} else {
@@ -161,7 +162,7 @@ public class SimpleStackInventory implements Container, IStore, Iterable<Pair<It
 				CompoundTag nbttagcompound2 = new CompoundTag();
 				nbttaglist.add(nbttagcompound2);
 				nbttagcompound2.putInt("index", j);
-				stack.save(nbttagcompound2);
+				TagUtil.saveStack(stack, nbttagcompound2);
 			}
 		}
 		nbttagcompound.put(prefix + "items", nbttaglist);
@@ -294,9 +295,14 @@ public class SimpleStackInventory implements Container, IStore, Iterable<Pair<It
 		return true;
 	}
 
+	/** Stacks with their slot index; Container itself iterates plain stacks in 26.x. */
 	@Nonnull
-	@Override
-	public Iterator<Pair<ItemStack, Integer>> iterator() {
+	public Iterable<Pair<ItemStack, Integer>> contents() {
+		return this::pairIterator;
+	}
+
+	@Nonnull
+	private Iterator<Pair<ItemStack, Integer>> pairIterator() {
 		final Iterator<ItemStack> iter = stackList.iterator();
 		return new Iterator<Pair<ItemStack, Integer>>() {
 

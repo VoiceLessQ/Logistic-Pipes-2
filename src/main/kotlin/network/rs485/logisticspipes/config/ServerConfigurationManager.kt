@@ -41,7 +41,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import logisticspipes.LogisticsPipes
 import logisticspipes.utils.PlayerIdentifier
-import net.minecraftforge.server.ServerLifecycleHooks
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
@@ -56,7 +55,7 @@ class ServerConfigurationManager {
     private val internalRepresentation: ServerConfiguration
 
     init {
-        configFile = ServerLifecycleHooks.getCurrentServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).resolve(fileName).toFile()
+        configFile = logisticspipes.LogisticsPipes.getServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).resolve(fileName).toFile()
         internalRepresentation = try {
             configFile.bufferedReader(Charsets.UTF_8).use {
                 gson.fromJson(gson.newJsonReader(it), ServerConfiguration::class.java)

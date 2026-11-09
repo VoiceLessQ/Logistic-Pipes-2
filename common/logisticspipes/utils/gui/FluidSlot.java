@@ -11,7 +11,7 @@ public class FluidSlot extends Slot {
 	}
 
 	public FluidSlot(Slot slot) {
-		super(slot.container, slot.getSlotIndex(), slot.x, slot.y);
+		super(slot.container, slot.getContainerSlot(), slot.x, slot.y);
 	}
 
 	@Override

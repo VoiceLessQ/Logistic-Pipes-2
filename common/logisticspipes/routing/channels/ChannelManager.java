@@ -14,6 +14,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.LPConstants;
 import logisticspipes.blocks.LogisticsSecurityTileEntity;
@@ -27,15 +29,16 @@ import logisticspipes.utils.PlayerIdentifier;
 
 public class ChannelManager implements IChannelManager {
 
-	private static final String DATA_NAME = LPConstants.LP_MOD_ID + "_ChannelManager_SavedData";
+	// no vanilla DataFixTypes for mod data; Fabric's SavedDataStorage mixin accepts null
+	private static final SavedDataType<ChannelSavedData> DATA_TYPE = new SavedDataType<>(
+			Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "channel_manager"), ChannelSavedData::new,
+			CompoundTag.CODEC.xmap(ChannelSavedData::load, data -> data.save(new CompoundTag())), null);
 	private ChannelSavedData savedData;
 
 	public ChannelManager(@Nonnull Level world) {
 		if (world instanceof ServerLevel) {
 			// overworld storage = LP1's global map storage; per-dimension storage split channels
-			savedData = ((ServerLevel) world).getServer().overworld().getDataStorage().computeIfAbsent(
-					ChannelSavedData::load, ChannelSavedData::new, DATA_NAME
-			);
+			savedData = ((ServerLevel) world).getServer().overworld().getDataStorage().computeIfAbsent(DATA_TYPE);
 		} else {
 			savedData = new ChannelSavedData();
 		}
@@ -123,14 +126,13 @@ public class ChannelManager implements IChannelManager {
 		public static ChannelSavedData load(CompoundTag nbt) {
 			ChannelSavedData data = new ChannelSavedData();
 			data.channels = new ArrayList<>();
-			for (int i = 0; i < nbt.getInt("dataSize"); i++) {
-				data.channels.add(i, new ChannelInformation(nbt.getCompound("data" + i)));
+			for (int i = 0; i < nbt.getIntOr("dataSize", 0); i++) {
+				data.channels.add(i, new ChannelInformation(nbt.getCompoundOrEmpty("data" + i)));
 			}
 			return data;
 		}
 
 		@Nonnull
-		@Override
 		public CompoundTag save(CompoundTag compound) {
 			compound.putInt("dataSize", channels.size());
 			for (int i = 0; i < channels.size(); i++) {

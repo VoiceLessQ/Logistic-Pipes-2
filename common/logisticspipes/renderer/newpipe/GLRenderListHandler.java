@@ -5,8 +5,8 @@ import java.util.List;
 
 // import net.minecraft.client.renderer.GLAllocation; // removed — display lists not available
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 public class GLRenderListHandler {
 
@@ -21,7 +21,7 @@ public class GLRenderListHandler {
 		return list;
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public void tick() {
 		synchronized (lockCollection) {
 			List<GLRenderList> newCollection = new ArrayList<>(collection);

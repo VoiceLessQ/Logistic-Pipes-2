@@ -40,6 +40,7 @@ package network.rs485.logisticspipes.gui.widget
 import com.mojang.math.Axis
 import logisticspipes.utils.gui.SimpleGraphics
 import network.rs485.logisticspipes.util.TextUtil
+import network.rs485.logisticspipes.util.opaque
 
 class VerticalLabel(fullText: String, x: Int, y: Int, maxLength: Int, textColor: Int, backgroundColor: Int) : Label(fullText, x, y, maxLength, textColor, backgroundColor) {
 
@@ -51,14 +52,14 @@ class VerticalLabel(fullText: String, x: Int, y: Int, maxLength: Int, textColor:
         val rect = if (hovered) fullRect else trimmedRect
         val text = if (hovered) fullText else trimmedText
         val pose = gg.pose()
-        pose.pushPose()
-        pose.translate(rect.x0, rect.y0 + rect.height, 0f)
-        pose.mulPose(Axis.ZP.rotationDegrees(-90f))
+        pose.pushMatrix()
+        pose.translate(rect.x0, rect.y0 + rect.height)
+        pose.rotate(Math.toRadians(-90.0).toFloat())
         if (overflows && hovered) {
             drawOverflowBox(0, 0, fontRenderer.width(text), fontRenderer.lineHeight)
         }
-        gg.drawString(fontRenderer, text, 0, 0, textColor, false)
-        pose.popPose()
+        gg.text(fontRenderer, text, 0, 0, textColor.opaque(), false)
+        pose.popMatrix()
     }
 
     override fun setText(newFullText: String) {
