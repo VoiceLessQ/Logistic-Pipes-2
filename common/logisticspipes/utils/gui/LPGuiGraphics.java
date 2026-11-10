@@ -8,22 +8,23 @@
 
 package logisticspipes.utils.gui;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.Screen;
-import com.mojang.blaze3d.systems.RenderSystem;
 import java.util.List;
 import javax.annotation.Nonnull;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.ChatFormatting;
 
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 
 
@@ -34,19 +35,19 @@ import logisticspipes.utils.Color;
 /**
  * Utils class for GUI-related drawing methods.
  */
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public final class LPGuiGraphics {
 
-	public static final ResourceLocation WIDGETS_TEXTURE = new ResourceLocation("textures/gui/widgets.png");
-	public static final ResourceLocation SLOT_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot.png");
-	public static final ResourceLocation BIG_SLOT_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot-big.png");
-	public static final ResourceLocation SMALL_SLOT_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot-small.png");
-	public static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/guibackground.png");
-	public static final ResourceLocation LOCK_ICON = new ResourceLocation("logisticspipes", "textures/gui/lock.png");
-	public static final ResourceLocation LINES_ICON = new ResourceLocation("logisticspipes", "textures/gui/lines.png");
-	public static final ResourceLocation STATS_ICON = new ResourceLocation("logisticspipes", "textures/gui/stats.png");
-	public static final ResourceLocation SLOT_DISK_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot_disk.png");
-	public static final ResourceLocation SLOT_PROGRAMMER_TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/slot_programmer.png");
+	public static final Identifier WIDGETS_TEXTURE = Identifier.parse("textures/gui/widgets.png");
+	public static final Identifier SLOT_TEXTURE = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/slot.png");
+	public static final Identifier BIG_SLOT_TEXTURE = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/slot-big.png");
+	public static final Identifier SMALL_SLOT_TEXTURE = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/slot-small.png");
+	public static final Identifier BACKGROUND_TEXTURE = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/guibackground.png");
+	public static final Identifier LOCK_ICON = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/lock.png");
+	public static final Identifier LINES_ICON = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/lines.png");
+	public static final Identifier STATS_ICON = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/stats.png");
+	public static final Identifier SLOT_DISK_TEXTURE = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/slot_disk.png");
+	public static final Identifier SLOT_PROGRAMMER_TEXTURE = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/slot_programmer.png");
 	public static float zLevel = 0.0F;
 
 	private LPGuiGraphics() {}
@@ -67,11 +68,9 @@ public final class LPGuiGraphics {
 			int k = (int) Math.round(255.0D - health * 255.0D);
 			int l = 255 - k << 16 | k << 8 | 255 << 24;
 			int i1 = (255 - k) / 4 << 16 | 16128 | 255 << 24;
-			RenderSystem.disableDepthTest();
 			SimpleGraphics.guiGraphics.fill(x + 2, y + 15, x + 15, y + 17, Color.BLACK.getValue());
 			SimpleGraphics.guiGraphics.fill(x + 2, y + 15, x + 14, y + 16, i1);
 			SimpleGraphics.guiGraphics.fill(x + 2, y + 15, x + 2 + j1, y + 16, l);
-			RenderSystem.enableDepthTest();
 		}
 	}
 
@@ -88,7 +87,7 @@ public final class LPGuiGraphics {
 		if (stack == null) stack = ItemStack.EMPTY;
 
 		List<String> tooltipLines;
-		if (mc.screen instanceof AbstractContainerScreen) {
+		if (mc.gui.screen() instanceof AbstractContainerScreen) {
 			// NEI is not available on 1.20.1 — the former dummy proxy always returned an empty mutable list.
 			tooltipLines = new java.util.ArrayList<>();
 		} else {
@@ -99,14 +98,14 @@ public final class LPGuiGraphics {
 			tooltipLines.addAll(1, (List<String>) tooltip[4]);
 		}
 
-		if ((Screen.hasControlDown()) && (tooltip.length < 4 || (Boolean) tooltip[3])) {
+		if ((Minecraft.getInstance().hasControlDown()) && (tooltip.length < 4 || (Boolean) tooltip[3])) {
 			tooltipLines.add(1, "\u00a77" + ((ItemStack) tooltip[2]).getCount());
 		}
 
 		int x = (Integer) tooltip[0] - (forceAdd ? 0 : guiLeft) + 12;
 		int y = (Integer) tooltip[1] - (forceAdd ? 0 : guiTop) - 12;
 		// NEI render hook removed (former dummy always returned false) — always draw our own tooltip.
-		LPGuiGraphics.drawToolTip(x, y, tooltipLines, stack.getRarity().color);
+		LPGuiGraphics.drawToolTip(x, y, tooltipLines, stack.getRarity().color());
 
 		LPGuiGraphics.zLevel = 0;
 	}
@@ -135,7 +134,6 @@ public final class LPGuiGraphics {
 			yHeight += 2 + (msg.size() - 1) * 10;
 		}
 
-		RenderSystem.disableDepthTest();
 
 		LPGuiGraphics.zLevel = 300.0F;
 		int bgColor = 0xf0100010;
@@ -161,7 +159,7 @@ public final class LPGuiGraphics {
 				line = "\u00a77" + line;
 			}
 
-			SimpleGraphics.guiGraphics.drawString(Minecraft.getInstance().font, line, x, y, 0xFFFFFF | -16777216, false);
+			SimpleGraphics.drawString(SimpleGraphics.guiGraphics, Minecraft.getInstance().font, line, x, y, 0xFFFFFF | -16777216, false);
 
 			if (i == 0) {
 				y += 2;
@@ -172,7 +170,6 @@ public final class LPGuiGraphics {
 
 		LPGuiGraphics.zLevel = 0.0F;
 
-		RenderSystem.enableDepthTest();
 	}
 
 	public static void drawPlayerInventoryBackground(Minecraft mc, int xOffset, int yOffset) {
@@ -202,11 +199,11 @@ public final class LPGuiGraphics {
 		}
 	}
 
-	private static void doDrawSlotBackground(Minecraft mc, int x, int y, ResourceLocation slotDiskTexture) {
+	private static void doDrawSlotBackground(Minecraft mc, int x, int y, Identifier slotDiskTexture) {
 		LPGuiGraphics.zLevel = 0;
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		net.minecraft.client.gui.GuiGraphics gg = SimpleGraphics.guiGraphics;
-		gg.blit(slotDiskTexture, x, y, 0.0f, 0.0f, 18, 18, 18, 18);
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+		GuiGraphicsExtractor gg = SimpleGraphics.guiGraphics;
+		gg.blit(RenderPipelines.GUI_TEXTURED, slotDiskTexture, x, y, 0.0f, 0.0f, 18, 18, 18, 18, SimpleGraphics.color);
 		// 1-pixel darker inset border so the slot visually separates from the panel on light backgrounds.
 		final int borderColor = 0x80373737;
 		gg.fill(x,      y,      x + 18, y + 1,  borderColor);
@@ -233,35 +230,31 @@ public final class LPGuiGraphics {
 
 	public static void drawBigSlotBackground(Minecraft mc, int x, int y) {
 		LPGuiGraphics.zLevel = 0;
-		SimpleGraphics.guiGraphics.blit(LPGuiGraphics.BIG_SLOT_TEXTURE, x, y, 0.0f, 0.0f, 26, 26, 26, 26);
+		SimpleGraphics.guiGraphics.blit(RenderPipelines.GUI_TEXTURED, LPGuiGraphics.BIG_SLOT_TEXTURE, x, y, 0.0f, 0.0f, 26, 26, 26, 26, SimpleGraphics.color);
 	}
 
 	public static void drawSmallSlotBackground(Minecraft mc, int x, int y) {
 		LPGuiGraphics.zLevel = 0;
-		SimpleGraphics.guiGraphics.blit(LPGuiGraphics.SMALL_SLOT_TEXTURE, x, y, 0.0f, 0.0f, 8, 8, 8, 8);
+		SimpleGraphics.guiGraphics.blit(RenderPipelines.GUI_TEXTURED, LPGuiGraphics.SMALL_SLOT_TEXTURE, x, y, 0.0f, 0.0f, 8, 8, 8, 8, SimpleGraphics.color);
 	}
 
 	public static void renderIconAt(Minecraft mc, int x, int y, float zLevel, TextureAtlasSprite icon) {
 		if (icon == null) {
 			return;
 		}
-		SimpleGraphics.guiGraphics.blit(x, y, 0, 16, 16, icon);
+		SimpleGraphics.guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, icon, x, y, 16, 16, SimpleGraphics.color);
 	}
 
 	public static void drawLockBackground(Minecraft mc, int x, int y) {
 		LPGuiGraphics.zLevel = 0;
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.enableBlend();
-		SimpleGraphics.guiGraphics.blit(LPGuiGraphics.LOCK_ICON, x, y, 0.0f, 0.0f, 14, 15, 14, 15);
-		RenderSystem.disableBlend();
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+		SimpleGraphics.guiGraphics.blit(RenderPipelines.GUI_TEXTURED, LPGuiGraphics.LOCK_ICON, x, y, 0.0f, 0.0f, 14, 15, 14, 15, SimpleGraphics.color);
 	}
 
-	private static void drawTexture16by16(Minecraft mc, int x, int y, ResourceLocation tex) {
+	private static void drawTexture16by16(Minecraft mc, int x, int y, Identifier tex) {
 		LPGuiGraphics.zLevel = 0;
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.enableBlend();
-		SimpleGraphics.guiGraphics.blit(tex, x, y, 0.0f, 0.0f, 16, 16, 16, 16);
-		RenderSystem.disableBlend();
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+		SimpleGraphics.guiGraphics.blit(RenderPipelines.GUI_TEXTURED, tex, x, y, 0.0f, 0.0f, 16, 16, 16, 16, SimpleGraphics.color);
 	}
 
 	public static void drawLinesBackground(Minecraft mc, int x, int y) {
@@ -275,7 +268,18 @@ public final class LPGuiGraphics {
 	/** LP1's glColor4b HUD tint: day darkens to 64/127, alpha is 0..127 like the signed byte. */
 	public static void setHudColor(boolean day, int alpha) {
 		float c = day ? 64 / 127F : 1F;
-		RenderSystem.setShaderColor(c, c, c, alpha / 127F);
+		SimpleGraphics.setColor(c, c, c, alpha / 127F);
+	}
+
+	/** The removed GuiGraphics.blitRepeating: tiles the (srcX, srcY, srcW, srcH) region over the destination. */
+	private static void blitRepeating(GuiGraphicsExtractor gg, Identifier tex, int x, int y, int w, int h, int srcX, int srcY, int srcW, int srcH, int texW, int texH) {
+		for (int dx = 0; dx < w; dx += srcW) {
+			int tw = Math.min(srcW, w - dx);
+			for (int dy = 0; dy < h; dy += srcH) {
+				int th = Math.min(srcH, h - dy);
+				gg.blit(RenderPipelines.GUI_TEXTURED, tex, x + dx, y + dy, srcX, srcY, tw, th, texW, texH, SimpleGraphics.color);
+			}
+		}
 	}
 
 	public static void drawGuiBackGround(Minecraft mc, int guiLeft, int guiTop, int right, int bottom, float zLevel, boolean resetColor) {
@@ -284,9 +288,9 @@ public final class LPGuiGraphics {
 
 	public static void drawGuiBackGround(Minecraft mc, int guiLeft, int guiTop, int right, int bottom, float zLevel, boolean resetColor, boolean displayTop, boolean displayLeft, boolean displayBottom, boolean displayRight) {
 		if (resetColor) {
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+			SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 		}
-		net.minecraft.client.gui.GuiGraphics gg = SimpleGraphics.guiGraphics;
+		GuiGraphicsExtractor gg = SimpleGraphics.guiGraphics;
 		if (gg == null) return;
 		final int panelW = right - guiLeft;
 		final int panelH = bottom - guiTop;
@@ -303,24 +307,24 @@ public final class LPGuiGraphics {
 		final int innerH = bottom - BORDER - innerY;  // bottom-15 - (guiTop+15)
 
 		// Corners
-		if (displayTop  && displayLeft)  gg.blit(BACKGROUND_TEXTURE, guiLeft,       guiTop,        0.0f,        0.0f,        BORDER, BORDER, TEX, TEX);
-		if (displayTop  && displayRight) gg.blit(BACKGROUND_TEXTURE, right - BORDER, guiTop,       30.0f,        0.0f,        BORDER, BORDER, TEX, TEX);
-		if (displayBottom && displayLeft)  gg.blit(BACKGROUND_TEXTURE, guiLeft,       bottom-BORDER, 0.0f,       30.0f,        BORDER, BORDER, TEX, TEX);
-		if (displayBottom && displayRight) gg.blit(BACKGROUND_TEXTURE, right - BORDER, bottom-BORDER,30.0f,      30.0f,        BORDER, BORDER, TEX, TEX);
+		if (displayTop  && displayLeft)  gg.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, guiLeft,       guiTop,        0.0f,        0.0f,        BORDER, BORDER, TEX, TEX, SimpleGraphics.color);
+		if (displayTop  && displayRight) gg.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, right - BORDER, guiTop,       30.0f,        0.0f,        BORDER, BORDER, TEX, TEX, SimpleGraphics.color);
+		if (displayBottom && displayLeft)  gg.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, guiLeft,       bottom-BORDER, 0.0f,       30.0f,        BORDER, BORDER, TEX, TEX, SimpleGraphics.color);
+		if (displayBottom && displayRight) gg.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, right - BORDER, bottom-BORDER,30.0f,      30.0f,        BORDER, BORDER, TEX, TEX, SimpleGraphics.color);
 
 		// Edges (tiled)
 		if (innerW > 0) {
-			if (displayTop)    gg.blitRepeating(BACKGROUND_TEXTURE, innerX, guiTop,        innerW, BORDER, BORDER, 0,      BORDER, BORDER, TEX, TEX);
-			if (displayBottom) gg.blitRepeating(BACKGROUND_TEXTURE, innerX, bottom-BORDER, innerW, BORDER, BORDER, 30,     BORDER, BORDER, TEX, TEX);
+			if (displayTop)    blitRepeating(gg, BACKGROUND_TEXTURE, innerX, guiTop,        innerW, BORDER, BORDER, 0,      BORDER, BORDER, TEX, TEX);
+			if (displayBottom) blitRepeating(gg, BACKGROUND_TEXTURE, innerX, bottom-BORDER, innerW, BORDER, BORDER, 30,     BORDER, BORDER, TEX, TEX);
 		}
 		if (innerH > 0) {
-			if (displayLeft)   gg.blitRepeating(BACKGROUND_TEXTURE, guiLeft,        innerY, BORDER, innerH, 0,  BORDER, BORDER, BORDER, TEX, TEX);
-			if (displayRight)  gg.blitRepeating(BACKGROUND_TEXTURE, right - BORDER, innerY, BORDER, innerH, 30, BORDER, BORDER, BORDER, TEX, TEX);
+			if (displayLeft)   blitRepeating(gg, BACKGROUND_TEXTURE, guiLeft,        innerY, BORDER, innerH, 0,  BORDER, BORDER, BORDER, TEX, TEX);
+			if (displayRight)  blitRepeating(gg, BACKGROUND_TEXTURE, right - BORDER, innerY, BORDER, innerH, 30, BORDER, BORDER, BORDER, TEX, TEX);
 		}
 
 		// Center (always drawn)
 		if (innerW > 0 && innerH > 0) {
-			gg.blitRepeating(BACKGROUND_TEXTURE, innerX, innerY, innerW, innerH, BORDER, BORDER, BORDER, BORDER, TEX, TEX);
+			blitRepeating(gg, BACKGROUND_TEXTURE, innerX, innerY, innerW, innerH, BORDER, BORDER, BORDER, BORDER, TEX, TEX);
 		}
 	}
 }

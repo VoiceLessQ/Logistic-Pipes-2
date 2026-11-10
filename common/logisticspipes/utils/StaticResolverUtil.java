@@ -11,19 +11,21 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.forgespi.language.IModFileInfo;
-import net.minecraftforge.forgespi.language.ModFileScanData;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.Stream;
 
-import org.objectweb.asm.Type;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+
+import org.objectweb.asm.ClassReader;
 
 import logisticspipes.LPConstants;
 import logisticspipes.LogisticsPipes;
 
 /**
- * Resolves concrete subclasses of a given type by walking NeoForge's {@link ModFileScanData},
- * which exposes every class in the LP mod file together with its declared parent type without
- * having to class-load the whole mod.
+ * Resolves concrete subclasses of a given type by reading the superclass of every class file in
+ * the LP mod's root paths (jar or dev output dirs) with ASM, without class-loading the whole mod.
  *
  * <p>The index is built lazily on first call and cached. Abstract classes and inner types that
  * cannot be loaded (e.g. referencing missing optional-mod classes) are silently skipped.
@@ -46,18 +48,21 @@ public class StaticResolverUtil {
 		}
 		Map<String, Set<String>> map = new HashMap<>();
 		try {
-			IModFileInfo modFile = ModList.get().getModFileById(LPConstants.LP_MOD_ID);
-			if (modFile == null) {
-				LogisticsPipes.log.error("StaticResolverUtil: LP mod file not found; class resolution disabled");
+			ModContainer mod = FabricLoader.getInstance().getModContainer(LPConstants.LP_MOD_ID).orElse(null);
+			if (mod == null) {
+				LogisticsPipes.log.error("StaticResolverUtil: LP mod container not found; class resolution disabled");
 				childrenByParent = Collections.emptyMap();
 				return;
 			}
-			ModFileScanData scan = modFile.getFile().getScanResult();
-			for (ModFileScanData.ClassData cd : scan.getClasses()) {
-				String child = cd.clazz().getClassName();
-				Type parent = cd.parent();
-				if (parent != null) {
-					map.computeIfAbsent(parent.getClassName(), k -> new HashSet<>()).add(child);
+			for (Path root : mod.getRootPaths()) {
+				try (Stream<Path> files = Files.walk(root)) {
+					for (Path file : (Iterable<Path>) files.filter(f -> f.toString().endsWith(".class"))::iterator) {
+						ClassReader reader = new ClassReader(Files.readAllBytes(file));
+						String parent = reader.getSuperName();
+						if (parent != null) {
+							map.computeIfAbsent(parent.replace('/', '.'), k -> new HashSet<>()).add(reader.getClassName().replace('/', '.'));
+						}
+					}
 				}
 			}
 		} catch (Throwable t) {

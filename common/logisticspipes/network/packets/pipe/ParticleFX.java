@@ -60,7 +60,7 @@ public class ParticleFX extends CoordinatesPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (net.minecraft.client.Minecraft.getInstance().options.graphicsMode().get().getId() < 1) { // isFancyGraphicsEnabled removed — check graphicsMode >= 1 (Fancy)
+		if (net.minecraft.client.Minecraft.getInstance().options.graphicsPreset().get() == net.minecraft.client.GraphicsPreset.FAST) {
 			return;
 		}
 		for (ParticleCount pc : particles) {

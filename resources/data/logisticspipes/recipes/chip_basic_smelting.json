@@ -1,7 +1,0 @@
-{
-  "type": "minecraft:smelting",
-  "ingredient": {"item": "logisticspipes:chip_basic_raw"},
-  "result": "logisticspipes:chip_basic",
-  "experience": 0.5,
-  "cookingtime": 200
-}

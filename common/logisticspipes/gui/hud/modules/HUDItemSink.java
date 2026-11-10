@@ -1,9 +1,10 @@
 package logisticspipes.gui.hud.modules;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 
 
@@ -28,13 +29,13 @@ public class HUDItemSink implements IHUDModuleRenderer {
 	public void renderContent(boolean shifted) {
 		Minecraft mc = Minecraft.getInstance();
 		ItemStackRenderer.renderItemIdentifierStackListIntoGui(ItemIdentifierStack.getListFromInventory(module.getFilterInventory()), null, 0, -25, -32, 3, 9, 18, 18, 100.0F, DisplayAmount.NEVER, false, shifted);
-		GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		if (gg != null) {
-			gg.drawString(mc.font, "Default:", -29, 25, 0xff000000, false);
+			SimpleGraphics.drawString(gg, mc.font, "Default:", -29, 25, 0xff000000, false);
 			if (module.isDefaultRoute()) {
-				gg.drawString(mc.font, "Yes", 11, 25, 0xff000000, false);
+				SimpleGraphics.drawString(gg, mc.font, "Yes", 11, 25, 0xff000000, false);
 			} else {
-				gg.drawString(mc.font, "No", 15, 25, 0xff000000, false);
+				SimpleGraphics.drawString(gg, mc.font, "No", 15, 25, 0xff000000, false);
 			}
 		}
 	}

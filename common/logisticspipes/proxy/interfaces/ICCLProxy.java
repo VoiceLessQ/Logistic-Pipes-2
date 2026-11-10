@@ -8,8 +8,8 @@ import java.util.Map;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 // TODO: IModelState removed — rendering deferred
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.proxy.object3d.interfaces.I3DOperation;
 import logisticspipes.proxy.object3d.interfaces.IModel3D;
@@ -21,7 +21,7 @@ import logisticspipes.proxy.object3d.operation.LPScale;
 
 public interface ICCLProxy {
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	TextureTransformation createIconTransformer(TextureAtlasSprite registerIcon);
 
 	IRenderState getRenderState();

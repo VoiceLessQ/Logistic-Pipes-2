@@ -47,7 +47,7 @@ class NullableEnumProperty<E : Enum<E>>(
 
     override fun readFromNBT(tag: CompoundTag) {
         if (tag.contains(tagKey)) {
-            val ordinalValue = tag.getInt(tagKey)
+            val ordinalValue = tag.getIntOr(tagKey, -1)
             value = if (ordinalValue == -1) {
                 null
             } else {

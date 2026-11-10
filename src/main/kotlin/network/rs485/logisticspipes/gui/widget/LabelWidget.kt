@@ -119,8 +119,8 @@ class LabelWidget(
         val textWidth = GuiDrawer.mcFontRenderer.width(drawText)
         val textY = absoluteBody.roundedTop + (absoluteBody.roundedHeight - GuiDrawer.mcFontRenderer.lineHeight) / 2
         if (expanded) {
-            gg.pose().pushPose()
-            gg.pose().translate(0f, 0f, 100f)
+            gg.pose().pushMatrix()
+            gg.pose().translate(0f, 0f)
             gg.fill(absoluteBody.roundedLeft, absoluteBody.roundedTop, absoluteBody.roundedLeft + textWidth + 4, absoluteBody.roundedBottom, backgroundColor)
         }
         val textX = when (alignment) {
@@ -128,8 +128,8 @@ class LabelWidget(
             HorizontalAlignment.CENTER -> absoluteBody.roundedLeft + (absoluteBody.roundedWidth - textWidth) / 2
             HorizontalAlignment.RIGHT -> absoluteBody.roundedRight - textWidth - 2
         }
-        gg.drawString(GuiDrawer.mcFontRenderer, drawText, textX, textY, textColor, false)
-        if (expanded) gg.pose().popPose()
+        gg.text(GuiDrawer.mcFontRenderer, drawText, textX, textY, textColor, false)
+        if (expanded) gg.pose().popMatrix()
     }
 
     private fun trimText(text: String): String {

@@ -103,10 +103,10 @@ public class HUDRoutingTableGeneralInfo extends BasicHUDGui implements IHeadUpDi
 			int left = -55;
 			for (PipeRoutingConnectionType flag : PipeRoutingConnectionType.values) {
 				if (route.closedSet.contains(flag)) {
-					if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.drawString(mc.font, "+", left, line, getColorForFlag(flag));
+					if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.text(mc.font, "+", left, line, getColorForFlag(flag));
 					left += mc.font.width("+");
 				} else {
-					if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.drawString(mc.font, "-", left, line, getColorForFlag(flag));
+					if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.text(mc.font, "-", left, line, getColorForFlag(flag));
 					left += mc.font.width("-");
 				}
 			}
@@ -114,14 +114,14 @@ public class HUDRoutingTableGeneralInfo extends BasicHUDGui implements IHeadUpDi
 		}
 		if (route.routes != null) {
 			for (ExitRoute exit : route.routes) {
-				if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.drawString(mc.font, "Possible: ", -55, line, 0xffffff);
+				if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.text(mc.font, "Possible: ", -55, line, 0xffffff);
 				int left = -55 + mc.font.width("Possible: ");
 				for (PipeRoutingConnectionType flag : PipeRoutingConnectionType.values) {
 					if (exit.containsFlag(flag)) {
-						if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.drawString(mc.font, "+", left, line, getColorForFlag(flag));
+						if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.text(mc.font, "+", left, line, getColorForFlag(flag));
 						left += mc.font.width("+");
 					} else {
-						if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.drawString(mc.font, "-", left, line, getColorForFlag(flag));
+						if (SimpleGraphics.guiGraphics != null) SimpleGraphics.guiGraphics.text(mc.font, "-", left, line, getColorForFlag(flag));
 						left += mc.font.width("-");
 					}
 				}
@@ -147,7 +147,7 @@ public class HUDRoutingTableGeneralInfo extends BasicHUDGui implements IHeadUpDi
 
 	private void write(String data, Minecraft mc) {
 		if (SimpleGraphics.guiGraphics != null) {
-			SimpleGraphics.guiGraphics.drawString(mc.font, data, -55, line, 0xffffff);
+			SimpleGraphics.guiGraphics.text(mc.font, data, -55, line, 0xffffff);
 		}
 		line += 10;
 	}

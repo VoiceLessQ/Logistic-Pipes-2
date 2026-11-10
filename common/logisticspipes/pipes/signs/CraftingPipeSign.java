@@ -8,15 +8,15 @@ import net.minecraft.client.gui.Font;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.MainTarget;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -80,14 +80,14 @@ public class CraftingPipeSign implements IPipeSign {
 	public void activate(Player player) {}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public void render(CoreRoutedPipe pipe, LogisticsRenderPipe renderer) {
 		// Legacy no-arg entrypoint — handled via the PoseStack overload below.
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void render(CoreRoutedPipe pipe, LogisticsRenderPipe renderer, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+	@Environment(EnvType.CLIENT)
+	public void render(CoreRoutedPipe pipe, LogisticsRenderPipe renderer, PoseStack poseStack, SubmitNodeCollector collector, int packedLight) {
 		PipeItemsCraftingLogistics cpipe = (PipeItemsCraftingLogistics) pipe;
 		Font var17 = net.minecraft.client.Minecraft.getInstance().font;
 		oldRenderedStack = null;
@@ -99,7 +99,7 @@ public class CraftingPipeSign implements IPipeSign {
 				ItemIdentifierStack itemstack = craftables.get(0);
 				oldRenderedStack = itemstack;
 
-				renderer.renderItemStackOnSign(itemstack.unsafeMakeNormalStack(), poseStack, bufferSource, packedLight);
+				renderer.renderItemStackOnSign(itemstack.unsafeMakeNormalStack(), poseStack, collector, packedLight);
 				Item item = itemstack.getItem().item;
 
 				poseStack.pushPose();
@@ -116,14 +116,12 @@ public class CraftingPipeSign implements IPipeSign {
 				}
 
 				String idStr = String.format("ID: %d", BuiltInRegistries.ITEM.getId(item));
-				var17.drawInBatch(Component.literal(idStr), -var17.width(idStr) / 2.0F, 0 * 10 - 4 * 5, 0,
-						false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+				collector.submitText(poseStack, -var17.width(idStr) / 2.0F, 0 * 10 - 4 * 5, Component.literal(idStr).getVisualOrderText(), false, Font.DisplayMode.NORMAL, packedLight, 0xFF000000, 0, 0);
 				ModuleCrafter logisticsMod = cpipe.getLogisticsModule();
 				oldSatelliteName = logisticsMod.clientSideSatelliteNames.satelliteName;
 				if (!oldSatelliteName.isEmpty()) {
 					String sat = "Sat: " + oldSatelliteName;
-					var17.drawInBatch(Component.literal(sat), -var17.width(sat) / 2.0F, 1 * 10 - 4 * 5, 0,
-							false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+					collector.submitText(poseStack, -var17.width(sat) / 2.0F, 1 * 10 - 4 * 5, Component.literal(sat).getVisualOrderText(), false, Font.DisplayMode.NORMAL, packedLight, 0xFF000000, 0, 0);
 				}
 			} else {
 				poseStack.pushPose();
@@ -135,15 +133,14 @@ public class CraftingPipeSign implements IPipeSign {
 
 			name = renderer.cut(name, var17);
 
-			var17.drawInBatch(Component.literal(name), -var17.width(name) / 2.0F - 15, 3 * 10 - 4 * 5, 0,
-					false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+			collector.submitText(poseStack, -var17.width(name) / 2.0F - 15, 3 * 10 - 4 * 5, Component.literal(name).getVisualOrderText(), false, Font.DisplayMode.NORMAL, packedLight, 0xFF000000, 0, 0);
 
 			poseStack.popPose();
 		}
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public RenderTarget getMCFrameBufferForSign() {
 		// OpenGlHelper.isFramebufferEnabled() removed in 1.20.1 — FBOs are always available
 		if(fbo == null) {
@@ -153,7 +150,7 @@ public class CraftingPipeSign implements IPipeSign {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public boolean doesFrameBufferNeedUpdating(CoreRoutedPipe pipe, LogisticsRenderPipe renderer) {
 		ItemIdentifierStack itemstack = getItemIdentifierStack((PipeItemsCraftingLogistics) pipe);
 		if (itemstack != null && oldRenderedStack != null) {

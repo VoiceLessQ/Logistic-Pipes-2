@@ -5,11 +5,12 @@ import javax.annotation.Nonnull;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 
+import logisticspipes.utils.TagUtil;
+
 public class ItemStackLoader {
 
 	@Nonnull
 	public static ItemStack loadAndFixItemStackFromNBT(CompoundTag nbt) {
-		// In 1.20, ItemStack.of(CompoundTag) handles data-fixer upgrades internally via Util.getFixerUpper().
-		return ItemStack.of(nbt);
+		return TagUtil.loadStack(nbt);
 	}
 }

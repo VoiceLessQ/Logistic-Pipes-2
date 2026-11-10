@@ -28,7 +28,7 @@ public class ClientRouter implements IRouter {
 	private final int _yCoord;
 	private final int _zCoord;
 
-	public ClientRouter(UUID id, net.minecraft.resources.ResourceLocation dimension, int xCoord, int yCoord, int zCoord) {
+	public ClientRouter(UUID id, net.minecraft.resources.Identifier dimension, int xCoord, int yCoord, int zCoord) {
 		_xCoord = xCoord;
 		_yCoord = yCoord;
 		_zCoord = zCoord;
@@ -109,12 +109,12 @@ public class ClientRouter implements IRouter {
 	}
 
 	@Override
-	public boolean isInDim(net.minecraft.resources.ResourceLocation dimension) {
+	public boolean isInDim(net.minecraft.resources.Identifier dimension) {
 		return true;
 	}
 
 	@Override
-	public boolean isAt(net.minecraft.resources.ResourceLocation dimension, int xCoord, int yCoord, int zCoord) {
+	public boolean isAt(net.minecraft.resources.Identifier dimension, int xCoord, int yCoord, int zCoord) {
 		return _xCoord == xCoord && _yCoord == yCoord && _zCoord == zCoord;
 	}
 

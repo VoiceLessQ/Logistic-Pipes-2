@@ -6,13 +6,14 @@
  */
 
 package logisticspipes.utils.gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import javax.annotation.Nonnull;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
 
 import logisticspipes.utils.Color;
@@ -45,12 +46,12 @@ public class SmallGuiButton extends AbstractButton {
 	}
 
 	@Override
-	public void onPress() {
+	public void onPress(InputWithModifiers input) {
 		pressListener.accept(this);
 	}
 
 	@Override
-	public void renderWidget(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void extractContents(@Nonnull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		Font fontrenderer = Minecraft.getInstance().font;
 		boolean flag = isHovered();
 		// Background fill
@@ -63,11 +64,11 @@ public class SmallGuiButton extends AbstractButton {
 		guiGraphics.fill(getX() + width - 1, getY(), getX() + width, getY() + height, 0xff333333);
 		// Label
 		int color = !active ? Color.getValue(Color.GREY) : flag ? Color.getValue(Color.LIGHT_YELLOW) : Color.getValue(Color.LIGHTER_GREY);
-		guiGraphics.drawCenteredString(fontrenderer, getMessage(), getX() + width / 2, getY() + (height - 8) / 2 + stringOffset, color);
+		SimpleGraphics.drawCenteredString(guiGraphics, fontrenderer, getMessage(), getX() + width / 2, getY() + (height - 8) / 2 + stringOffset, color);
 	}
 
 	@Override
-	protected void updateWidgetNarration(@Nonnull net.minecraft.client.gui.narration.NarrationElementOutput narrationElementOutput) {
+	public void updateWidgetNarration(@Nonnull net.minecraft.client.gui.narration.NarrationElementOutput narrationElementOutput) {
 		defaultButtonNarrationText(narrationElementOutput);
 	}
 }

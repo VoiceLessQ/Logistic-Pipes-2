@@ -3,10 +3,11 @@ package logisticspipes.network.packets.pipe;
 import java.util.BitSet;
 
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
-import net.minecraftforge.fluids.FluidStack;
+import logisticspipes.utils.FluidIdentifier;
+import logisticspipes.utils.FluidIdentifierStack;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -25,7 +26,7 @@ public class PipeFluidUpdate extends CoordinatesPacket {
 
 	@Getter(value = AccessLevel.PRIVATE)
 	@Setter
-	private FluidStack[] renderCache = new FluidStack[Direction.values().length];
+	private FluidIdentifierStack[] renderCache = new FluidIdentifierStack[Direction.values().length];
 	private BitSet bits = new BitSet();
 
 	public PipeFluidUpdate(int id) {
@@ -38,8 +39,10 @@ public class PipeFluidUpdate extends CoordinatesPacket {
 		bits = input.readBitSet();
 		for (int i = 0; i < renderCache.length; i++) {
 			if (bits.get(i)) {
-				net.minecraft.world.level.material.Fluid fluid = net.minecraft.core.registries.BuiltInRegistries.FLUID.get(ResourceLocation.tryParse(input.readUTF()));
-				renderCache[i] = new FluidStack(fluid, input.readInt(), input.readCompoundTag());
+				net.minecraft.world.level.material.Fluid fluid = net.minecraft.core.registries.BuiltInRegistries.FLUID.getValue(Identifier.tryParse(input.readUTF()));
+				int amount = input.readInt();
+				FluidIdentifier ident = FluidIdentifier.get(fluid, input.readCompoundTag(), null);
+				renderCache[i] = ident == null ? null : ident.makeFluidIdentifierStack(amount);
 			}
 		}
 	}
@@ -48,14 +51,14 @@ public class PipeFluidUpdate extends CoordinatesPacket {
 	public void writeData(LPDataOutput output) {
 		super.writeData(output);
 		for (int i = 0; i < renderCache.length; i++) {
-			bits.set(i, renderCache[i] != null && !renderCache[i].isEmpty());
+			bits.set(i, renderCache[i] != null && renderCache[i].getAmount() > 0);
 		}
 		output.writeBitSet(bits);
-		for (FluidStack aRenderCache : renderCache) {
-			if (aRenderCache != null && !aRenderCache.isEmpty()) {
-				output.writeUTF(net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(aRenderCache.getFluid()).toString());
+		for (FluidIdentifierStack aRenderCache : renderCache) {
+			if (aRenderCache != null && aRenderCache.getAmount() > 0) {
+				output.writeUTF(aRenderCache.getFluid().fluidID);
 				output.writeInt(aRenderCache.getAmount());
-				output.writeCompoundTag(aRenderCache.getTag());
+				output.writeCompoundTag(aRenderCache.getFluid().tag);
 			}
 		}
 	}

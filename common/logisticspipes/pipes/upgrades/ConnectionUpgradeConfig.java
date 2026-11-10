@@ -1,5 +1,6 @@
 package logisticspipes.pipes.upgrades;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -79,8 +80,8 @@ public class ConnectionUpgradeConfig implements IConfigPipeUpgrade {
 	@Nonnull
 	public Stream<Direction> getSides(@Nonnull ItemStack stack) {
 		if (stack.isEmpty()) return Stream.empty();
-		final CompoundTag tag = stack.getTag();
+		final CompoundTag tag = CustomDataUtil.getTag(stack);
 		if (tag == null) return Stream.empty();
-		return Arrays.stream(Sides.values()).filter(side -> tag.getBoolean(side.getLpName())).map(Sides::getDir);
+		return Arrays.stream(Sides.values()).filter(side -> tag.getBooleanOr(side.getLpName(), false)).map(Sides::getDir);
 	}
 }

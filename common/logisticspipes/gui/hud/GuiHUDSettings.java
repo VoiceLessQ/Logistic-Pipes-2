@@ -1,5 +1,6 @@
 package logisticspipes.gui.hud;
-import net.minecraft.client.gui.GuiGraphics;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.io.IOException;
 
@@ -61,7 +62,7 @@ public class GuiHUDSettings extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float var1, int var2, int var3) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float var1, int var2, int var3) {
 		if (player.getInventory().getItem(slot).isEmpty() || player.getInventory().getItem(slot).getItem() != LPItems.hudGlasses.get()) {
 			minecraft.player.closeContainer();
 		}
@@ -71,13 +72,13 @@ public class GuiHUDSettings extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
-		guiGraphics.drawString(minecraft.font, "HUD Chassis Pipe", 50, 13, 0x4c4c4c, false);
-		guiGraphics.drawString(minecraft.font, "HUD Crafting Pipe", 50, 33, 0x4c4c4c, false);
-		guiGraphics.drawString(minecraft.font, "HUD InvSysCon Pipe", 50, 53, 0x4c4c4c, false);
-		guiGraphics.drawString(minecraft.font, "HUD Power Junction", 50, 73, 0x4c4c4c, false);
-		guiGraphics.drawString(minecraft.font, "HUD Provider Pipe", 50, 93, 0x4c4c4c, false);
-		guiGraphics.drawString(minecraft.font, "HUD Satellite Pipe", 50, 113, 0x4c4c4c, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "HUD Chassis Pipe", 50, 13, 0x4c4c4c, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "HUD Crafting Pipe", 50, 33, 0x4c4c4c, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "HUD InvSysCon Pipe", 50, 53, 0x4c4c4c, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "HUD Power Junction", 50, 73, 0x4c4c4c, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "HUD Provider Pipe", 50, 93, 0x4c4c4c, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "HUD Satellite Pipe", 50, 113, 0x4c4c4c, false);
 	}
 }

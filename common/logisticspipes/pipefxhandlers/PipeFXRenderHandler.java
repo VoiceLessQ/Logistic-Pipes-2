@@ -16,7 +16,7 @@ public class PipeFXRenderHandler {
 		try {
 			Minecraft mc = Minecraft.getInstance();
 			// particleSetting removed — check ParticleStatus in 1.20.1
-			int var14 = mc.options.particles().get().getId();
+			int var14 = mc.options.particles().get().ordinal();
 			double var15 = mc.getCameraEntity().getX() - x;
 			double var17 = mc.getCameraEntity().getY() - y;
 			double var19 = mc.getCameraEntity().getZ() - z;

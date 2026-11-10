@@ -1,5 +1,6 @@
 package logisticspipes.gui.popup;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.nbt.CompoundTag;
 
 import logisticspipes.blocks.LogisticsSecurityTileEntity;
@@ -63,13 +64,13 @@ public class GuiSecurityStationPopup extends SubGuiScreen {
 	@Override
 	protected void renderGuiBackground(int mouseX, int mouseY) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, guiLeft, guiTop, right, bottom, 0.0f, true);
-		getGuiGraphics().drawString(minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "Player") + ": " + activeSetting.name, guiLeft + 10, guiTop + 10, 0x404040, false);
-		getGuiGraphics().drawString(minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "ConfigureSettings") + ": ", guiLeft + 10, guiTop + 30, 0x404040, false);
-		getGuiGraphics().drawString(minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "ActiveRequesting") + ": ", guiLeft + 10, guiTop + 45, 0x404040, false);
-		getGuiGraphics().drawString(minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "UpgradePipes") + ": ", guiLeft + 10, guiTop + 60, 0x404040, false);
-		getGuiGraphics().drawString(minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "CheckNetwork") + ": ", guiLeft + 10, guiTop + 75, 0x404040, false);
-		getGuiGraphics().drawString(minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "RemovePipes") + ": ", guiLeft + 10, guiTop + 90, 0x404040, false);
-		getGuiGraphics().drawString(minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "AccessRoutingChannels") + ": ", guiLeft + 10, guiTop + 105, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "Player") + ": " + activeSetting.name, guiLeft + 10, guiTop + 10, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "ConfigureSettings") + ": ", guiLeft + 10, guiTop + 30, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "ActiveRequesting") + ": ", guiLeft + 10, guiTop + 45, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "UpgradePipes") + ": ", guiLeft + 10, guiTop + 60, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "CheckNetwork") + ": ", guiLeft + 10, guiTop + 75, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "RemovePipes") + ": ", guiLeft + 10, guiTop + 90, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, TextUtil.translate(GuiSecurityStationPopup.PREFIX + "AccessRoutingChannels") + ": ", guiLeft + 10, guiTop + 105, 0x404040, false);
 	}
 
 	public void refreshCheckBoxes() {

@@ -70,7 +70,7 @@ open class Label(fullText: String, internal val x: Int, internal val y: Int, int
         if (overflows && hovered) {
             drawOverflowBox(rect.roundedLeft, rect.roundedTop, rect.roundedWidth, rect.roundedHeight)
         }
-        gg.drawString(fontRenderer, text, rect.roundedLeft, rect.roundedTop, textColor, false)
+        gg.text(fontRenderer, text, rect.roundedLeft, rect.roundedTop, textColor.opaque(), false)
     }
 
     /** LP1: background plus a fading outline while the expanded full text shows. */

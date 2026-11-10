@@ -1,5 +1,8 @@
 package logisticspipes.blocks.powertile;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.utils.TagUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 
@@ -9,7 +12,10 @@ import logisticspipes.LPConstants;
 import logisticspipes.asm.ModDependentInterface;
 import logisticspipes.asm.ModDependentMethod;
 import logisticspipes.pipes.basic.CoreRoutedPipe;
+import logisticspipes.proxy.IC2RebornEnergy;
 import logisticspipes.proxy.MainProxy;
+import logisticspipes.proxy.TREnergyStorage;
+import logisticspipes.proxy.interfaces.IEnergyStorage;
 import logisticspipes.renderer.LogisticsHUDRenderer;
 
 @ModDependentInterface(modId = { LPConstants.ic2ModID }, interfacePath = { "ic2.api.energy.tile.IEnergySink" })
@@ -22,6 +28,42 @@ public class LogisticsIC2PowerProviderTileEntity extends LogisticsPowerProviderT
 	public static final int MAX_PROVIDE_PER_TICK = 2048 * 6; //TODO
 
 	private boolean addedToEnergyNet = false;
+
+	// accepts EU (1 E = 1 EU) from Tech Reborn cables, generators and storage via Team Reborn Energy
+	private final TREnergyStorage trEnergy = new TREnergyStorage(new IEnergyStorage() {
+
+		@Override
+		public int receiveEnergy(int maxReceive, boolean simulate) {
+			int received = (int) Math.max(0, Math.min(maxReceive, freeSpace()));
+			if (!simulate) addEnergy(received);
+			return received;
+		}
+
+		@Override
+		public int extractEnergy(int maxExtract, boolean simulate) {
+			return 0;
+		}
+
+		@Override
+		public int getEnergyStored() {
+			return (int) internalStorage;
+		}
+
+		@Override
+		public int getMaxEnergyStored() {
+			return getMaxStorage();
+		}
+
+		@Override
+		public boolean canExtract() {
+			return false;
+		}
+
+		@Override
+		public boolean canReceive() {
+			return true;
+		}
+	});
 	private boolean init = false;
 
 	public LogisticsIC2PowerProviderTileEntity(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
@@ -31,6 +73,12 @@ public class LogisticsIC2PowerProviderTileEntity extends LogisticsPowerProviderT
 	@Override
 	public void update() {
 		super.update();
+		if (MainProxy.isServer(getWorld())) {
+			int eu = IC2RebornEnergy.pull(this, (int) freeSpace());
+			if (eu > 0) {
+				addEnergy(eu);
+			}
+		}
 		if (!init && !addedToEnergyNet) {
 			// IC2 energy net registration removed — IC2 has no 1.20.1 port (former dummy was a no-op).
 			addedToEnergyNet = true;
@@ -85,13 +133,20 @@ public class LogisticsIC2PowerProviderTileEntity extends LogisticsPowerProviderT
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag nbt = TagUtil.read(input);
+		super.loadAdditional(input);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag nbt = new CompoundTag();
+		super.saveAdditional(output);
+		TagUtil.write(output, nbt);
+	}
+
+	public TREnergyStorage getTREnergy() {
+		return trEnergy;
 	}
 
 	@Override

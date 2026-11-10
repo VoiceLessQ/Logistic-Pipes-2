@@ -1,5 +1,6 @@
 package logisticspipes.gui.popup;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.client.Minecraft;
 
 
@@ -54,7 +55,7 @@ public class ActionChoicePopup extends SubGuiScreen {
 	@Override
 	protected void renderGuiBackground(int mouseX, int mouseY) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, guiLeft, guiTop, right, bottom, 0.0f, true);
-		getGuiGraphics().drawString(minecraft.font, message, xCenter - minecraft.font.width(message) / 2, guiTop + 6, 0xFFFFFF, true);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, message, xCenter - minecraft.font.width(message) / 2, guiTop + 6, 0xFFFFFF, true);
 	}
 
 }

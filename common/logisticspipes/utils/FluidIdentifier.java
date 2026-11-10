@@ -10,20 +10,23 @@ import java.util.Random;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.nbt.CompoundTag;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 
 import lombok.AllArgsConstructor;
 
@@ -45,14 +48,14 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 	private final static HashMap<Integer, FluidIdentifier> _fluidIdentifierIdCache = new HashMap<>(256, 0.5f);
 
 	//for fluids with tags, map fluidID -> map tag -> FluidIdentifier
-	private final static Map<String, HashMap<FinalCompoundTag, FluidIdentifier>> _fluidIdentifierTagCache = new HashMap<>(256);
+	private final static Map<String, HashMap<CompoundTag, FluidIdentifier>> _fluidIdentifierTagCache = new HashMap<>(256);
 
 	//for fluids without tags, map fluidID -> FluidIdentifier
 	private final static Map<String, FluidIdentifier> _fluidIdentifierCache = new HashMap<>(256);
 
 	public final String fluidID;
 	public final String name;
-	public final FinalCompoundTag tag;
+	public final CompoundTag tag;
 	public final int uniqueID;
 
 	@Override
@@ -66,18 +69,12 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 	}
 
 	@AllArgsConstructor
-	private static class FluidStackAddInfo implements IAddInfo {
-
-		private final FluidIdentifier fluid;
-	}
-
-	@AllArgsConstructor
 	private static class FluidAddInfo implements IAddInfo {
 
 		private final FluidIdentifier fluid;
 	}
 
-	private FluidIdentifier(String fluidID, String name, FinalCompoundTag tag, int uniqueID) {
+	private FluidIdentifier(String fluidID, String name, CompoundTag tag, int uniqueID) {
 		this.fluidID = fluidID;
 		this.name = name;
 		this.tag = tag;
@@ -85,7 +82,7 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 	}
 
 	private static String getFluidName(Fluid fluid) {
-		ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(fluid);
+		Identifier key = net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(fluid);
 		return key != null ? key.toString() : "unknown";
 	}
 
@@ -114,9 +111,9 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 		} else {
 			FluidIdentifier.rlock.lock();
 			{
-				HashMap<FinalCompoundTag, FluidIdentifier> fluidNBTList = FluidIdentifier._fluidIdentifierTagCache.get(fluidID);
+				HashMap<CompoundTag, FluidIdentifier> fluidNBTList = FluidIdentifier._fluidIdentifierTagCache.get(fluidID);
 				if (fluidNBTList != null) {
-					FinalCompoundTag tagwithfixedname = new FinalCompoundTag(tag);
+					CompoundTag tagwithfixedname = tag.copy();
 					FluidIdentifier unknownFluid = fluidNBTList.get(tagwithfixedname);
 					if (unknownFluid != null) {
 						FluidIdentifier.rlock.unlock();
@@ -127,9 +124,9 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 			FluidIdentifier.rlock.unlock();
 			FluidIdentifier.wlock.lock();
 			{
-				HashMap<FinalCompoundTag, FluidIdentifier> fluidNBTList = FluidIdentifier._fluidIdentifierTagCache.get(fluidID);
+				HashMap<CompoundTag, FluidIdentifier> fluidNBTList = FluidIdentifier._fluidIdentifierTagCache.get(fluidID);
 				if (fluidNBTList != null) {
-					FinalCompoundTag tagwithfixedname = new FinalCompoundTag(tag);
+					CompoundTag tagwithfixedname = tag.copy();
 					FluidIdentifier unknownFluid = fluidNBTList.get(tagwithfixedname);
 					if (unknownFluid != null) {
 						FluidIdentifier.wlock.unlock();
@@ -137,9 +134,9 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 					}
 				}
 			}
-			HashMap<FinalCompoundTag, FluidIdentifier> fluidNBTList = FluidIdentifier._fluidIdentifierTagCache
+			HashMap<CompoundTag, FluidIdentifier> fluidNBTList = FluidIdentifier._fluidIdentifierTagCache
 					.computeIfAbsent(fluidID, k -> new HashMap<>(16, 0.5f));
-			FinalCompoundTag finaltag = new FinalCompoundTag(tag);
+			CompoundTag finaltag = tag.copy();
 			int id = FluidIdentifier.getUnusedId();
 			FluidIdentifier unknownFluid = new FluidIdentifier(fluidID, getFluidName(fluid), finaltag, id);
 			fluidNBTList.put(finaltag, unknownFluid);
@@ -180,24 +177,18 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 		return (unknownFluid);
 	}
 
-	public static FluidIdentifier get(FluidStack stack) {
-		if (stack == null) {
+	/** Component patches are kept as their NBT encoding in {@link #tag}. */
+	public static FluidIdentifier get(FluidVariant variant) {
+		if (variant == null || variant.isBlank()) {
 			return null;
 		}
-		FluidIdentifier proposal = null;
-		IAddInfoProvider prov = null;
-		if (stack instanceof IAddInfoProvider) {
-			prov = (IAddInfoProvider) stack;
-			FluidStackAddInfo info = prov.getLogisticsPipesAddInfo(FluidStackAddInfo.class);
-			if (info != null) {
-				proposal = info.fluid;
-			}
+		DataComponentPatch patch = variant.getComponentsPatch();
+		CompoundTag tag = null;
+		if (!patch.isEmpty()) {
+			Tag encoded = DataComponentPatch.CODEC.encodeStart(TagUtil.registries().createSerializationContext(NbtOps.INSTANCE), patch).result().orElse(null);
+			if (encoded instanceof CompoundTag compound) tag = compound;
 		}
-		FluidIdentifier ident = FluidIdentifier.get(stack.getFluid(), stack.getTag(), proposal);
-		if (proposal != ident && stack.getTag() == null && prov != null) {
-			prov.setLogisticsPipesAddInfo(new FluidStackAddInfo(ident));
-		}
-		return ident;
+		return FluidIdentifier.get(variant.getFluid(), tag, null);
 	}
 
 	public static FluidIdentifier get(ItemIdentifier stack) {
@@ -209,31 +200,16 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 	}
 
 	public static FluidIdentifier get(ItemIdentifierStack stack) {
-		FluidStack f = null;
 		FluidIdentifierStack fstack = SimpleServiceLocator.logisticsFluidManager.getFluidFromContainer(stack);
 		if (fstack != null) {
-			f = fstack.makeFluidStack();
+			return fstack.getFluid();
 		}
-		if (f == null) {
-			ItemStack itemStack = stack.unsafeMakeNormalStack();
-			IFluidHandlerItem capability = itemStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null);
-			if (capability != null) {
-				{
-					f = IntStream.range(0, capability.getTanks())
-							.mapToObj(capability::getFluidInTank)
-							.filter(s -> !s.isEmpty())
-							.findFirst()
-							.orElse(null);
-				}
-			}
-		}
-		if (f == null) {
-			f = FluidUtil.getFluidContained(stack.unsafeMakeNormalStack()).orElse(null);
-		}
-		if (f == null) {
+		ItemStack itemStack = stack.unsafeMakeNormalStack();
+		Storage<FluidVariant> storage = FluidStorage.ITEM.find(itemStack, ContainerItemContext.withConstant(itemStack));
+		if (storage == null) {
 			return null;
 		}
-		return FluidIdentifier.get(f);
+		return FluidIdentifier.get(StorageUtil.findStoredResource(storage));
 	}
 
 	private static FluidIdentifier get(Fluid fluid) {
@@ -256,11 +232,17 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 		return name;
 	}
 
-	public FluidStack makeFluidStack(int amount) {
-		// In 1.20, FluidStack(Fluid, int, CompoundTag) was removed — use setTag()
-		FluidStack fs = new FluidStack(getFluid(), amount);
-		if (tag != null) fs.setTag(tag.copy());
-		return fs;
+	public net.minecraft.network.chat.Component getDisplayName() {
+		return FluidVariantAttributes.getName(makeFluidVariant());
+	}
+
+	public FluidVariant makeFluidVariant() {
+		if (tag == null) {
+			return FluidVariant.of(getFluid());
+		}
+		DataComponentPatch patch = DataComponentPatch.CODEC.parse(TagUtil.registries().createSerializationContext(NbtOps.INSTANCE), tag)
+				.result().orElse(DataComponentPatch.EMPTY);
+		return FluidVariant.of(getFluid(), patch);
 	}
 
 	public FluidIdentifierStack makeFluidIdentifierStack(int amount) {
@@ -269,18 +251,7 @@ public class FluidIdentifier implements Comparable<FluidIdentifier>, ILPCCTypeHo
 	}
 
 	public Fluid getFluid() {
-		return net.minecraft.core.registries.BuiltInRegistries.FLUID.get(ResourceLocation.tryParse(fluidID));
-	}
-
-	public int getFreeSpaceInsideTank(IFluidHandler tank) {
-		FluidStack liquid = tank.getFluidInTank(0);
-		if (liquid == null || liquid.getFluid() == null) {
-			return tank.getTankCapacity(0);
-		}
-		if (FluidIdentifier.get(liquid).equals(this)) {
-			return tank.getTankCapacity(0) - liquid.getAmount();
-		}
-		return 0;
+		return net.minecraft.core.registries.BuiltInRegistries.FLUID.getValue(Identifier.tryParse(fluidID));
 	}
 
 	private static boolean init = false;

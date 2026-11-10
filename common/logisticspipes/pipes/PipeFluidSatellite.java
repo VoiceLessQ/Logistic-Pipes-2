@@ -173,10 +173,10 @@ public class PipeFluidSatellite extends FluidRoutedPipe implements IRequestFluid
 	public void readFromNBT(CompoundTag nbttagcompound) {
 		super.readFromNBT(nbttagcompound);
 		if (nbttagcompound.contains("satelliteid")) {
-			int satelliteId = nbttagcompound.getInt("satelliteid");
+			int satelliteId = nbttagcompound.getIntOr("satelliteid", 0);
 			satellitePipeName = Integer.toString(satelliteId);
 		} else {
-			satellitePipeName = nbttagcompound.getString("satellitePipeName");
+			satellitePipeName = nbttagcompound.getStringOr("satellitePipeName", "");
 		}
 		if (MainProxy.isServer(getWorld())) {
 			ensureAllSatelliteStatus();

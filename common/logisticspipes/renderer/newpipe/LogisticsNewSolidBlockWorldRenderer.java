@@ -204,7 +204,6 @@ public class LogisticsNewSolidBlockWorldRenderer {
 		// TODO: glPushAttrib removed //don't break other mods' guis when holding a pipe
 		//force transparency
 		// TODO: glBlendFunc → RenderSystem.blendFunc()
-		RenderSystem.enableBlend();
 
 		// TODO: GL11.glTranslatef → poseStack.translate(-0.5F, -0.5F, -0.5F)
 		Block block = LogisticsPipes.LogisticsPipeBlock;

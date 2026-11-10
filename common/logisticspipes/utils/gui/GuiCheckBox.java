@@ -1,14 +1,15 @@
 package logisticspipes.utils.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.renderer.RenderPipelines;
 import javax.annotation.Nonnull;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class GuiCheckBox extends AbstractButton {
 
@@ -28,24 +29,24 @@ public class GuiCheckBox extends AbstractButton {
 	}
 
 	@Override
-	public void onPress() {
+	public void onPress(InputWithModifiers input) {
 		// State is owned by the press listener (they call change()/setState themselves);
 		// toggling here too made every click a double flip, i.e. a no-op.
 		pressListener.accept(this);
 	}
 
 	@Override
-	public void renderWidget(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partial) {
+	protected void extractContents(@Nonnull GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partial) {
 		if (visible) {
 			boolean hover = mouseX >= getX() && mouseY >= getY() && mouseX < getX() + width && mouseY < getY() + height;
-			ResourceLocation tex = new ResourceLocation("logisticspipes", "textures/gui/checkbox-" + (state ? "on" : "out") + (hover ? "-mouse" : "") + ".png");
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-			guiGraphics.blit(tex, getX(), getY(), 0, 0, width, height, width, height);
+			Identifier tex = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/checkbox-" + (state ? "on" : "out") + (hover ? "-mouse" : "") + ".png");
+			SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+			guiGraphics.blit(RenderPipelines.GUI_TEXTURED, tex, getX(), getY(), 0, 0, width, height, width, height, SimpleGraphics.color);
 		}
 	}
 
 	@Override
-	protected void updateWidgetNarration(@Nonnull NarrationElementOutput narrationElementOutput) {
+	public void updateWidgetNarration(@Nonnull NarrationElementOutput narrationElementOutput) {
 		defaultButtonNarrationText(narrationElementOutput);
 	}
 

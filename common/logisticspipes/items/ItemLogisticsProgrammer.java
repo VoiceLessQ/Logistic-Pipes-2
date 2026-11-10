@@ -1,5 +1,6 @@
 package logisticspipes.items;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -8,11 +9,11 @@ import javax.annotation.Nullable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import network.rs485.logisticspipes.util.TextUtil;
 
@@ -21,33 +22,29 @@ public class ItemLogisticsProgrammer extends LogisticsItem {
 	public static final String RECIPE_TARGET = "LogisticsRecipeTarget";
 
 	public ItemLogisticsProgrammer() {
-		super(new Item.Properties());
+		super(logisticspipes.LPRegistries.itemProperties());
 	}
 
+	/** The programmer survives crafting with its target intact (Fabric's stack-aware remainder hook). */
 	@Override
-	public boolean hasCraftingRemainingItem() {
-		return true;
-	}
-
-	@Nonnull
-	@Override
-	public ItemStack getCraftingRemainingItem(@Nonnull ItemStack itemStack) {
+	public net.minecraft.world.item.ItemStackTemplate getCraftingRemainder(@Nonnull ItemStack itemStack) {
 		ItemStack remainder = new ItemStack(this);
-		if (itemStack.hasTag()) {
-			remainder.setTag(itemStack.getTag().copy());
+		if (CustomDataUtil.hasTag(itemStack)) {
+			CustomDataUtil.setTag(remainder, CustomDataUtil.getTag(itemStack));
 		}
-		return remainder;
+		return net.minecraft.world.item.ItemStackTemplate.fromNonEmptyStack(remainder);
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
+	@Environment(EnvType.CLIENT)
+	public void appendHoverText(@Nonnull ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<net.minecraft.network.chat.Component> tooltipConsumer, net.minecraft.world.item.TooltipFlag flagIn) {
+		java.util.List<net.minecraft.network.chat.Component> tooltip = new java.util.ArrayList<>();
 		if (!stack.isEmpty()) {
-			if (stack.hasTag()) {
-				CompoundTag nbt = stack.getTag();
-				String target = nbt.getString(RECIPE_TARGET);
+			if (CustomDataUtil.hasTag(stack)) {
+				CompoundTag nbt = CustomDataUtil.getTag(stack);
+				String target = nbt.getStringOr(RECIPE_TARGET, "");
 				if (!target.isEmpty()) {
-					Item targetItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new ResourceLocation(target));
+					Item targetItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(Identifier.parse(target));
 					if (targetItem instanceof ItemModule) {
 						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate("tooltip.programmerForModule")));
 						tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate(targetItem.getDescriptionId())));
@@ -69,6 +66,7 @@ public class ItemLogisticsProgrammer extends LogisticsItem {
 				tooltip.add(net.minecraft.network.chat.Component.literal(TextUtil.translate("tooltip.programmerForUnknown.3")));
 			}
 		}
-		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+		super.appendHoverText(stack, context, display, tooltipConsumer, flagIn);
+		tooltip.forEach(tooltipConsumer);
 	}
 }

@@ -3,8 +3,8 @@ package logisticspipes.network.packets.block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.gui.GuiSecurityStation;
 import logisticspipes.network.abstractpackets.ModernPacket;
@@ -34,12 +34,12 @@ public class SecurityStationOpenPlayer extends NBTCoordinatesPacket {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	private void handleClientSide(Player player) {
-		if (Minecraft.getInstance().screen instanceof GuiSecurityStation) {
+		if (Minecraft.getInstance().gui.screen() instanceof GuiSecurityStation) {
 			SecuritySettings setting = new SecuritySettings(null);
 			setting.readFromNBT(getTag());
-			((GuiSecurityStation) Minecraft.getInstance().screen).handlePlayerSecurityOpen(setting);
+			((GuiSecurityStation) Minecraft.getInstance().gui.screen()).handlePlayerSecurityOpen(setting);
 		}
 	}
 }

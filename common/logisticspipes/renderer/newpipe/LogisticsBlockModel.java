@@ -4,10 +4,10 @@ package logisticspipes.renderer.newpipe;
 // Removed: IModel, IModelState, ICustomModelLoader, ItemOverrideList, ItemCameraTransforms,
 //          VertexFormat (old), IResourceManager, javax.vecmath, ModelResourceLocation (old path)
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public class LogisticsBlockModel {
 	// TODO: rendering deferred
 

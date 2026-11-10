@@ -35,7 +35,7 @@ public enum MinecraftColor {
 		DYE_TO_COLOR = new java.util.HashMap<>();
 		for (MinecraftColor color : values()) {
 			if (color != BLANK) {
-				net.minecraft.world.item.Item dyeItem = net.minecraft.world.item.DyeItem.byColor(color.toDyeColor());
+				net.minecraft.world.item.Item dyeItem = dyeItem(color.toDyeColor());
 				DYE_TO_COLOR.put(dyeItem, color);
 			}
 		}
@@ -80,7 +80,7 @@ public enum MinecraftColor {
 		if (this == BLANK) {
 			return ItemStack.EMPTY;
 		}
-		return new ItemStack(net.minecraft.world.item.DyeItem.byColor(toDyeColor()));
+		return new ItemStack(dyeItem(toDyeColor()));
 	}
 
 	public MinecraftColor getNext() {
@@ -95,5 +95,9 @@ public enum MinecraftColor {
 			return BLANK;
 		}
 		return MinecraftColor.values()[ordinal() - 1];
+	}
+
+	private static net.minecraft.world.item.Item dyeItem(net.minecraft.world.item.DyeColor color) {
+		return net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.withDefaultNamespace(color.getName() + "_dye"));
 	}
 }

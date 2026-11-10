@@ -1,5 +1,6 @@
 package logisticspipes.gui.popup;
-import net.minecraft.client.gui.GuiGraphics;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 
@@ -108,19 +109,19 @@ public class GuiAddTracking extends SubGuiScreen implements IItemSearch {
 	protected void renderToolTips(int mouseX, int mouseY, float par3) {
 		Object[] tip = itemDisplay != null ? itemDisplay.getToolTip() : null;
 		if (tip != null && tip.length >= 3) {
-			getGuiGraphics().renderTooltip(minecraft.font, (net.minecraft.world.item.ItemStack) tip[2], (int) tip[0], (int) tip[1]);
+			getGuiGraphics().setTooltipForNextFrame(minecraft.font, (net.minecraft.world.item.ItemStack) tip[2], (int) tip[0], (int) tip[1]);
 		}
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		itemDisplay.renderItemArea(0.0f);
 	}
 
 	@Override
 	protected void renderGuiBackground(int mouseX, int mouseY) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, guiLeft, guiTop, right, bottom, 0.0f, true);
-		//guiGraphics.drawString(minecraft.font, StringUtil.translate(PREFIX + "title"), guiLeft + 5, guiTop + 6, 0x404040, false);
+		//SimpleGraphics.drawString(guiGraphics, minecraft.font, StringUtil.translate(PREFIX + "title"), guiLeft + 5, guiTop + 6, 0x404040, false);
 		itemDisplay.renderPageNumber(right - 47, guiTop + 6);
 
 		search.drawTextBox();
@@ -147,7 +148,7 @@ public class GuiAddTracking extends SubGuiScreen implements IItemSearch {
 			itemDisplay.nextPage();
 		} else {
 			// Track everything except Escape when in search bar
-			if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || !search.keyPressed(keyCode, scanCode, modifiers)) {
+			if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || !search.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 				return super.keyPressed(keyCode, scanCode, modifiers);
 			}
 		}
@@ -179,9 +180,8 @@ public class GuiAddTracking extends SubGuiScreen implements IItemSearch {
 		}
 		//if(isSearched(String.valueOf(BuiltInRegistries.ITEM.getId(item.item)), search.getContent())) return true;
 		//Enchantment? Enchantment!
-		Map<Enchantment, Integer> enchantIdLvlMap = EnchantmentHelper.getEnchantments(item.unsafeMakeNormalStack(1));
-		for (Entry<Enchantment, Integer> e : enchantIdLvlMap.entrySet()) {
-			String enchantName = e.getKey().getDescriptionId();
+		for (net.minecraft.core.Holder<Enchantment> e : EnchantmentHelper.getEnchantmentsForCrafting(item.unsafeMakeNormalStack(1)).keySet()) {
+			String enchantName = e.value().description().getString();
 			if (enchantName != null) {
 				if (isSearched(enchantName.toLowerCase(Locale.US), search.getText().toLowerCase(Locale.US))) {
 					return true;

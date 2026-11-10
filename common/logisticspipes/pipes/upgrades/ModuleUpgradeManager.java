@@ -184,11 +184,11 @@ public class ModuleUpgradeManager implements ISimpleInventoryEventHandler, ISlot
 
 	public void readFromNBT(CompoundTag nbttagcompound, String prefix) {
 		internalInv.readFromNBT(nbttagcompound, "ModuleUpgradeInventory_" + prefix);
+		InventoryChanged(inv);
 	}
 
 	public void writeToNBT(CompoundTag nbttagcompound, String prefix) {
 		internalInv.writeToNBT(nbttagcompound, "ModuleUpgradeInventory_" + prefix);
-		InventoryChanged(inv);
 	}
 
 	private boolean updateModule(int slot, IPipeUpgrade[] upgrades, Container inv) {

@@ -50,7 +50,7 @@ interface SneakyDirection {
         fun readSneakyDirection(nbt: CompoundTag): Direction? {
             return if (nbt.contains(SNEAKY_DIRECTION_NBT)) {
                 // will read direction index 6 as null (was ForgeDirection.UNKNOWN)
-                nbt.getInt(SNEAKY_DIRECTION_NBT).let { if (it in Direction.values().indices) Direction.values()[it] else null }
+                nbt.getIntOr(SNEAKY_DIRECTION_NBT, 6).let { if (it in Direction.values().indices) Direction.values()[it] else null }
             } else {
                 null
             }

@@ -5,7 +5,7 @@ import javax.annotation.Nonnull;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -55,7 +55,7 @@ public class DummyContainerSlotClick extends ModernPacket {
 			DummyContainer container = (DummyContainer) ((ServerPlayer) player).containerMenu;
 			Slot slot = container.slots.get(slotId);
 			if (slot instanceof DummySlot || slot instanceof ColorSlot || slot instanceof FluidSlot) {
-				container.handleDummyClick(slot, slotId, stack, button, ClickType.PICKUP, player);
+				container.handleDummyClick(slot, slotId, stack, button, ContainerInput.PICKUP, player);
 			}
 		}
 	}

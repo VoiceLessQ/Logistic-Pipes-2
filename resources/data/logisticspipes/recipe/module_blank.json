@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "r",
+    "p",
+    "g"
+  ],
+  "key": {
+    "r": "#c:dusts/redstone",
+    "p": "minecraft:paper",
+    "g": "#c:nuggets/gold"
+  },
+  "result": {
+    "id": "logisticspipes:module_blank"
+  }
+}

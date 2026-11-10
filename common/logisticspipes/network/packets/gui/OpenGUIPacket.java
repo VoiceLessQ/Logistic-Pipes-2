@@ -48,14 +48,14 @@ public class OpenGUIPacket extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT) {
 			handleClient(player);
 		}
 	}
 
 	// See OpenChatGui: NewGuiHandler.openGui(OpenGUIPacket, ...) walks the client's open screens,
-	// so the call lives in this @OnlyIn helper, stripped before verification on the dedicated server.
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	// so the call lives in this @Environment helper, stripped before verification on the dedicated server.
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 	private void handleClient(Player player) {
 		NewGuiHandler.openGui(this, player);
 	}

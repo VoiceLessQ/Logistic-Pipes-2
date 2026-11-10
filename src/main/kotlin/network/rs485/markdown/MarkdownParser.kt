@@ -37,9 +37,8 @@
 
 package network.rs485.markdown
 
-import org.apache.http.NameValuePair
-import org.apache.http.client.utils.URLEncodedUtils
 import java.lang.Integer.min
+import java.net.URLDecoder
 import java.net.URI
 import java.net.URISyntaxException
 import java.util.*
@@ -76,7 +75,9 @@ object MarkdownParser {
             }
         }
         val queryComponents: List<NameValuePair>
-            get() = uri?.let { URLEncodedUtils.parse(it.query, Charsets.UTF_8) } ?: emptyList()
+            get() = uri?.rawQuery?.split('&')?.filter { it.isNotEmpty() }?.map { param ->
+                param.split('=', limit = 2).let { NameValuePair(URLDecoder.decode(it[0], Charsets.UTF_8), URLDecoder.decode(it.getOrElse(1) { "" }, Charsets.UTF_8)) }
+            } ?: emptyList()
 
         fun getMenuType() = if (uri?.scheme == "menu")
             queryComponents.find { it.name == "type" }.let { type ->
@@ -424,3 +425,6 @@ object MarkdownParser {
     }
 
 }
+
+// replaces org.apache.http's NameValuePair (httpclient is not on the 26.x classpath)
+data class NameValuePair(val name: String, val value: String)

@@ -6,9 +6,7 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 
 import logisticspipes.interfaces.routing.IChannelManager;
 import logisticspipes.interfaces.routing.IChannelManagerProvider;
@@ -19,7 +17,7 @@ public class ChannelManagerProvider implements IChannelManagerProvider {
 	private ChannelManager channelManager = null;
 
 	public ChannelManagerProvider() {
-		MinecraftForge.EVENT_BUS.register(this);
+		ServerLevelEvents.UNLOAD.register((server, level) -> onWorldUnload(level));
 	}
 
 	@Override
@@ -34,10 +32,9 @@ public class ChannelManagerProvider implements IChannelManagerProvider {
 		return channelManager;
 	}
 
-	@SubscribeEvent
-	public void onWorldUnload(LevelEvent.Unload worldEvent) {
+	public void onWorldUnload(Level level) {
 		if (worldWeakReference != null) {
-			if (worldWeakReference.get() == null || worldWeakReference.get() == worldEvent.getLevel()) {
+			if (worldWeakReference.get() == null || worldWeakReference.get() == level) {
 				channelManager = null;
 				worldWeakReference = null;
 			}

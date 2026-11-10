@@ -63,8 +63,8 @@ class DynamicAdjacent(private val parent: CoreRoutedPipe, private val cache: Arr
         .let { it.associateTo(LinkedHashMap(it.size)) { pair -> pair } }
 
     override fun inventories() = cache
-        .filter { it?.isItem() ?: false }
-        .mapIndexedNotNull { index, _ ->
+        .mapIndexedNotNull { index, type ->
+            if (type?.isItem() != true) return@mapIndexedNotNull null
             Direction.values()[index].let { dir ->
                 parent.getWorld()?.getBlockEntity(parent.getPos().relative(dir))?.let { it to dir }
             }
@@ -72,8 +72,8 @@ class DynamicAdjacent(private val parent: CoreRoutedPipe, private val cache: Arr
         .mapNotNull { (tile, dir) -> LPNeighborTileEntity(tile, dir).takeIf { it.canHandleItems() } }
 
     override fun fluidTanks(): List<NeighborTileEntity<BlockEntity>> = cache
-        .filter { it?.isFluid() ?: false }
-        .mapIndexedNotNull { index, _ ->
+        .mapIndexedNotNull { index, type ->
+            if (type?.isFluid() != true) return@mapIndexedNotNull null
             Direction.values()[index].let { dir ->
                 parent.getWorld()?.getBlockEntity(parent.getPos().relative(dir))?.let { it to dir }
             }

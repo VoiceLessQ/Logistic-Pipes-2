@@ -1,5 +1,9 @@
 package logisticspipes.pipes.basic;
 
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.utils.TagUtil;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -16,7 +20,6 @@ import net.minecraft.CrashReportCategory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -26,12 +29,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 
 
 // import dan200.computercraft.api.peripheral.IComputerAccess; // CC not ported to 1.20.1; @ModDependentField stubs
@@ -94,7 +96,7 @@ import network.rs485.logisticspipes.world.WorldCoordinatesWrapper;
 public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		implements ILPPipeTile, IPipeInformationProvider, /*IItemDuct,*/
 		// ManagedPeripheral, Environment, SidedEnvironment — added at runtime by @ModDependentInterface ASM when OC is present
-		ILogicControllerTile, logisticspipes.asm.te.ILPTEInformation, logisticspipes.interfaces.ITickable {
+		ILogicControllerTile, logisticspipes.asm.te.ILPTEInformation, logisticspipes.interfaces.ITickable, logisticspipes.interfaces.IBlockEntityLifecycle {
 
 	// ILPTEInformation — previously injected by ASM, now implemented directly
 	private logisticspipes.asm.te.LPTileEntityObject lpTileEntityObject;
@@ -140,7 +142,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 	private boolean blockNeighborChange = false;
 	private boolean refreshRenderState = false;
 	private boolean pipeBound = false;
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	private AABB renderBox;
 	private EnumMap<Direction, ItemInsertionHandler> itemInsertionHandlers;
 
@@ -153,6 +155,12 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		if (SimpleServiceLocator.ccProxy.isCC()) {
 			connections = new ConcurrentHashMap<>();
 		}
+	}
+
+	/** Pipe teardown (modules, upgrades, router) runs here: the block entity is gone once Block.affectNeighborsAfterRemoval runs. */
+	@Override
+	public void preRemoveSideEffects(@Nonnull BlockPos pos, @Nonnull net.minecraft.world.level.block.state.BlockState state) {
+		LogisticsBlockGenericPipe.removePipe(pipe);
 	}
 
 	@Override
@@ -177,9 +185,8 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 
 	@Override
 	public void onLoad() {
-		super.onLoad();
 		// client onLoad runs a tick after the state packet already initialized this fresh tile
-		if (level == null || !level.isClientSide) initialized = false;
+		if (level == null || !level.isClientSide()) initialized = false;
 		tileBuffer = null;
 		bindPipe();
 		if (pipe != null) {
@@ -192,7 +199,6 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 
 	@Override
 	public void onChunkUnloaded() {
-		super.onChunkUnloaded();
 		unloading = true;
 		onChunkUnload();
 	}
@@ -211,7 +217,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 			sendInitPacket = false;
 			getRenderController().sendInit();
 		}
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			if (deletePipe) {
 				level.removeBlock(getBlockPos(), false);
 			}
@@ -233,7 +239,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 
 		pipe.updateEntity();
 
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			// LP1 ran this from getActualState on every chunk render (end caps on cold load)
 			renderState.checkForRenderUpdate(level, getBlockPos());
 			debug.end();
@@ -297,9 +303,9 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 
 	@Nonnull
 	@Override
-	public CompoundTag getUpdateTag() {
+	public CompoundTag getUpdateTag(@Nonnull HolderLookup.Provider registries) {
 		sendInitPacket = true;
-		CompoundTag nbt = saveWithoutMetadata();
+		CompoundTag nbt = saveWithoutMetadata(registries);
 		// server-only transit state; the client would load it as server items (LP1 never sent it)
 		nbt.remove("travelingEntities");
 		nbt.remove("buffercontents");
@@ -312,23 +318,8 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void handleUpdateTag(@Nonnull CompoundTag tag) {
-		PacketHandler.queueAndRemovePacketFromNBT(tag);
-		super.handleUpdateTag(tag);
-	}
-
-	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
 		return ClientboundBlockEntityDataPacket.create(this);
-	}
-
-	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-		CompoundTag nbt = packet.getTag();
-		if (nbt != null) {
-			handleUpdateTag(nbt);
-		}
 	}
 
 	// Custom public method — called from crash report hooks; not an override of BlockEntity or IBlockEntityExtension.
@@ -373,11 +364,12 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 	/* IPipeInformationProvider */
 
 	@Override
-	public void saveAdditional(@Nonnull CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag nbt = new CompoundTag();
+		super.saveAdditional(output);
 
 		if (pipe != null && pipe.item != null) {
-			net.minecraft.resources.ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(pipe.item);
+			net.minecraft.resources.Identifier key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(pipe.item);
 			if (key != null) {
 				nbt.putString(NBT_PIPE_ID, key.toString());
 			}
@@ -393,10 +385,15 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		CompoundTag logicNBT = new CompoundTag();
 		logicController.writeToNBT(logicNBT);
 		nbt.put("logicController", logicNBT);
+		TagUtil.write(output, nbt);
 	}
 
 	@Override
-	public void load(@Nonnull CompoundTag nbt) {
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag nbt = TagUtil.read(input);
+		if (nbt.contains("LogisticsPipes:PacketData")) {
+			PacketHandler.queueAndRemovePacketFromNBT(nbt);
+		}
 		if (pipe != null) {
 			StackTraceElement[] trace = Thread.currentThread().getStackTrace();
 			if (trace.length > 2 && trace[2].getMethodName().equals("handle") && trace[2].getClassName()
@@ -405,7 +402,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 				return;
 			}
 		}
-		super.load(nbt);
+		super.loadAdditional(input);
 
 		if (!nbt.contains(NBT_PIPE_ID)) {
 			// Client updates may omit the id; deletePipe only acts in the server tick
@@ -416,10 +413,10 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 			return;
 		}
 
-		coreState.pipeIdName = nbt.getString(NBT_PIPE_ID);
+		coreState.pipeIdName = nbt.getStringOr(NBT_PIPE_ID, "");
 		net.minecraft.world.item.Item pipeItem = null;
 		if (coreState.pipeIdName != null && !coreState.pipeIdName.isEmpty()) {
-			pipeItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new net.minecraft.resources.ResourceLocation(coreState.pipeIdName));
+			pipeItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.parse(coreState.pipeIdName));
 		}
 		pipe = LogisticsBlockGenericPipe.createPipe(pipeItem);
 		// load() can run more than once on the client (initial chunk tag + later data packets).
@@ -437,10 +434,10 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		}
 
 		for (int i = 0; i < turtleConnect.length; i++) {
-			turtleConnect[i] = nbt.getBoolean("turtleConnect_" + i);
+			turtleConnect[i] = nbt.getBooleanOr("turtleConnect_" + i, false);
 		}
 
-		logicController.readFromNBT(nbt.getCompound("logicController"));
+		logicController.readFromNBT(nbt.getCompoundOrEmpty("logicController"));
 	}
 
 	public boolean canPipeConnect(BlockEntity with, Direction side) {
@@ -704,7 +701,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	@ModDependentMethod(modId = LPConstants.openComputersModID)
 	public boolean canConnect(Direction side) {
 		return !(this.getTile(side) instanceof LogisticsTileGenericPipe) && !(this.getTile(side) instanceof LogisticsSolidTileEntity);
@@ -746,7 +743,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		if (!pipeBound && pipe != null) {
 			pipe.setTile(this);
 			if (pipe.item != null) {
-				net.minecraft.resources.ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(pipe.item);
+				net.minecraft.resources.Identifier key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(pipe.item);
 				coreState.pipeIdName = key == null ? "" : key.toString();
 			}
 			pipeBound = true;
@@ -761,7 +758,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		// the description packet — otherwise the initial chunk-send (via getUpdateTag)
 		// transmits a default state and every pipe on the client renders with
 		// textureIndex=0 and zero connections.
-		if (pipe != null && level != null && !level.isClientSide) {
+		if (pipe != null && level != null && !level.isClientSide()) {
 			computeConnections();
 			refreshRenderState();
 		}
@@ -780,8 +777,8 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 
 	public void afterStateUpdated() {
 		if (pipe == null && coreState.pipeIdName != null && !coreState.pipeIdName.isEmpty()) {
-			net.minecraft.world.item.Item pipeItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
-				new net.minecraft.resources.ResourceLocation(coreState.pipeIdName));
+			net.minecraft.world.item.Item pipeItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(
+				net.minecraft.resources.Identifier.parse(coreState.pipeIdName));
 			initialize(LogisticsBlockGenericPipe.createPipe(pipeItem));
 		}
 
@@ -870,9 +867,9 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		}
 	}
 
-	/** Used by RegisterCapabilitiesEvent wiring in LPRegistries. */
+	/** Exposed through ItemStorage.SIDED in LPRegistries. */
 	@javax.annotation.Nullable
-	public net.minecraftforge.items.IItemHandler getItemHandlerForSide(@javax.annotation.Nullable Direction side) {
+	public Storage<ItemVariant> getItemHandlerForSide(@javax.annotation.Nullable Direction side) {
 		return itemInsertionHandlers != null ? itemInsertionHandlers.get(side) : null;
 	}
 
@@ -880,7 +877,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		refreshRenderState = true;
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public IIconProvider getPipeIcons() {
 		if (pipe == null) {
 			return null;
@@ -888,7 +885,7 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		return pipe.getIconProvider();
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public double getViewDistance() {
 		return 64 * 4;
 	}
@@ -919,9 +916,9 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		return pipe;
 	}
 
+	/** Forge render-culling hook; 26.x renderers use it through LogisticsRenderPipe. */
 	@Nonnull
-	@OnlyIn(Dist.CLIENT)
-	@Override
+	@Environment(EnvType.CLIENT)
 	public AABB getRenderBoundingBox() {
 		if (renderBox != null) {
 			return renderBox;
@@ -989,23 +986,12 @@ public class LogisticsTileGenericPipe extends LPMicroblockTileEntity
 		return this.subMultiBlock.stream().map(pos -> pos.getTileEntity(level));
 	}
 
-	@Nonnull
-	@Override
-	public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER && side != null) {
-			IItemHandler handler = getItemHandlerForSide(side);
-			if (handler != null) {
-				return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> handler));
-			}
+	@Nullable
+	public Storage<FluidVariant> getFluidStorageForSide(@Nullable Direction side) {
+		if (side != null && pipe != null && pipe.transport instanceof logisticspipes.transport.PipeFluidTransportLogistics fluidTransport) {
+			return fluidTransport.getFluidStorage(side);
 		}
-		if (cap == ForgeCapabilities.FLUID_HANDLER && side != null
-				&& pipe != null && pipe.transport instanceof logisticspipes.transport.PipeFluidTransportLogistics) {
-			logisticspipes.transport.PipeFluidTransportLogistics fluidTransport =
-					(logisticspipes.transport.PipeFluidTransportLogistics) pipe.transport;
-			return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap,
-					LazyOptional.of(() -> fluidTransport.getIFluidHandler(side)));
-		}
-		return super.getCapability(cap, side);
+		return null;
 	}
 
 	public static class CoreState implements IClientState {

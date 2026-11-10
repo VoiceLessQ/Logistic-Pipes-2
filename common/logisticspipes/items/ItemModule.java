@@ -1,5 +1,7 @@
 package logisticspipes.items;
 
+import net.minecraft.world.item.Item;
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.List;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -14,14 +16,13 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.network.chat.Component;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.interfaces.IPipeServiceProvider;
 import logisticspipes.interfaces.IWorldProvider;
@@ -70,14 +71,14 @@ public class ItemModule extends LogisticsItem {
 		this.moduleType = moduleType;
 	}
 
-	/** Factory for use with DeferredRegister. */
+	/** Factory for use with LPRegistries.registerItem. */
 	public static ItemModule of(@Nonnull Supplier<? extends LogisticsModule> moduleConstructor) {
 		return new ItemModule(new Module(moduleConstructor));
 	}
 
 	@Nullable
 	public static LogisticsModule getLogisticsModule(@Nonnull Player player, int invSlot) {
-		ItemStack item = player.getInventory().items.get(invSlot);
+		ItemStack item = player.getInventory().getNonEquipmentItems().get(invSlot);
 		if (item.isEmpty() || !(item.getItem() instanceof ItemModule)) return null;
 		LogisticsModule module = ((ItemModule) item.getItem()).getModuleForItem(
 				item, null, new DummyLevelProvider(player.level()), null
@@ -91,7 +92,7 @@ public class ItemModule extends LogisticsItem {
 	private void openConfigGui(@Nonnull ItemStack stack, Player player, Level world) {
 		LogisticsModule module = getModuleForItem(stack, null, new DummyLevelProvider(world), null);
 		if (module instanceof Gui && !stack.isEmpty()) {
-			module.registerPosition(ModulePositionType.IN_HAND, player.getInventory().selected);
+			module.registerPosition(ModulePositionType.IN_HAND, player.getInventory().getSelectedSlot());
 			ItemModuleInformationManager.readInformation(stack, module);
 			Gui.getInHandGuiProvider((Gui) module).open(player);
 		}
@@ -110,7 +111,7 @@ public class ItemModule extends LogisticsItem {
 
 	@Override
 	@Nonnull
-	public InteractionResultHolder<ItemStack> use(final Level world, final Player player,
+	public InteractionResult use(final Level world, final Player player,
 			@Nonnull final InteractionHand hand) {
 		if (MainProxy.isServer(player.level())) {
 			openConfigGui(player.getItemInHand(hand), player, world);
@@ -184,28 +185,28 @@ public class ItemModule extends LogisticsItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<Component> tooltip,
-			TooltipFlag flagIn) {
-		if (stack.hasTag()) {
-			CompoundTag nbt = stack.getTag();
+	@Environment(EnvType.CLIENT)
+	public void appendHoverText(@Nonnull ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<net.minecraft.network.chat.Component> tooltipConsumer, TooltipFlag flagIn) {
+		java.util.List<net.minecraft.network.chat.Component> tooltip = new java.util.ArrayList<>();
+		if (CustomDataUtil.hasTag(stack)) {
+			CompoundTag nbt = CustomDataUtil.getTag(stack);
 			assert nbt != null;
 
 			if (nbt.contains("informationList")) {
-				if (Screen.hasShiftDown()) {
-					ListTag nbttaglist = nbt.getList("informationList", 8);
+				if (net.minecraft.client.Minecraft.getInstance().hasShiftDown()) {
+					ListTag nbttaglist = nbt.getListOrEmpty("informationList");
 					for (int i = 0; i < nbttaglist.size(); i++) {
 						net.minecraft.nbt.Tag nbtTag = nbttaglist.get(i);
-						String data = ((StringTag) nbtTag).getAsString();
+						String data = ((StringTag) nbtTag).value();
 						if (data.equals("<inventory>") && i + 1 < nbttaglist.size()) {
 							nbtTag = nbttaglist.get(i + 1);
-							data = ((StringTag) nbtTag).getAsString();
+							data = ((StringTag) nbtTag).value();
 							if (data.startsWith("<that>")) {
 								String prefix = data.substring(6);
-								CompoundTag module = nbt.getCompound("moduleInformation");
-								int size = module.getList(prefix + "items", module.getId()).size();
+								CompoundTag module = nbt.getCompoundOrEmpty("moduleInformation");
+								int size = module.getListOrEmpty(prefix + "items").size();
 								if (module.contains(prefix + "itemsCount")) {
-									size = module.getInt(prefix + "itemsCount");
+									size = module.getIntOr(prefix + "itemsCount", 0);
 								}
 								ItemIdentifierInventory inv = new ItemIdentifierInventory(size,
 										"InformationTempInventory", Integer.MAX_VALUE);
@@ -230,10 +231,11 @@ public class ItemModule extends LogisticsItem {
 					TextUtil.addTooltipInformation(stack, tooltip, false);
 				}
 			} else {
-				TextUtil.addTooltipInformation(stack, tooltip, Screen.hasShiftDown());
+				TextUtil.addTooltipInformation(stack, tooltip, net.minecraft.client.Minecraft.getInstance().hasShiftDown());
 			}
 		} else {
-			TextUtil.addTooltipInformation(stack, tooltip, Screen.hasShiftDown());
+			TextUtil.addTooltipInformation(stack, tooltip, net.minecraft.client.Minecraft.getInstance().hasShiftDown());
 		}
+		tooltip.forEach(tooltipConsumer);
 	}
 }

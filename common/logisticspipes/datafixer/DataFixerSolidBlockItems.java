@@ -27,7 +27,7 @@ public class DataFixerSolidBlockItems {
 						!compound.getString("id").equals("logisticspipes:tile.logisticssolidblock")
 		) return compound;
 
-		int meta = compound.getShort("Damage");
+		int meta = compound.getShortOr("Damage", (short) 0);
 		compound.remove("Damage");
 		compound.putString("id", BuiltInRegistries.ITEM.getKey(LogisticsSolidBlockItem.updateItemMap.get(meta)).toString());
 

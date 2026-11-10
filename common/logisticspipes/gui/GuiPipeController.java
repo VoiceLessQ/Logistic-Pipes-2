@@ -1,5 +1,6 @@
 package logisticspipes.gui;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -141,7 +142,7 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 		public void renderIcon(int x, int y) {
 			if (logisticspipes.utils.gui.SimpleGraphics.guiGraphics != null) {
 				ItemStack stack = new ItemStack(logisticspipes.items.ItemUpgrade.getAndCheckUpgrade(LPItems.upgrades.get(SneakyUpgradeConfig.getName())));
-				logisticspipes.utils.gui.SimpleGraphics.guiGraphics.renderItem(stack, x, y);
+				logisticspipes.utils.gui.SimpleGraphics.guiGraphics.item(stack, x, y);
 			}
 		}
 
@@ -168,9 +169,9 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 
 		@Override
 		public void renderForegroundContent() {
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "upgrade"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "upgrade"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
 			if (pipe.getOriginalUpgradeManager().hasCombinedSneakyUpgrade()) {
-				guiGraphics.drawString(font, TextUtil.translate(PREFIX + "sneakyUpgrades"), 10, 74, Color.getValue(Color.DARKER_GREY), false);
+				SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "sneakyUpgrades"), 10, 74, Color.getValue(Color.DARKER_GREY), false);
 			}
 		}
 	}
@@ -190,7 +191,7 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 							return false;
 						}
 						return SimpleServiceLocator.securityStationManager
-								.isAuthorized(UUID.fromString(itemStack.getTag().getString("UUID")));
+								.isAuthorized(UUID.fromString(itemStack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag().getStringOr("UUID", "")));
 					}, 1));
 		}
 
@@ -206,13 +207,13 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 
 		@Override
 		public void renderForegroundContent() {
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "security"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "security"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
 			ItemStack itemStack = pipe.getOriginalUpgradeManager().secInv.getItem(0);
 			if (!itemStack.isEmpty()) {
-				UUID id = UUID.fromString(itemStack.getTag().getString("UUID"));
-				guiGraphics.drawString(font, "Id: ", 10, 68, Color.getValue(Color.DARKER_GREY), false);
-				guiGraphics.drawString(font, ChatColor.BLUE.toString() + id.toString(), 10, 80, Color.getValue(Color.DARKER_GREY), false);
-				guiGraphics.drawString(font, "Authorization: " + (SimpleServiceLocator.securityStationManager.isAuthorized(id) ? ChatColor.GREEN + "Authorized" : ChatColor.RED + "Unauthorized"), 10, 94, Color.getValue(Color.DARKER_GREY), false);
+				UUID id = UUID.fromString(itemStack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag().getStringOr("UUID", ""));
+				SimpleGraphics.drawString(guiGraphics, font, "Id: ", 10, 68, Color.getValue(Color.DARKER_GREY), false);
+				SimpleGraphics.drawString(guiGraphics, font, ChatColor.BLUE.toString() + id.toString(), 10, 80, Color.getValue(Color.DARKER_GREY), false);
+				SimpleGraphics.drawString(guiGraphics, font, "Authorization: " + (SimpleServiceLocator.securityStationManager.isAuthorized(id) ? ChatColor.GREEN + "Authorized" : ChatColor.RED + "Unauthorized"), 10, 94, Color.getValue(Color.DARKER_GREY), false);
 			}
 		}
 	}
@@ -232,46 +233,46 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 		@Override
 		public void renderForegroundContent() {
 			String pipeName = ItemIdentifier.get(pipe.item, 0, null).getFriendlyName();
-			guiGraphics.drawString(font, pipeName, (170 - font.width(pipeName)) / 2, 28, 0x83601c, false);
+			SimpleGraphics.drawString(guiGraphics, font, pipeName, (170 - font.width(pipeName)) / 2, 28, 0x83601c, false);
 
 			int sessionXCenter = 85;
 			int lifetimeXCenter = 140;
 			String s;
 
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "Session"), sessionXCenter - font
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "Session"), sessionXCenter - font
 					.width(TextUtil.translate(PREFIX + "Session")) / 2, 40, 0x303030, false);
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "Lifetime"), lifetimeXCenter - font
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "Lifetime"), lifetimeXCenter - font
 					.width(TextUtil.translate(PREFIX + "Lifetime")) / 2, 40, 0x303030, false);
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "Sent") + ":", 55 - font
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "Sent") + ":", 55 - font
 					.width(TextUtil.translate(PREFIX + "Sent") + ":"), 55, 0x303030, false);
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "Recieved") + ":", 55 - font
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "Recieved") + ":", 55 - font
 					.width(TextUtil.translate(PREFIX + "Recieved") + ":"), 70, 0x303030, false);
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "Relayed") + ":", 55 - font
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "Relayed") + ":", 55 - font
 					.width(TextUtil.translate(PREFIX + "Relayed") + ":"), 85, 0x303030, false);
 
 			s = StringUtils.getStringWithSpacesFromLong(pipe.stat_session_sent);
-			guiGraphics.drawString(font, s, sessionXCenter - font.width(s) / 2, 55, 0x303030, false);
+			SimpleGraphics.drawString(guiGraphics, font, s, sessionXCenter - font.width(s) / 2, 55, 0x303030, false);
 
 			s = StringUtils.getStringWithSpacesFromLong(pipe.stat_session_recieved);
-			guiGraphics.drawString(font, s, sessionXCenter - font.width(s) / 2, 70, 0x303030, false);
+			SimpleGraphics.drawString(guiGraphics, font, s, sessionXCenter - font.width(s) / 2, 70, 0x303030, false);
 
 			s = StringUtils.getStringWithSpacesFromLong(pipe.stat_session_relayed);
-			guiGraphics.drawString(font, s, sessionXCenter - font.width(s) / 2, 85, 0x303030, false);
+			SimpleGraphics.drawString(guiGraphics, font, s, sessionXCenter - font.width(s) / 2, 85, 0x303030, false);
 
 			s = StringUtils.getStringWithSpacesFromLong(pipe.stat_lifetime_sent);
-			guiGraphics.drawString(font, s, lifetimeXCenter - font.width(s) / 2, 55, 0x303030, false);
+			SimpleGraphics.drawString(guiGraphics, font, s, lifetimeXCenter - font.width(s) / 2, 55, 0x303030, false);
 
 			s = StringUtils.getStringWithSpacesFromLong(pipe.stat_lifetime_recieved);
-			guiGraphics.drawString(font, s, lifetimeXCenter - font.width(s) / 2, 70, 0x303030, false);
+			SimpleGraphics.drawString(guiGraphics, font, s, lifetimeXCenter - font.width(s) / 2, 70, 0x303030, false);
 
 			s = StringUtils.getStringWithSpacesFromLong(pipe.stat_lifetime_relayed);
-			guiGraphics.drawString(font, s, lifetimeXCenter - font.width(s) / 2, 85, 0x303030, false);
+			SimpleGraphics.drawString(guiGraphics, font, s, lifetimeXCenter - font.width(s) / 2, 85, 0x303030, false);
 
-			guiGraphics.drawString(font, TextUtil.translate(PREFIX + "RoutingTableSize") + ":", 110 - font
+			SimpleGraphics.drawString(guiGraphics, font, TextUtil.translate(PREFIX + "RoutingTableSize") + ":", 110 - font
 					.width(TextUtil.translate(PREFIX + "RoutingTableSize") + ":"), 110, 0x303030, false);
 
 			s = StringUtils.getStringWithSpacesFromLong(pipe.server_routing_table_size);
-			guiGraphics.drawString(font, s, 130 - font.width(s) / 2, 110, 0x303030, false);
+			SimpleGraphics.drawString(guiGraphics, font, s, 130 - font.width(s) / 2, 110, 0x303030, false);
 		}
 	}
 
@@ -387,16 +388,16 @@ public class GuiPipeController extends LogisticsBaseTabGuiScreen {
 				String s;
 				if (target != null) {
 					s = target.getFriendlyName();
-					guiGraphics.drawString(font, s, 35, stringPos, 0x303030, false);
+					SimpleGraphics.drawString(guiGraphics, font, s, 35, stringPos, 0x303030, false);
 				}
 				s = Integer.toString(i + 1);
 				stringPos += 6;
-				guiGraphics.drawString(font, s, 3, stringPos, 0x303030, false);
+				SimpleGraphics.drawString(guiGraphics, font, s, 3, stringPos, 0x303030, false);
 				stringPos += 4;
 				DoubleCoordinates pos = order.getTargetPosition();
 				if (pos != null) {
 					s = pos.toIntBasedString();
-					guiGraphics.drawString(font, s, 40, stringPos, 0x303030, false);
+					SimpleGraphics.drawString(guiGraphics, font, s, 40, stringPos, 0x303030, false);
 				}
 				stringPos += 10;
 			}

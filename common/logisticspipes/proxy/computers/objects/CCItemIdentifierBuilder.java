@@ -5,7 +5,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import java.util.List;
 
 import net.minecraft.world.item.Item;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.proxy.computers.interfaces.CCCommand;
 import logisticspipes.proxy.computers.interfaces.CCType;
@@ -54,7 +54,7 @@ public class CCItemIdentifierBuilder implements ILPCCTypeHolder {
 	public ItemIdentifier build() {
 		Item item;
 		if (itemIDName != null) {
-			item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new ResourceLocation(itemIDName));
+			item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(Identifier.parse(itemIDName));
 		} else {
 			item = BuiltInRegistries.ITEM.byId(itemID);
 		}

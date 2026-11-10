@@ -25,7 +25,6 @@ import net.minecraft.util.StringRepresentable;
 // BlockStateContainer removed — use StateDefinition.Builder in createBlockStateDefinition()
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-// Particle/ParticleEngine/TextureAtlasSprite imports removed — rendering deferred (see addHitEffects/addDestroyEffects TODOs)
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -59,10 +58,10 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import logisticspipes.LPRegistries;
+import logisticspipes.RegistryObject;
 
 import static logisticspipes.LPConstants.PIPE_MAX_POS;
 import static logisticspipes.LPConstants.PIPE_MIN_POS;
@@ -145,7 +144,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	}
 
 	public LogisticsBlockGenericPipe() {
-		super(BlockBehaviour.Properties.of().strength(0.5F).noOcclusion());
+		super(LPRegistries.blockProperties().strength(0.5F).noOcclusion());
 		registerDefaultState(this.stateDefinition.any()
 				.setValue(rotationProperty, 0)
 				.setValue(modelTypeProperty, PipeRenderModel.NONE));
@@ -181,9 +180,8 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	@Override
 	@Nonnull
 	public net.minecraft.world.level.block.RenderShape getRenderShape(@Nonnull BlockState state) {
-		// Pipe geometry is emitted by LogisticsRenderPipe (BlockEntityRenderer) via the
-		// CCL-replacement pipeline in logisticspipes.proxy.object3d.impl — not a JSON model.
-		return net.minecraft.world.level.block.RenderShape.ENTITYBLOCK_ANIMATED;
+		// Pipe geometry is emitted by LogisticsRenderPipe (BlockEntityRenderer), not a block model.
+		return net.minecraft.world.level.block.RenderShape.INVISIBLE;
 	}
 
 	public static void removePipe(CoreUnroutedPipe pipe) {
@@ -238,7 +236,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	/* Registration ******************************************************** */
 
 	/**
-	 * Registers a pipe item via DeferredRegister and adds it to the {@code pipes} map.
+	 * Registers a pipe item and adds it to the {@code pipes} map.
 	 * The registry name will be {@code pipe_<name>}.
 	 *
 	 * <p>Icon/dummy-pipe setup (setPipeIconIndex, setIconProviderFromPipe, setDummyPipe)
@@ -246,10 +244,9 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	 * and will be addressed when ItemLogisticsPipe is migrated to 1.20.1.</p>
 	 */
 	public static RegistryObject<ItemLogisticsPipe> registerPipe(
-			DeferredRegister<Item> registry,
 			String name,
 			Function<Item, ? extends CoreUnroutedPipe> constructor) {
-		return registry.register("pipe_" + name, () -> {
+		return LPRegistries.registerItem("pipe_" + name, () -> {
 			ItemLogisticsPipe item = new ItemLogisticsPipe();
 			LogisticsBlockGenericPipe.pipes.put(item, constructor);
 			// Create a dummy pipe instance for type/size queries (isMultiBlock, etc.)
@@ -282,7 +279,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 		BlockState oldBlockState = world.getBlockState(blockPos);
 		boolean placed = world.setBlock(blockPos, block.defaultBlockState(), 3);
 
-		if (world.isClientSide) {
+		if (world.isClientSide()) {
 			return placed;
 		}
 
@@ -315,14 +312,16 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 								((LogisticsTileGenericSubMultiBlock) subTile).addSubTypeTo(pos.getType());
 							}
 						}
-						world.markAndNotifyBlock(pos.getBlockPos(), world.getChunkAt(pos.getBlockPos()), oldSubBlockState, world.getBlockState(pos.getBlockPos()), 3, 512);
+						world.sendBlockUpdated(pos.getBlockPos(), oldSubBlockState, world.getBlockState(pos.getBlockPos()), 3);
+			world.updateNeighborsAt(pos.getBlockPos(), world.getBlockState(pos.getBlockPos()).getBlock());
 					}
 					LogisticsBlockGenericSubMultiBlock.currentCreatedMultiBlock = null;
 				}
 				tilePipe.initialize(pipe);
 				//				tilePipe.sendUpdateToClient();
 			}
-			world.markAndNotifyBlock(blockPos, world.getChunkAt(blockPos), oldBlockState, world.getBlockState(blockPos), 3, 512);
+			world.sendBlockUpdated(blockPos, oldBlockState, world.getBlockState(blockPos), 3);
+			world.updateNeighborsAt(blockPos, world.getBlockState(blockPos).getBlock());
 		}
 
 		return placed;
@@ -366,7 +365,8 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 				changed = true;
 			}
 			if (changed) {
-				worldCache.markAndNotifyBlock(posCache, worldCache.getChunkAt(posCache), worldCache.getBlockState(posCache), worldCache.getBlockState(posCache), 3, 512);
+				worldCache.sendBlockUpdated(posCache, worldCache.getBlockState(posCache), worldCache.getBlockState(posCache), 3);
+			worldCache.updateNeighborsAt(posCache, worldCache.getBlockState(posCache).getBlock());
 			}
 			fPipe.setPreventRemove(false);
 			return null;
@@ -488,7 +488,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 
 	// getSelectedBoundingBox removed in 1.20.1 — replaced by getShape(state, level, pos, context)
 	// Renamed to avoid @Override on non-existent method; logic preserved for reference
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public AABB getSelectedBoundingBox_DEAD(BlockState state, Level world, @Nonnull BlockPos pos) {
 		BlockEntity tile = world.getBlockEntity(pos);
 		if (tile instanceof LogisticsTileGenericPipe && ((LogisticsTileGenericPipe) tile).isPipeBlock()) {
@@ -515,7 +515,7 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 
 	public InternalRayTraceResult doRayTrace(Level world, BlockPos pos, Player player) {
 		double reachDistance = player instanceof ServerPlayer
-				? player.getAttributeValue(net.minecraftforge.common.ForgeMod.BLOCK_REACH.get())
+				? player.blockInteractionRange()
 				: 5;
 
 		Vec3 lookVec = player.getLookAngle();
@@ -692,8 +692,8 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 
 	/** LP1 getBlockHardness: break time follows Configs.pipeDurability, read after config load. */
 	public static float pipeDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
-		int divisor = net.minecraftforge.event.ForgeEventFactory.doPlayerHarvestCheck(player, state, !state.requiresCorrectToolForDrops() || player.hasCorrectToolForDrops(state)) ? 30 : 100;
-		return player.getDigSpeed(state, pos) / Configs.pipeDurability / divisor;
+		int divisor = !state.requiresCorrectToolForDrops() || player.hasCorrectToolForDrops(state) ? 30 : 100;
+		return player.getDestroySpeed(state) / Configs.pipeDurability / divisor;
 	}
 
 	// getRenderType removed in 1.20.1 — MODEL is the default
@@ -718,57 +718,28 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 		return false; // super.isSideSolid removed
 	}
 
-	@Override
-	public void onRemove(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
-		if (state.getBlock() != newState.getBlock()) {
-			LogisticsBlockGenericPipe.removePipe(LogisticsBlockGenericPipe.getPipe(world, pos));
-		}
-		super.onRemove(state, world, pos, newState, isMoving);
-	}
-
 	// @Override removed — getItemDropped removed in 1.20.1
 	public Item getItemDropped_DEAD(BlockState state, Random rand, int fortune) {
 		// Returns null to be safe - the id does not depend on the meta
 		return null;
 	}
 
-	@OnlyIn(Dist.CLIENT)
-	@Nonnull
-	public ItemStack getPickedResult(BlockState state, HitResult target, net.minecraft.world.level.LevelReader levelReader, BlockPos pos, Player player) {
-		ItemStack pick = getCloneItemStack(levelReader, pos, state);
-		if (!pick.isEmpty()) {
-			return pick;
-		}
-		Level world = (Level) levelReader; // safe — client-only code, LevelReader is always a Level here
-		InternalRayTraceResult rayTraceResult = doRayTrace(world, pos, player);
-
-		if (rayTraceResult != null && rayTraceResult.boundingBox != null) {
-			if (rayTraceResult.hitPart == Part.PIPE) {
-				final CoreUnroutedPipe pipe = Objects.requireNonNull(LogisticsBlockGenericPipe.getPipe(world, pos));
-				return new ItemStack(pipe.item);
-			}
-		}
-		return ItemStack.EMPTY;
-	}
-
-	// Forge's pick-block hook (middle click). Without this the block falls back to its own
-	// (nonexistent) item and the client logs "Picking on: [BLOCK] logisticspipes:pipe gave
-	// null item"; the pipe's actual item lives on the pipe object, not the block.
+	// Middle click: the pipe's item lives on the pipe object, not the block.
 	@Override
-	public ItemStack getCloneItemStack(BlockState state, HitResult target, net.minecraft.world.level.BlockGetter level, BlockPos pos, Player player) {
+	protected ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
 		BlockEntity tile = level.getBlockEntity(pos);
 		if (tile instanceof LogisticsTileGenericPipe
 				&& LogisticsBlockGenericPipe.isValid(((LogisticsTileGenericPipe) tile).pipe)
 				&& ((LogisticsTileGenericPipe) tile).pipe.item != null) {
 			return new ItemStack(((LogisticsTileGenericPipe) tile).pipe.item);
 		}
-		return super.getCloneItemStack(state, target, level, pos, player);
+		return ItemStack.EMPTY;
 	}
 
 	/* Wrappers ************************************************************ */
 	@Override
-	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean movedByPiston) {
-		super.neighborChanged(state, worldIn, pos, blockIn, fromPos, movedByPiston);
+	protected void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, @Nullable net.minecraft.world.level.redstone.Orientation orientation, boolean movedByPiston) {
+		super.neighborChanged(state, worldIn, pos, blockIn, orientation, movedByPiston);
 
 		CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(worldIn, pos);
 
@@ -792,87 +763,26 @@ public class LogisticsBlockGenericPipe extends LPMicroblockBlock {
 	}
 
 	@Override
-	public InteractionResult use(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hitResult) {
-		InteractionResult superResult = super.use(state, world, pos, player, hand, hitResult);
-		if (superResult != InteractionResult.PASS) return superResult;
+	protected InteractionResult useItemOn(@Nonnull ItemStack heldItem, @Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hitResult) {
+		// signs and pipes get placed against the pipe; anything else opens/configures it
+		if (heldItem.getItem() instanceof net.minecraft.world.item.SignItem || heldItem.getItem() instanceof ItemLogisticsPipe) {
+			return InteractionResult.PASS;
+		}
+		return InteractionResult.TRY_WITH_EMPTY_HAND;
+	}
 
-		ItemStack heldItem = player.getInventory().items.get(player.getInventory().selected);
-
+	@Override
+	protected InteractionResult useWithoutItem(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull BlockHitResult hitResult) {
 		CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(world, pos);
-
 		if (LogisticsBlockGenericPipe.isValid(pipe)) {
-
-			if (heldItem.isEmpty()) {
-				// Fall through the end of the test
-			} else if (heldItem.getItem() instanceof net.minecraft.world.item.SignItem) { // Items.SIGN removed in 1.20.1 — sign items split per wood type
-				// Sign will be placed anyway, so lets show the sign gui
-				return InteractionResult.PASS;
-			} else if (heldItem.getItem() instanceof ItemLogisticsPipe) {
-				return InteractionResult.PASS;
-			}
 			return pipe.blockActivated(player) ? InteractionResult.SUCCESS : InteractionResult.PASS;
 		}
-
 		return InteractionResult.PASS;
 	}
 
 	@Override
 	public boolean isSignalSource(BlockState state) { // canProvidePower renamed to isSignalSource in 1.20.1
 		return true;
-	}
-
-	// LP1 addHitEffects: crack particles textured with the pipe's item icon
-	// LP1 addDestroyEffects: the pipe model breaks into shards (LogisticsNewRenderPipe.renderDestruction)
-	@Override
-	public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientBlockExtensions> consumer) {
-		consumer.accept(ClientExtensionsHolder.EXTENSIONS);
-	}
-
-	/** Client-only references, loaded lazily so dedicated servers never touch them. */
-	private static final class ClientExtensionsHolder {
-		static final net.minecraftforge.client.extensions.common.IClientBlockExtensions EXTENSIONS =
-			new net.minecraftforge.client.extensions.common.IClientBlockExtensions() {
-				@Override
-				public boolean addHitEffects(BlockState state, Level level, net.minecraft.world.phys.HitResult target, net.minecraft.client.particle.ParticleEngine manager) {
-					if (!(target instanceof BlockHitResult hit) || !(level instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel)) return false;
-					BlockPos pos = hit.getBlockPos();
-					CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(level, pos);
-					if (pipe == null) return false;
-					net.minecraft.client.renderer.texture.TextureAtlasSprite icon = pipe.getIconProvider().getIcon(pipe.getIconIndexForItem());
-					if (icon == null) return false;
-					// same placement as vanilla ParticleEngine.crack
-					net.minecraft.world.phys.AABB box = state.getShape(level, pos).bounds();
-					net.minecraft.util.RandomSource rand = level.getRandom();
-					double px = pos.getX() + rand.nextDouble() * (box.maxX - box.minX - 0.2) + 0.1 + box.minX;
-					double py = pos.getY() + rand.nextDouble() * (box.maxY - box.minY - 0.2) + 0.1 + box.minY;
-					double pz = pos.getZ() + rand.nextDouble() * (box.maxZ - box.minZ - 0.2) + 0.1 + box.minZ;
-					switch (hit.getDirection()) {
-						case DOWN -> py = pos.getY() + box.minY - 0.1;
-						case UP -> py = pos.getY() + box.maxY + 0.1;
-						case NORTH -> pz = pos.getZ() + box.minZ - 0.1;
-						case SOUTH -> pz = pos.getZ() + box.maxZ + 0.1;
-						case WEST -> px = pos.getX() + box.minX - 0.1;
-						case EAST -> px = pos.getX() + box.maxX + 0.1;
-					}
-					manager.add(new net.minecraft.client.particle.TerrainParticle(clientLevel, px, py, pz, 0, 0, 0, state, pos) {
-						{
-							setSprite(icon);
-						}
-					}.setPower(0.2F).scale(0.6F));
-					return true;
-				}
-
-				@Override
-				public boolean addDestroyEffects(BlockState state, Level level, BlockPos pos, net.minecraft.client.particle.ParticleEngine manager) {
-					CoreUnroutedPipe pipe = LogisticsBlockGenericPipe.getPipe(level, pos);
-					if (pipe == null || pipe.container == null || pipe.container.renderState.cachedRenderer == null
-							|| !(level instanceof net.minecraft.client.multiplayer.ClientLevel clientLevel)) {
-						return false;
-					}
-					logisticspipes.renderer.newpipe.LogisticsNewRenderPipe.renderDestruction(pipe, clientLevel, pos.getX(), pos.getY(), pos.getZ(), manager);
-					return true;
-				}
-			};
 	}
 
 private void checkForRenderChanges(BlockGetter worldIn, BlockPos blockPos) {

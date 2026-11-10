@@ -1,5 +1,6 @@
 package logisticspipes.gui.hud;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.client.Minecraft;
 
 
@@ -112,11 +113,11 @@ public class HUDProvider extends BasicHUDGui {
 		itemStackRenderer.setScaleX(scaleX).setScaleY(scaleY).setScaleZ(scaleZ);
 		ItemStackRenderer.renderItemIdentifierStackListIntoGui(pipe.getDisplayList(), null, page, -36, -37, 4, 12, 18, 18, itemStackRenderer);
 		ItemStackRenderer.renderItemIdentifierStackListIntoGui(pipe.itemListOrderer, null, pageB, -36, 23, 4, 4, 18, 18, itemStackRenderer);
-		net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		net.minecraft.client.gui.GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		if (gg != null) {
 			int textColor = 0xff000000;
-			gg.drawString(minecraft.font, String.format("(%d/%d)", page + 1, getMaxPage()), 9, -50, textColor, false);
-			gg.drawString(minecraft.font, String.format("(%d/%d)", pageB + 1, getMaxPageOrderer()), 9, 23, textColor, false);
+			SimpleGraphics.drawString(gg, minecraft.font, String.format("(%d/%d)", page + 1, getMaxPage()), 9, -50, textColor, false);
+			SimpleGraphics.drawString(gg, minecraft.font, String.format("(%d/%d)", pageB + 1, getMaxPageOrderer()), 9, 23, textColor, false);
 		}
 	}
 

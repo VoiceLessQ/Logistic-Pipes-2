@@ -42,16 +42,16 @@ import logisticspipes.LPConstants
 import logisticspipes.LogisticsPipes
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.DynamicTexture
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import kotlin.math.max
 
 class FontWrapper(private val font: IFont, private val fontName: String) {
-    val textures: List<ResourceLocation> get() = pages.toList()
+    val textures: List<Identifier> get() = pages.toList()
 
     private var glyphPosX: Map<Char, Int> = emptyMap()
     private var glyphPosY: Map<Char, Int> = emptyMap()
     private var glyphPage: Map<Char, Int> = emptyMap()
-    private val pages = mutableListOf<ResourceLocation>()
+    private val pages = mutableListOf<Identifier>()
 
     val fontWidth: Int get() = font.width
     val fontHeight: Int get() = font.height
@@ -79,8 +79,8 @@ class FontWrapper(private val font: IFont, private val fontName: String) {
         fun uploadPage() {
             val img = image ?: return
             // DynamicTexture uploads on creation and samples with nearest filtering
-            val location = ResourceLocation(LPConstants.LP_MOD_ID, "font/${fontName}_${pages.size}")
-            Minecraft.getInstance().textureManager.register(location, DynamicTexture(img))
+            val location = Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "font/${fontName}_${pages.size}")
+            Minecraft.getInstance().textureManager.register(location, DynamicTexture({ location.toString() }, img))
             pages.add(location)
             image = null
         }
@@ -115,7 +115,7 @@ class FontWrapper(private val font: IFont, private val fontName: String) {
             // Draw the glyph into the texture, set bits white and opaque
             val img = image!!
             for (i in 0 until glyph.width * glyph.height) {
-                img.setPixelRGBA(currentWidth + i % glyph.width, currentHeight + i / glyph.width, if (glyph.bitmap[i]) -1 else 0)
+                img.setPixel(currentWidth + i % glyph.width, currentHeight + i / glyph.width, if (glyph.bitmap[i]) -1 else 0)
             }
             // After allocation
             currentWidth += glyph.width.powerOf2()
@@ -136,7 +136,7 @@ class FontWrapper(private val font: IFont, private val fontName: String) {
     }
 
     // Getter for the glyph's atlas page, returns null if the char has no glyph.
-    fun getTexture(c: Char): ResourceLocation? = glyphPage[c]?.let { pages[it] }
+    fun getTexture(c: Char): Identifier? = glyphPage[c]?.let { pages[it] }
 
     // Getter for width, return -1 if char not found.
     fun getFontTextureSize(): Int = maxTexSize

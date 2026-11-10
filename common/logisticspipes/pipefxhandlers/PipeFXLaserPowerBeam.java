@@ -1,14 +1,18 @@
 package logisticspipes.pipefxhandlers;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -16,7 +20,7 @@ import lombok.experimental.Accessors;
 import network.rs485.logisticspipes.world.DoubleCoordinates;
 
 @Accessors(chain = true)
-public class PipeFXLaserPowerBeam extends Particle {
+public class PipeFXLaserPowerBeam extends Particle implements CustomParticleGroup.Rendered {
 
 	@Setter
 	private boolean reverse = false;
@@ -39,15 +43,19 @@ public class PipeFXLaserPowerBeam extends Particle {
 	}
 
 	@Override
-	public ParticleRenderType getRenderType() {
-		return LaserRenderType.INSTANCE;
+	public ParticleRenderType getGroup() {
+		return CustomParticleGroup.TYPE;
 	}
 
 	@Override
-	public void render(VertexConsumer bb, Camera camera, float partialTicks) {
-		double px = Mth.lerp(partialTicks, xo, x) - camera.getPosition().x;
-		double py = Mth.lerp(partialTicks, yo, y) - camera.getPosition().y;
-		double pz = Mth.lerp(partialTicks, zo, z) - camera.getPosition().z;
+	public void submit(SubmitNodeCollector collector, Vec3 cameraPos, float partialTicks) {
+		collector.submitCustomGeometry(new PoseStack(), RenderTypes.debugQuads(), (pose, bb) -> render(bb, pose, cameraPos, partialTicks));
+	}
+
+	private void render(VertexConsumer bb, PoseStack.Pose pose, Vec3 cameraPos, float partialTicks) {
+		double px = Mth.lerp(partialTicks, xo, x) - cameraPos.x;
+		double py = Mth.lerp(partialTicks, yo, y) - cameraPos.y;
+		double pz = Mth.lerp(partialTicks, zo, z) - cameraPos.z;
 
 		// Beam axis and sign
 		Direction actual = reverse ? dir.getOpposite() : dir;
@@ -76,13 +84,13 @@ public class PipeFXLaserPowerBeam extends Particle {
 
 
 		// Two crossed quads along the beam axis for a 3D beam look
-		beamQuad(bb, px, py, pz, ax, ay, az, length, p1x, p1y, p1z, ri, gi, bi, ai);
-		beamQuad(bb, px, py, pz, ax, ay, az, length, p2x, p2y, p2z, ri, gi, bi, ai);
+		beamQuad(bb, pose, px, py, pz, ax, ay, az, length, p1x, p1y, p1z, ri, gi, bi, ai);
+		beamQuad(bb, pose, px, py, pz, ax, ay, az, length, p2x, p2y, p2z, ri, gi, bi, ai);
 
 	}
 
 	/** Render one flat quad along the beam axis, offset by ±perp. */
-	private static void beamQuad(VertexConsumer bb,
+	private static void beamQuad(VertexConsumer bb, PoseStack.Pose pose,
 			double ox, double oy, double oz,
 			float ax, float ay, float az, float len,
 			float px, float py, float pz,
@@ -93,10 +101,10 @@ public class PipeFXLaserPowerBeam extends Particle {
 		float fy = (float) oy + ay * len;
 		float fz = (float) oz + az * len;
 
-		bb.vertex((float) ox + px, (float) oy + py, (float) oz + pz).color(r, g, b, a).endVertex();
-		bb.vertex((float) ox - px, (float) oy - py, (float) oz - pz).color(r, g, b, a).endVertex();
+		bb.addVertex(pose, (float) ox + px, (float) oy + py, (float) oz + pz).setColor(r, g, b, a);
+		bb.addVertex(pose, (float) ox - px, (float) oy - py, (float) oz - pz).setColor(r, g, b, a);
 
-		bb.vertex(fx - px, fy - py, fz - pz).color(r, g, b, a).endVertex();
-		bb.vertex(fx + px, fy + py, fz + pz).color(r, g, b, a).endVertex();
+		bb.addVertex(pose, fx - px, fy - py, fz - pz).setColor(r, g, b, a);
+		bb.addVertex(pose, fx + px, fy + py, fz + pz).setColor(r, g, b, a);
 	}
 }

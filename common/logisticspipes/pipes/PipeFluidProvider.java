@@ -11,7 +11,6 @@ import javax.annotation.Nonnull;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.fluids.FluidStack;
 
 import logisticspipes.interfaces.ISpecialTankAccessHandler;
 import logisticspipes.interfaces.ISpecialTankUtil;
@@ -67,12 +66,12 @@ public class PipeFluidProvider extends FluidRoutedPipe implements IProvideFluids
 				ISpecialTankUtil util = (ISpecialTankUtil) pair.getValue2();
 				fallback = false;
 				ISpecialTankAccessHandler handler = util.getSpecialHandler();
-				FluidStack drained = handler.drainFrom(pair.getValue1().getTileEntity(), order.getFluid(), amountToSend.get(), false);
-				if (drained != null && drained.getAmount() > 0 && order.getFluid().equals(FluidIdentifier.get(drained))) {
+				FluidIdentifierStack drained = handler.drainFrom(pair.getValue1().getTileEntity(), order.getFluid(), amountToSend.get(), false);
+				if (drained != null && drained.getAmount() > 0 && order.getFluid().equals(drained.getFluid())) {
 					drained = handler.drainFrom(pair.getValue1().getTileEntity(), order.getFluid(), amountToSend.get(), true);
 					int amount = drained.getAmount();
 					amountToSend.addAndGet(-amount);
-					ItemIdentifierStack stack = SimpleServiceLocator.logisticsFluidManager.getFluidContainer(FluidIdentifierStack.getFromStack(drained));
+					ItemIdentifierStack stack = SimpleServiceLocator.logisticsFluidManager.getFluidContainer(drained);
 					IRoutedItem item = SimpleServiceLocator.routedItemHelper.createNewTravelItem(stack);
 					item.setDestination(order.getRouter().getSimpleID());
 					item.setTransportMode(TransportMode.Active);
@@ -85,7 +84,7 @@ public class PipeFluidProvider extends FluidRoutedPipe implements IProvideFluids
 			}
 			if (fallback) {
 				if (pair.getValue2().containsTanks()) {
-					pair.getValue2().tanks().map(tank -> FluidIdentifierStack.getFromStack(tank)).forEach(fluidStack -> {
+					pair.getValue2().tanks().forEach(fluidStack -> {
 						if (amountToSend.get() <= 0) {
 							return;
 						}
@@ -146,7 +145,7 @@ public class PipeFluidProvider extends FluidRoutedPipe implements IProvideFluids
 			}
 			if (fallback) {
 				if (pair.getValue2().containsTanks()) {
-					pair.getValue2().tanks().map(tank -> FluidIdentifierStack.getFromStack(tank)).forEach(liquid -> {
+					pair.getValue2().tanks().forEach(liquid -> {
 						if (liquid != null && liquid.getFluid() != null) {
 							FluidIdentifier ident = liquid.getFluid();
 							if (pair.getValue2().canDrain(ident)) {
@@ -206,7 +205,7 @@ public class PipeFluidProvider extends FluidRoutedPipe implements IProvideFluids
 			}
 			if (fallback) {
 				if (pair.getValue2().containsTanks()) {
-					pair.getValue2().tanks().map(tank -> FluidIdentifierStack.getFromStack(tank)).forEach(liquid -> {
+					pair.getValue2().tanks().forEach(liquid -> {
 						if (liquid != null && liquid.getFluid() != null) {
 							if (fluid.equals(liquid.getFluid())) {
 								if (pair.getValue2().canDrain(liquid.getFluid())) {
@@ -262,7 +261,7 @@ public class PipeFluidProvider extends FluidRoutedPipe implements IProvideFluids
 			}
 			if (fallback) {
 				if (pair.getValue2().containsTanks()) {
-					pair.getValue2().tanks().map(tank -> FluidIdentifierStack.getFromStack(tank)).forEach(liquid -> {
+					pair.getValue2().tanks().forEach(liquid -> {
 						if (liquid != null && liquid.getFluid() != null) {
 							if (pair.getValue2().canDrain(liquid.getFluid())) {
 								if (pair.getValue2().drain(1, false) != null) {

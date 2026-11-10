@@ -1,5 +1,6 @@
 package logisticspipes.gui.hud;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,14 +33,14 @@ public class HUDCrafting extends BasicHUDGui {
 		}
 		LPGuiGraphics.setHudColor(day, 127);
 		super.renderHeadUpDisplay(d, day, shifted, minecraft, config);
-		net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		net.minecraft.client.gui.GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		int textColor = 0xff000000;
 		if (gg != null) {
 			if (pipe.displayList.size() > 0) {
-				gg.drawString(minecraft.font, "Result:", -20, -25, textColor, false);
-				gg.drawString(minecraft.font, "Todo:", -20, 0, textColor, false);
+				SimpleGraphics.drawString(gg, minecraft.font, "Result:", -20, -25, textColor, false);
+				SimpleGraphics.drawString(gg, minecraft.font, "Todo:", -20, 0, textColor, false);
 			} else {
-				gg.drawString(minecraft.font, "Result:", -25, -18, textColor, false);
+				SimpleGraphics.drawString(gg, minecraft.font, "Result:", -25, -18, textColor, false);
 			}
 		}
 		List<ItemIdentifierStack> list = new ArrayList<>();

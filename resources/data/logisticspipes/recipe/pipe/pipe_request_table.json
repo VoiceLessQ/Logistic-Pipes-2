@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " c ",
+    "rfp",
+    " k "
+  ],
+  "key": {
+    "c": "logisticspipes:chip_advanced",
+    "r": "logisticspipes:pipe_request_mk2",
+    "f": "logisticspipes:frame",
+    "p": "logisticspipes:pipe_crafting",
+    "k": "#c:chests/wooden"
+  },
+  "result": {
+    "id": "logisticspipes:pipe_request_table"
+  }
+}

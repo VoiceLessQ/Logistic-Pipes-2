@@ -1,7 +1,7 @@
 
 package logisticspipes.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.core.Direction;
@@ -28,7 +28,7 @@ public class ItemAmountSignCreationGui extends LogisticsBaseGuiScreen {
 
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int i, int j) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int i, int j) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, right, bottom, 0.0f, true);
 		LPGuiGraphics.drawPlayerInventoryBackground(minecraft, leftPos + 10, topPos + 40);
 		LPGuiGraphics.drawSlotBackground(minecraft, leftPos + 9, topPos + 12);

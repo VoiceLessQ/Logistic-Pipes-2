@@ -24,11 +24,11 @@ public abstract class BaseLogicTask {
 	protected UUID uuid;
 
 	public BaseLogicTask(CompoundTag nbt) {
-		posX = nbt.getInt("posX");
-		posY = nbt.getInt("posY");
-		name = nbt.getString("name");
-		comment = nbt.getString("comment");
-		uuid = UUID.fromString(nbt.getString("uuid"));
+		posX = nbt.getIntOr("posX", 0);
+		posY = nbt.getIntOr("posY", 0);
+		name = nbt.getStringOr("name", "");
+		comment = nbt.getStringOr("comment", "");
+		uuid = UUID.fromString(nbt.getStringOr("uuid", ""));
 	}
 
 	public BaseLogicTask(int posX, int posY) {

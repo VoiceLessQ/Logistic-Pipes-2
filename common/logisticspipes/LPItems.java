@@ -2,7 +2,7 @@ package logisticspipes;
 
 import net.minecraft.world.item.Item;
 
-import net.minecraftforge.registries.RegistryObject;
+
 
 import logisticspipes.items.ItemLogisticsPipe;
 
@@ -61,8 +61,8 @@ public class LPItems {
 
 	// Modules / Upgrades
 	public static final RegistryObject<ItemBlankModule>      blankModule          = LPRegistries.MODULE_BLANK;
-	public static BiMap<String, net.minecraft.resources.ResourceLocation> modules  = HashBiMap.create();
-	public static BiMap<String, net.minecraft.resources.ResourceLocation> upgrades = HashBiMap.create();
+	public static BiMap<String, net.minecraft.resources.Identifier> modules  = HashBiMap.create();
+	public static BiMap<String, net.minecraft.resources.Identifier> upgrades = HashBiMap.create();
 
 	// Miscellaneous Items
 	public static final RegistryObject<ItemGuideBook>          itemGuideBook        = LPRegistries.GUIDE_BOOK;

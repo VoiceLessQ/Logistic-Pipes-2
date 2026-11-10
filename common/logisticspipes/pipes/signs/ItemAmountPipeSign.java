@@ -11,7 +11,7 @@ import net.minecraft.client.gui.Font;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.MainTarget;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.Container;
@@ -20,8 +20,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 
 
@@ -52,7 +52,7 @@ public class ItemAmountPipeSign implements IPipeSign, ISimpleInventoryEventHandl
 	public Direction dir;
 	private boolean hasUpdated = false;
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	private RenderTarget fbo;
 
 	public ItemAmountPipeSign() {
@@ -162,14 +162,14 @@ public class ItemAmountPipeSign implements IPipeSign, ISimpleInventoryEventHandl
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public void render(CoreRoutedPipe pipe, LogisticsRenderPipe renderer) {
 		// Legacy no-arg entrypoint — handled via the PoseStack overload below.
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void render(CoreRoutedPipe pipe, LogisticsRenderPipe renderer, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+	@Environment(EnvType.CLIENT)
+	public void render(CoreRoutedPipe pipe, LogisticsRenderPipe renderer, PoseStack poseStack, SubmitNodeCollector collector, int packedLight) {
 		Font var17 = net.minecraft.client.Minecraft.getInstance().font;
 		if (pipe != null) {
 			String name = "";
@@ -178,7 +178,7 @@ public class ItemAmountPipeSign implements IPipeSign, ISimpleInventoryEventHandl
 			if (itemTypeInv != null && itemTypeInv.getIDStackInSlot(0) != null) {
 				ItemStack itemstack = itemTypeInv.getIDStackInSlot(0).unsafeMakeNormalStack();
 
-				renderer.renderItemStackOnSign(itemstack, poseStack, bufferSource, packedLight);
+				renderer.renderItemStackOnSign(itemstack, poseStack, collector, packedLight);
 				Item item = itemstack.getItem();
 
 				poseStack.pushPose();
@@ -205,27 +205,23 @@ public class ItemAmountPipeSign implements IPipeSign, ISimpleInventoryEventHandl
 			}
 
 			if (!idStr.isEmpty()) {
-				var17.drawInBatch(Component.literal(idStr), -var17.width(idStr) / 2.0F, 0 * 10 - 4 * 5, 0,
-						false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+				collector.submitText(poseStack, -var17.width(idStr) / 2.0F, 0 * 10 - 4 * 5, Component.literal(idStr).getVisualOrderText(), false, Font.DisplayMode.NORMAL, packedLight, 0xFF000000, 0, 0);
 			}
 			if (displayAmount != null) {
-				var17.drawInBatch(Component.literal("Amount:"), -var17.width("Amount:") / 2.0F, 1 * 10 - 4 * 5, 0,
-						false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
-				var17.drawInBatch(Component.literal(displayAmount), -var17.width(displayAmount) / 2.0F, 2 * 10 - 4 * 5, 0,
-						false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+				collector.submitText(poseStack, -var17.width("Amount:") / 2.0F, 1 * 10 - 4 * 5, Component.literal("Amount:").getVisualOrderText(), false, Font.DisplayMode.NORMAL, packedLight, 0xFF000000, 0, 0);
+				collector.submitText(poseStack, -var17.width(displayAmount) / 2.0F, 2 * 10 - 4 * 5, Component.literal(displayAmount).getVisualOrderText(), false, Font.DisplayMode.NORMAL, packedLight, 0xFF000000, 0, 0);
 			}
 
 			name = renderer.cut(name, var17);
 
-			var17.drawInBatch(Component.literal(name), -var17.width(name) / 2.0F - 15, 3 * 10 - 4 * 5, 0,
-					false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+			collector.submitText(poseStack, -var17.width(name) / 2.0F - 15, 3 * 10 - 4 * 5, Component.literal(name).getVisualOrderText(), false, Font.DisplayMode.NORMAL, packedLight, 0xFF000000, 0, 0);
 
 			poseStack.popPose();
 		}
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public RenderTarget getMCFrameBufferForSign() {
 		// OpenGlHelper.isFramebufferEnabled() removed in 1.20.1 — FBOs are always available
 		if(fbo == null) {
@@ -235,7 +231,7 @@ public class ItemAmountPipeSign implements IPipeSign, ISimpleInventoryEventHandl
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public boolean doesFrameBufferNeedUpdating(CoreRoutedPipe pipe, LogisticsRenderPipe renderer) {
 		return fbo == null;
 	}

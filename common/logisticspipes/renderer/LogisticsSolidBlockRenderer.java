@@ -5,16 +5,17 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -33,12 +34,17 @@ import network.rs485.logisticspipes.world.DoubleCoordinates;
 /**
  * Shared BlockEntityRenderer for all LP solid blocks. Reuses the OBJ-parsed 3D body
  * and 5 cover plates loaded by {@link LogisticsNewSolidBlockWorldRenderer} and renders
- * them to the cutoutMipped buffer via {@link LPRenderStateImpl}.
+ * them through {@link LogisticsRenderPipe#submitGeometry}.
  *
  * <p>Each {@link LogisticsSolidBlock.Type} maps to a sprite at
  * {@code logisticspipes:solid_block/<name>} which is used as the plate texture.</p>
  */
-public class LogisticsSolidBlockRenderer<T extends BlockEntity> implements BlockEntityRenderer<T> {
+public class LogisticsSolidBlockRenderer<T extends BlockEntity> implements BlockEntityRenderer<T, LogisticsSolidBlockRenderer.State> {
+
+	public static class State extends BlockEntityRenderState {
+
+		public BlockEntity blockEntity;
+	}
 
 	private static final Map<LogisticsSolidBlock.Type, TextureTransformation> SPRITE_CACHE =
 			new EnumMap<>(LogisticsSolidBlock.Type.class);
@@ -74,9 +80,7 @@ public class LogisticsSolidBlockRenderer<T extends BlockEntity> implements Block
 		TextureTransformation cached = cache.get(type);
 		if (cached != null) return cached;
 		String name = textureNameFor(type) + (useActive ? "_active" : "");
-		TextureAtlasSprite sprite = Minecraft.getInstance()
-				.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
-				.apply(new ResourceLocation(LPConstants.LP_MOD_ID, "solid_block/" + name));
+		TextureAtlasSprite sprite = LogisticsRenderPipe.getBlockSprite(Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "solid_block/" + name));
 		TextureTransformation tx = SimpleServiceLocator.cclProxy.createIconTransformer(sprite);
 		cache.put(type, tx);
 		return tx;
@@ -88,13 +92,27 @@ public class LogisticsSolidBlockRenderer<T extends BlockEntity> implements Block
 	}
 
 	@Override
-	public void render(@Nonnull T be, float partialTicks, @Nonnull PoseStack pose,
-			@Nonnull MultiBufferSource buffers, int light, int overlay) {
+	public State createRenderState() {
+		return new State();
+	}
+
+	@Override
+	public void extractRenderState(T be, State state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(be, state, partialTicks, cameraPosition, breakProgress);
+		state.blockEntity = be;
+	}
+
+	@Override
+	public void submit(State state, @Nonnull PoseStack pose, @Nonnull SubmitNodeCollector collector, @Nonnull CameraRenderState camera) {
+		BlockEntity be = state.blockEntity;
+		if (be == null) return;
+		int light = state.lightCoords;
+		int overlay = OverlayTexture.NO_OVERLAY;
 		Block block = be.getBlockState().getBlock();
 		if (!(block instanceof LogisticsSolidBlock)) return;
 		LogisticsSolidBlock.Type type = ((LogisticsSolidBlock) block).getType();
 		if (!(be instanceof LogisticsSolidTileEntity) || be.getLevel() == null) {
-			renderSolid(type, pose, buffers, light, overlay);
+			renderSolid(type, pose, collector, light, overlay);
 			return;
 		}
 		LogisticsSolidTileEntity tile = (LogisticsSolidTileEntity) be;
@@ -104,11 +122,6 @@ public class LogisticsSolidBlockRenderer<T extends BlockEntity> implements Block
 		if (LogisticsNewSolidBlockWorldRenderer.block == null
 				|| LogisticsNewSolidBlockWorldRenderer.block.isEmpty()) return;
 
-		LPRenderStateImpl rs = (LPRenderStateImpl) SimpleServiceLocator.cclProxy.getRenderState();
-		VertexConsumer buffer = buffers.getBuffer(RenderType.cutoutMipped());
-		rs.bind(buffer, pose.last().pose(), pose.last().normal(), light, overlay);
-		rs.reset();
-
 		TextureTransformation icon = getIcon(type, tile.isActive());
 		if (icon == null) return;
 
@@ -117,9 +130,7 @@ public class LogisticsSolidBlockRenderer<T extends BlockEntity> implements Block
 		if (rotation == null) rotation = LogisticsNewSolidBlockWorldRenderer.BlockRotation.ZERO;
 
 		IModel3D body = LogisticsNewSolidBlockWorldRenderer.block.get(rotation);
-		if (body != null) {
-			body.render(icon);
-		}
+		java.util.List<IModel3D> plates = new java.util.ArrayList<>();
 
 		// LP1 hid the cover plates on sides where an adjacent LP pipe connects into this
 		// block, so the pipe visually enters the machine.
@@ -142,31 +153,35 @@ public class LogisticsSolidBlockRenderer<T extends BlockEntity> implements Block
 				Map<LogisticsNewSolidBlockWorldRenderer.BlockRotation, IModel3D> inner =
 						LogisticsNewSolidBlockWorldRenderer.texturePlate_Inner.get(side);
 				if (outer != null && outer.get(rotation) != null) {
-					outer.get(rotation).render(icon);
+					plates.add(outer.get(rotation));
 				}
 				if (inner != null && inner.get(rotation) != null) {
-					inner.get(rotation).render(icon);
+					plates.add(inner.get(rotation));
 				}
 			}
 		}
-		rs.draw();
+		LogisticsRenderPipe.submitGeometry(collector, pose, LogisticsRenderPipe.ATLAS_TYPE, light, overlay, () -> {
+			if (body != null) {
+				body.render(icon);
+			}
+			plates.forEach(plate -> plate.render(icon));
+		});
 	}
 
 	/** Shared draw path used by both the in-world BER and the item BEWLR. */
 	public static void renderSolid(LogisticsSolidBlock.Type type, PoseStack pose,
-			MultiBufferSource buffers, int light, int overlay) {
+			SubmitNodeCollector collector, int light, int overlay) {
 		if (!SimpleServiceLocator.cclProxy.isActivated()) return;
 		if (!(SimpleServiceLocator.cclProxy.getRenderState() instanceof LPRenderStateImpl)) return;
 		if (LogisticsNewSolidBlockWorldRenderer.block == null
 				|| LogisticsNewSolidBlockWorldRenderer.block.isEmpty()) return;
 
-		LPRenderStateImpl rs = (LPRenderStateImpl) SimpleServiceLocator.cclProxy.getRenderState();
-		VertexConsumer buffer = buffers.getBuffer(RenderType.cutoutMipped());
-		rs.bind(buffer, pose.last().pose(), pose.last().normal(), light, overlay);
-		rs.reset();
-
 		TextureTransformation icon = getIcon(type);
 		if (icon == null) return;
+		LogisticsRenderPipe.submitGeometry(collector, pose, LogisticsRenderPipe.ATLAS_TYPE, light, overlay, () -> renderSolidModels(type, icon));
+	}
+
+	private static void renderSolidModels(LogisticsSolidBlock.Type type, TextureTransformation icon) {
 
 		LogisticsNewSolidBlockWorldRenderer.BlockRotation rotation =
 				LogisticsNewSolidBlockWorldRenderer.BlockRotation.ZERO;
@@ -191,6 +206,5 @@ public class LogisticsSolidBlockRenderer<T extends BlockEntity> implements Block
 				}
 			}
 		}
-		rs.draw();
 	}
 }

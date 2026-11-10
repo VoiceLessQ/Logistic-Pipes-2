@@ -1,12 +1,15 @@
 package logisticspipes.utils.gui;
 
-import net.minecraft.SharedConstants;
+import java.util.function.Predicate;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.StringUtil;
 
 public class InputBar extends EditBox implements LogisticsBaseGuiScreen.EventListener {
 
@@ -18,6 +21,7 @@ public class InputBar extends EditBox implements LogisticsBaseGuiScreen.EventLis
 
 	public int minNumber = 0;
 	private final LogisticsBaseGuiScreen screen;
+	private Predicate<String> filter = s -> true;
 
 	public InputBar(Font font, LogisticsBaseGuiScreen screen, int left, int top, int width, int height) {
 		this(font, screen, left, top, width, height, true);
@@ -36,16 +40,39 @@ public class InputBar extends EditBox implements LogisticsBaseGuiScreen.EventLis
 		this.screen = screen;
 		screen.onGuiEvents.add(this);
 		if (numberOnly) {
-			setFilter((String s) -> {
+			filter = (String s) -> {
 				try {
 					return Integer.parseInt(s) >= minNumber;
 				} catch (NumberFormatException ignored) {
 					return false;
 				}
-			});
+			};
 			setMaxLength(5);
 		} else
 			setMaxLength(128);
+	}
+
+	// EditBox lost its filter in 26.x: undo an edit whose result the filter rejects
+	@Override
+	public void insertText(String input) {
+		String old = getValue();
+		int cursor = getCursorPosition();
+		super.insertText(input);
+		if (!filter.test(getValue())) {
+			setValue(old);
+			setCursorPosition(cursor);
+		}
+	}
+
+	@Override
+	public void deleteCharsToPos(int pos) {
+		String old = getValue();
+		int cursor = getCursorPosition();
+		super.deleteCharsToPos(pos);
+		if (!filter.test(getValue())) {
+			setValue(old);
+			setCursorPosition(cursor);
+		}
 	}
 
 	public void reposition(int left, int top, int width, int height) {
@@ -57,12 +84,12 @@ public class InputBar extends EditBox implements LogisticsBaseGuiScreen.EventLis
 
 	@Override
 	public void onUpdateScreen() {
-		tick(); // was: updateCursorCounter() in 1.12.2
+		// the cursor blinks by wall-clock time in 26.x, nothing to tick
 	}
 
 	@Override
 	public boolean onKeyboardInput() {
-		return (isFocused() || Screen.hasAltDown()) && SharedConstants.isAllowedChatCharacter(' ');
+		return (isFocused() || Minecraft.getInstance().hasAltDown()) && StringUtil.isAllowedChatCharacter(' ');
 	}
 
 	/**
@@ -74,14 +101,14 @@ public class InputBar extends EditBox implements LogisticsBaseGuiScreen.EventLis
 			setValue("");
 		// LP1 GuiTextField focused on click; EditBox leaves focus to the parent screen
 		setFocused(inside);
-		return mouseClicked(x, y, k);
+		return mouseClicked(new MouseButtonEvent(x, y, new MouseButtonInfo(k, 0)), false);
 	}
 
 	/**
 	 * @return Boolean, true if key was handled.
 	 */
 	public boolean handleKey(char c, int i) {
-		return charTyped(c, 0); // was: textboxKeyTyped(c, i) in 1.12.2
+		return charTyped(new CharacterEvent(c));
 	}
 
 	public void setInteger(int newValue) {
@@ -123,7 +150,7 @@ public class InputBar extends EditBox implements LogisticsBaseGuiScreen.EventLis
 	/** @deprecated Use renderWidget() via parent */
 	public void drawTextBox() {
 		// LP1's GuiTextField drew itself here; no screen registers these as widgets
-		render(screen.guiGraphics, 0, 0, 0);
+		extractRenderState(screen.guiGraphics, 0, 0, 0);
 	}
 
 }

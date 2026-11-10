@@ -8,6 +8,7 @@
 
 package logisticspipes.utils.item;
 
+import logisticspipes.utils.TagUtil;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -42,7 +43,7 @@ import network.rs485.logisticspipes.inventory.SlotAccess;
 import network.rs485.logisticspipes.util.items.ItemStackLoader;
 
 public class ItemIdentifierInventory
-		implements IStore, Iterable<Pair<ItemIdentifierStack, Integer>>, IItemIdentifierInventory {
+		implements IStore, IItemIdentifierInventory {
 
 	private final Object[] ccTypeHolder = new Object[1];
 	private final ItemIdentifierStack[] _contents;
@@ -216,10 +217,10 @@ public class ItemIdentifierInventory
 	}
 
 	@Override
-	public void startOpen(@Nonnull Player player) {}
+	public void startOpen(@Nonnull net.minecraft.world.entity.ContainerUser player) {}
 
 	@Override
-	public void stopOpen(@Nonnull Player player) {}
+	public void stopOpen(@Nonnull net.minecraft.world.entity.ContainerUser player) {}
 
 	@Override
 	public void readFromNBT(@Nonnull CompoundTag nbttagcompound) {
@@ -227,12 +228,12 @@ public class ItemIdentifierInventory
 	}
 
 	public void readFromNBT(CompoundTag nbttagcompound, String prefix) {
-		ListTag nbttaglist = nbttagcompound.getList(prefix + "items", nbttagcompound.getId());
+		ListTag nbttaglist = nbttagcompound.getListOrEmpty(prefix + "items");
 
 		Arrays.fill(_contents, null);
 		for (int j = 0; j < nbttaglist.size(); ++j) {
-			CompoundTag nbttagcompound2 = nbttaglist.getCompound(j);
-			int index = nbttagcompound2.getInt("index");
+			CompoundTag nbttagcompound2 = nbttaglist.getCompoundOrEmpty(j);
+			int index = nbttagcompound2.getIntOr("index", 0);
 			if (index < _contents.length) {
 				ItemStack stack = ItemStackLoader.loadAndFixItemStackFromNBT(nbttagcompound2);
 				ItemIdentifierStack itemstack = ItemIdentifierStack.getFromStack(stack);
@@ -259,7 +260,7 @@ public class ItemIdentifierInventory
 				CompoundTag nbttagcompound2 = new CompoundTag();
 				nbttaglist.add(nbttagcompound2);
 				nbttagcompound2.putInt("index", j);
-				_contents[j].unsafeMakeNormalStack().save(nbttagcompound2);
+				TagUtil.saveStack(_contents[j].unsafeMakeNormalStack(), nbttagcompound2);
 			}
 		}
 		nbttagcompound.put(prefix + "items", nbttaglist);
@@ -503,9 +504,8 @@ public class ItemIdentifierInventory
 		return true;
 	}
 
-	@Override
 	@Nonnull
-	public Iterator<Pair<ItemIdentifierStack, Integer>> iterator() {
+	private Iterator<Pair<ItemIdentifierStack, Integer>> pairIterator() {
 		final Iterator<ItemIdentifierStack> iter = Arrays.asList(_contents).iterator();
 		return new Iterator<Pair<ItemIdentifierStack, Integer>>() {
 
@@ -568,7 +568,7 @@ public class ItemIdentifierInventory
 	@Nonnull
 	@Override
 	public Iterable<Pair<ItemIdentifierStack, Integer>> contents() {
-		return this;
+		return this::pairIterator;
 	}
 
 	@Nonnull

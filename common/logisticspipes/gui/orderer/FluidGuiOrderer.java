@@ -9,11 +9,12 @@ import logisticspipes.pipes.PipeFluidRequestLogistics;
 import logisticspipes.proxy.MainProxy;
 import logisticspipes.utils.gui.ItemDisplay;
 import logisticspipes.utils.item.ItemIdentifier;
+import logisticspipes.utils.item.ItemIdentifierStack;
 
 public class FluidGuiOrderer extends GuiOrderer {
 
 	public FluidGuiOrderer(PipeFluidRequestLogistics pipe, Player entityPlayer) {
-		super(pipe.getX(), pipe.getY(), pipe.getZ(), pipe.getWorld().dimension().location(), entityPlayer);
+		super(pipe.getX(), pipe.getY(), pipe.getZ(), pipe.getWorld().dimension().identifier(), entityPlayer);
 		_title = "Request Fluid";
 		refreshItems();
 	}
@@ -25,18 +26,15 @@ public class FluidGuiOrderer extends GuiOrderer {
 		logisticspipes.utils.gui.SmallGuiButton refreshBtn = new logisticspipes.utils.gui.SmallGuiButton(3, leftPos + 10, bottom - 25, 46, 20, "Refresh");
 		refreshBtn.setPressListener(b -> refreshItems());
 		addRenderableWidget(refreshBtn);
-		logisticspipes.utils.gui.SmallGuiButton submitBtn = new logisticspipes.utils.gui.SmallGuiButton(0, leftPos + 60, bottom - 25, 46, 20, "Request");
-		submitBtn.setPressListener(b -> {
-			if (itemDisplay.getSelectedItem() != null) {
-				MainProxy.sendPacketToServer(PacketHandler.getPacket(SubmitFluidRequestPacket.class).setStack(itemDisplay.getSelectedItem().getItem().makeStack(itemDisplay.getRequestCount())).setPosX(xCoord).setPosY(yCoord).setPosZ(zCoord).setDimension(dimension));
-				refreshItems();
-			}
-		});
-		addRenderableWidget(submitBtn);
 		if (setItemDisplay) {
 			itemDisplay = new ItemDisplay(this, font, this, this, leftPos + 10, topPos + 18, imageWidth - 20, imageHeight - 100, xCenter, bottom - 24, 49, new int[] { 1, 1000, 16000, 100 }, false);
 		}
 		itemDisplay.reposition(leftPos + 10, topPos + 18, imageWidth - 20, imageHeight - 100, xCenter, bottom - 24);
+	}
+
+	@Override
+	protected void submitRequest(ItemIdentifierStack stack) {
+		MainProxy.sendPacketToServer(PacketHandler.getPacket(SubmitFluidRequestPacket.class).setStack(stack).setPosX(xCoord).setPosY(yCoord).setPosZ(zCoord).setDimension(dimension));
 	}
 
 	@Override

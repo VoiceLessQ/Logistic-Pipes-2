@@ -27,7 +27,7 @@ public class HandCommand implements ICommandHandler {
 	@Override
 	public void executeCommand(CommandSourceStack sender, String[] args) {
 		Player player = sender.getPlayer();
-		ItemStack item = player.getInventory().items.get(player.getInventory().selected);
+		ItemStack item = player.getInventory().getNonEquipmentItems().get(player.getInventory().getSelectedSlot());
 		if (!item.isEmpty()) {
 			DebugGuiController.instance().startWatchingOf(item, player);
 			sender.sendSystemMessage(Component.literal("Starting HandDebuging"));

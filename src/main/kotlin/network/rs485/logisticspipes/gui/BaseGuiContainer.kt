@@ -51,15 +51,14 @@ import logisticspipes.utils.gui.DummySlot
 import logisticspipes.utils.gui.LPGuiGraphics
 import logisticspipes.utils.gui.SimpleGraphics
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.Slot
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import kotlin.math.roundToInt
-
-// TODO: Rendering deferred — full 1.20.1 rendering migration (PoseStack, AbstractContainerScreen API) pending.
 
 abstract class BaseGuiContainer(
     private val baseContainer: LPBaseContainer<LogisticsModule>,
@@ -68,7 +67,7 @@ abstract class BaseGuiContainer(
     private val widgetScreen: WidgetScreen,
 ) : AbstractContainerScreen<LPBaseContainer<LogisticsModule>>(
     baseContainer,
-    Inventory(Minecraft.getInstance().player!!),
+    Minecraft.getInstance().player!!.inventory,
     Component.empty(),
 ), Drawable by widgetScreen {
 
@@ -85,8 +84,6 @@ abstract class BaseGuiContainer(
         // We just copy the centered rect into leftPos/topPos/imageWidth/imageHeight.
         widgetScreen.initGuiWidget(this@BaseGuiContainer, width, height)
         val rect = widgetScreen.relativeBody
-        imageWidth = rect.width.toInt()
-        imageHeight = rect.height.toInt()
         leftPos = rect.x0.toInt()
         topPos = rect.y0.toInt()
     }
@@ -99,17 +96,22 @@ abstract class BaseGuiContainer(
 
     private var lastPartialTick: Float = 0f
 
-    override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    // imageWidth/imageHeight are final in 26.x; the widget layout's rect is the real panel bounds
+    override fun hasClickedOutside(mx: Double, my: Double, xo: Int, yo: Int): Boolean {
+        val rect = widgetScreen.relativeBody
+        return mx < xo || my < yo || mx >= xo + rect.width || my >= yo + rect.height
+    }
+
+    override fun extractRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
         SimpleGraphics.guiGraphics = guiGraphics
         lastPartialTick = partialTick
-        renderBackground(guiGraphics)
-        super.render(guiGraphics, mouseX, mouseY, partialTick)
+        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick)
         val floatMouseX = mouseX.toFloat()
         val floatMouseY = mouseY.toFloat()
         widgetScreen.updateHoveredState(floatMouseX, floatMouseY)
         (widgetScreen.hoveredWidget as? Tooltipped)?.getTooltipText()?.takeIf { it.isNotEmpty() }?.also {
             GuiDrawer.drawTextTooltip(it, mouseX, mouseY, 0f, HorizontalAlignment.LEFT, VerticalAlignment.TOP)
-        } ?: renderTooltip(guiGraphics, mouseX, mouseY)
+        } ?: extractTooltip(guiGraphics, mouseX, mouseY)
         fuzzySelector?.let { fuzzySelector ->
             val slot = hoveredSlot
             if (slot == null && fuzzySelector.active && !fuzzySelector.isMouseHovering(floatMouseX, floatMouseY)) {
@@ -121,28 +123,31 @@ abstract class BaseGuiContainer(
                 fuzzySelector.setPos(leftPos + slot.x, topPos + slot.y + 17)
             }
             // above item tooltips (z 400)
-            guiGraphics.pose().pushPose()
-            guiGraphics.pose().translate(0f, 0f, 500f)
+            guiGraphics.pose().pushMatrix()
+            guiGraphics.pose().translate(0f, 0f)
             fuzzySelector.draw(floatMouseX, floatMouseY, partialTick, Screen.screen)
-            guiGraphics.pose().popPose()
+            guiGraphics.pose().popMatrix()
         }
     }
 
-    override fun renderLabels(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int) {
+    override fun extractLabels(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
         // super.renderLabels draws the menu title + inventory label at local (0,0); we skip those
         // for widget GUIs — widget layout handles its own labels.
         // Pose is translated by (leftPos, topPos); counter-translate so widget absolute coords work.
         val pose = guiGraphics.pose()
-        pose.pushPose()
-        pose.translate(-leftPos.toFloat(), -topPos.toFloat(), 0f)
+        pose.pushMatrix()
+        pose.translate(-leftPos.toFloat(), -topPos.toFloat())
         val rect = widgetScreen.relativeBody
         drawBackgroundLayer(mouseX, mouseY, lastPartialTick)
         widgetScreen.widgetContainer.draw(mouseX.toFloat(), mouseY.toFloat(), lastPartialTick, rect)
         drawForegroundLayer(mouseX.toFloat(), mouseY.toFloat(), lastPartialTick)
-        pose.popPose()
+        pose.popMatrix()
     }
 
-    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
+        val mouseX = event.x()
+        val mouseY = event.y()
+        val button = event.button()
         if (fuzzySelector?.takeIf { it.active }?.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), button) == true) {
             return true
         }
@@ -153,21 +158,22 @@ abstract class BaseGuiContainer(
                 return true
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button)
+        return super.mouseClicked(event, doubleClick)
     }
 
-    override fun slotClicked(slot: Slot?, slotId: Int, mouseButton: Int, type: ClickType) {
+    override fun slotClicked(slot: Slot?, slotId: Int, mouseButton: Int, type: ContainerInput) {
         // client-side filter fill; the property layer syncs it on close
-        if (type == ClickType.QUICK_MOVE && slot != null && baseContainer.tryTransferSlotToGhostSlot(slot.index)) return
+        if (type == ContainerInput.QUICK_MOVE && slot != null && baseContainer.tryTransferSlotToGhostSlot(slot.index)) return
         super.slotClicked(slot, slotId, mouseButton, type)
     }
 
-    override fun renderBg(
-        guiGraphics: GuiGraphics,
-        partialTick: Float,
+    override fun extractBackground(
+        guiGraphics: GuiGraphicsExtractor,
         mouseX: Int,
         mouseY: Int,
+        partialTick: Float,
     ) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTick)
         SimpleGraphics.guiGraphics = guiGraphics
         val rect = widgetScreen.relativeBody
         val left = rect.x0.toInt()

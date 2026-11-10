@@ -38,8 +38,11 @@
 package network.rs485.logisticspipes.gui.guidebook
 
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.gui.components.Button
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.gui.components.AbstractButton
+import net.minecraft.client.gui.narration.NarrationElementOutput
+import net.minecraft.client.input.InputWithModifiers
+import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 import network.rs485.logisticspipes.gui.GuiDrawer
 import network.rs485.logisticspipes.gui.HorizontalAlignment
@@ -48,7 +51,7 @@ import network.rs485.logisticspipes.util.Rectangle
 import network.rs485.logisticspipes.util.math.MutableRectangle
 
 open class LPGuiButton(id: Int, x: Int, y: Int, width: Int, height: Int) :
-    Button(Button.builder(Component.empty()) { }.pos(x, y).size(width, height)) {
+    AbstractButton(x, y, width, height, Component.empty()) {
 
     val body = MutableRectangle(x, y, width, height)
 
@@ -67,8 +70,8 @@ open class LPGuiButton(id: Int, x: Int, y: Int, width: Int, height: Int) :
     // LP1 routed clicks through GuiScreen.mouseClicked -> mousePressed -> actionPerformed ->
     // click(0). In the 1.20.1 Screen model each widget receives mouseClicked itself; hit-test
     // against the body rectangle (not the vanilla widget x/y) like LP1's mousePressed did.
-    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if (button != 0 || !isHovered(mouseX.toInt(), mouseY.toInt())) return false
+    override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
+        if (event.button() != 0 || !isHovered(event.x().toInt(), event.y().toInt())) return false
         return click(0).also { if (it) playDownSound(Minecraft.getInstance().soundManager) }
     }
 
@@ -87,7 +90,10 @@ open class LPGuiButton(id: Int, x: Int, y: Int, width: Int, height: Int) :
 
     fun getHoverState(mouseOver: Boolean): Int = if (!isActive) 2 else if (mouseOver) 1 else 0
 
-    override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
-        // TODO: deferred rendering
-    }
+    // clicks go through mouseClicked/click(); the vanilla press path is unused
+    override fun onPress(input: InputWithModifiers) {}
+
+    override fun extractContents(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {}
+
+    override fun updateWidgetNarration(output: NarrationElementOutput) = defaultButtonNarrationText(output)
 }

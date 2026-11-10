@@ -1,14 +1,15 @@
 
 package logisticspipes.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import java.io.IOException;
 
 
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 
 
@@ -40,28 +41,28 @@ public class GuiPowerJunction extends LogisticsBaseGuiScreen {
 
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiPowerJunction.PREFIX + "LogisticsPowerJunction"), 30, 8, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.translate(GuiPowerJunction.PREFIX + "StoredEnergy") + ":", 40, 23, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, TextUtil.formatNumberWithCommas(junction.getPowerLevel()) + " LP", 40, 33, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, "/ " + TextUtil.formatNumberWithCommas(LogisticsPowerJunctionTileEntity.MAX_STORAGE) + " LP", 40, 43, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, "1 MJ = 5 LP", 30, 58, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, "1 EU = 2 LP", 100, 58, 0x404040, false);
-		guiGraphics.drawString(minecraft.font, "10 RF = 5 LP", 24, 68, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiPowerJunction.PREFIX + "LogisticsPowerJunction"), 30, 8, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(GuiPowerJunction.PREFIX + "StoredEnergy") + ":", 40, 23, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.formatNumberWithCommas(junction.getPowerLevel()) + " LP", 40, 33, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "/ " + TextUtil.formatNumberWithCommas(LogisticsPowerJunctionTileEntity.MAX_STORAGE) + " LP", 40, 43, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "1 MJ = 5 LP", 30, 58, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "1 EU = 2 LP", 100, 58, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, "10 RF = 5 LP", 24, 68, 0x404040, false);
 	}
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("logisticspipes", "textures/gui/power_junction.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath("logisticspipes", "textures/gui/power_junction.png");
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float var1, int var2, int var3) {
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float var1, int var2, int var3) {
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 		int j = leftPos;
 		int k = topPos;
-		guiGraphics.blit(GuiPowerJunction.TEXTURE, j, k, 0.0f, 0.0f, imageWidth, imageHeight, 256, 256);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiPowerJunction.TEXTURE, j, k, 0.0f, 0.0f, imageWidth, imageHeight, 256, 256, SimpleGraphics.color);
 		int level = 100 - junction.getChargeState();
 		int levelPixels = level * 59 / 100;
-		guiGraphics.blit(GuiPowerJunction.TEXTURE, j + 10, k + 11 + levelPixels, 176.0f, levelPixels, 5, 59 - levelPixels, 256, 256);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiPowerJunction.TEXTURE, j + 10, k + 11 + levelPixels, 176.0f, levelPixels, 5, 59 - levelPixels, 256, 256, SimpleGraphics.color);
 	}
 
 	@Override

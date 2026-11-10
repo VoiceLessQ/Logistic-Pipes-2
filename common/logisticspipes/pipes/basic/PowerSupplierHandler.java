@@ -19,48 +19,63 @@ import network.rs485.logisticspipes.world.WorldCoordinatesWrapper;
 
 public class PowerSupplierHandler {
 
-	private static final double INTERNAL_RF_BUFFER_MAX = 10000;
-
 	private final CoreRoutedPipe pipe;
 
-	private double internalBufferRF = 0F;
-	private double internalBufferIC2 = 0F;
+	private final Channel rf = new Channel("RF", 10000, LogisticsPowerProviderTileEntity.RF_COLOR);
+	private final Channel eu = new Channel("EU", 2048 * 4, LogisticsPowerProviderTileEntity.IC2_COLOR);
+
+	private static class Channel {
+
+		final String brand;
+		final double bufferMax;
+		final int laserColor;
+		double buffer;
+
+		Channel(String brand, double bufferMax, int laserColor) {
+			this.brand = brand;
+			this.bufferMax = bufferMax;
+			this.laserColor = laserColor;
+		}
+	}
 
 	public PowerSupplierHandler(CoreRoutedPipe pipe) {
 		this.pipe = pipe;
 	}
 
 	public void writeToNBT(CompoundTag nbttagcompound) {
-		if (internalBufferRF > 0) {
-			nbttagcompound.putDouble("bufferRF", internalBufferRF);
+		if (rf.buffer > 0) {
+			nbttagcompound.putDouble("bufferRF", rf.buffer);
 		}
-		if (internalBufferIC2 > 0) {
-			nbttagcompound.putDouble("bufferEU", internalBufferIC2);
+		if (eu.buffer > 0) {
+			nbttagcompound.putDouble("bufferEU", eu.buffer);
 		}
 	}
 
 	public void readFromNBT(CompoundTag nbttagcompound) {
 		if (nbttagcompound.get("bufferRF") instanceof FloatTag) { // support for old float
-			internalBufferRF = nbttagcompound.getFloat("bufferRF");
+			rf.buffer = nbttagcompound.getFloatOr("bufferRF", 0f);
 		} else {
-			internalBufferRF = nbttagcompound.getDouble("bufferRF");
+			rf.buffer = nbttagcompound.getDoubleOr("bufferRF", 0.0);
 		}
 		if (nbttagcompound.get("bufferEU") instanceof FloatTag) { // support for old float
-			internalBufferIC2 = nbttagcompound.getFloat("bufferEU");
+			eu.buffer = nbttagcompound.getFloatOr("bufferEU", 0f);
 		} else {
-			internalBufferIC2 = nbttagcompound.getDouble("bufferEU");
+			eu.buffer = nbttagcompound.getDoubleOr("bufferEU", 0.0);
 		}
 	}
 
 	public void update() {
 		if (SimpleServiceLocator.powerProxy.isAvailable() && pipe.getUpgradeManager().hasRFPowerSupplierUpgrade()) {
-			if (requestRFPower()) return;
+			if (requestPower(rf, Integer.MAX_VALUE)) return;
 		}
-		// IC2/EU distribution removed — IC2 has no 1.20.1 port, the former dummy proxy made
-		// this path a no-op (hasIC2() was always false).
+		// EU supplier upgrades push through Team Reborn Energy (Tech Reborn machines), capped per tick at the upgrade's voltage tier
+		int euLevel = pipe.getUpgradeManager().getIC2PowerLevel();
+		if (euLevel > 0) {
+			requestPower(eu, euLevel);
+		}
 	}
 
-	private boolean requestRFPower() {
+	private boolean requestPower(Channel channel, int maxPerTarget) {
 		//Use Buffer
 
 		final List<LPNeighborTileEntity<BlockEntity>> adjacentTileEntities = new WorldCoordinatesWrapper(pipe.container).allNeighborTileEntities();
@@ -72,30 +87,30 @@ public class PowerSupplierHandler {
 			if (SimpleServiceLocator.powerProxy.isEnergyReceiver(adjacent.getTileEntity(), adjacent.getOurDirection())) {
 				if (pipe.canPipeConnect(adjacent.getTileEntity(), adjacent.getDirection())) {
 					ICoFHEnergyReceiver energyReceiver = SimpleServiceLocator.powerProxy.getEnergyReceiver(adjacent.getTileEntity(), adjacent.getOurDirection());
-					globalNeed += need[i] = (energyReceiver.getMaxEnergyStored() - energyReceiver.getEnergyStored());
+					globalNeed += need[i] = Math.min(maxPerTarget, energyReceiver.getMaxEnergyStored() - energyReceiver.getEnergyStored());
 				}
 			}
 			++i;
 		}
 
 		if (globalNeed != 0 && !Double.isNaN(globalNeed)) {
-			double fullfillable = Math.min(1, internalBufferRF / globalNeed);
+			double fullfillable = Math.min(1, channel.buffer / globalNeed);
 			i = 0;
 			for (NeighborTileEntity<BlockEntity> adjacent : adjacentTileEntities) {
 				if (SimpleServiceLocator.powerProxy.isEnergyReceiver(adjacent.getTileEntity(), adjacent.getOurDirection())) {
 					if (pipe.canPipeConnect(adjacent.getTileEntity(), adjacent.getDirection())) {
 						Direction oppositeDir = adjacent.getOurDirection();
 						ICoFHEnergyReceiver energyReceiver = SimpleServiceLocator.powerProxy.getEnergyReceiver(adjacent.getTileEntity(), oppositeDir);
-						if (internalBufferRF + 1 < need[i] * fullfillable) {
+						if (channel.buffer + 1 < need[i] * fullfillable) {
 							return true;
 						}
 						int used = energyReceiver.receiveEnergy(oppositeDir, (int) (need[i] * fullfillable), false);
 						if (used > 0) {
-							pipe.container.addLaser(adjacent.getDirection(), 0.5F, LogisticsPowerProviderTileEntity.RF_COLOR, false, true);
-							internalBufferRF -= used;
+							pipe.container.addLaser(adjacent.getDirection(), 0.5F, channel.laserColor, false, true);
+							channel.buffer -= used;
 						}
-						if (internalBufferRF < 0) {
-							internalBufferRF = 0;
+						if (channel.buffer < 0) {
+							channel.buffer = 0;
 							return true;
 						}
 					}
@@ -116,13 +131,13 @@ public class PowerSupplierHandler {
 			if (pair.getValue1().usePaused()) {
 				continue;
 			}
-			if (!pair.getValue1().getBrand().equals("RF")) {
+			if (!pair.getValue1().getBrand().equals(channel.brand)) {
 				continue;
 			}
 			available += pair.getValue1().getPowerLevel();
 		}
 		if (available > 0) {
-			double neededPower = PowerSupplierHandler.INTERNAL_RF_BUFFER_MAX - internalBufferRF;
+			double neededPower = channel.bufferMax - channel.buffer;
 			if (neededPower > 0) {
 				if (pipe.useEnergy((int) (neededPower / 100), false)) {
 					outer:
@@ -135,7 +150,7 @@ public class PowerSupplierHandler {
 						if (pair.getValue1().usePaused()) {
 							continue;
 						}
-						if (!pair.getValue1().getBrand().equals("RF")) {
+						if (!pair.getValue1().getBrand().equals(channel.brand)) {
 							continue;
 						}
 						double requestamount = neededPower * (pair.getValue1().getPowerLevel() / available);
@@ -148,10 +163,10 @@ public class PowerSupplierHandler {
 	}
 
 	public void addRFPower(double toSend) {
-		internalBufferRF += toSend;
+		rf.buffer += toSend;
 	}
 
 	public void addIC2Power(double toSend) {
-		internalBufferIC2 += toSend;
+		eu.buffer += toSend;
 	}
 }

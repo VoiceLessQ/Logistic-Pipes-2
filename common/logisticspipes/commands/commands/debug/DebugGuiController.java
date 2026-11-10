@@ -173,7 +173,7 @@ public class DebugGuiController {
 		@Override
 		public String handleObject(Object o) {
 			if (o instanceof Level) {
-				return ((Level) o).dimension().location().getPath(); // was: getWorldName
+				return ((Level) o).dimension().identifier().getPath(); // was: getWorldName
 			}
 			if (o != null && o.getClass().isArray() && Array.getLength(o) > 100) {
 				return "(Too big)";

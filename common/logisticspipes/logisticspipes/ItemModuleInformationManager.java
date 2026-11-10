@@ -1,5 +1,6 @@
 package logisticspipes.logisticspipes;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -31,18 +32,13 @@ public class ItemModuleInformationManager {
 			String info2 = "to see the information.";
 			list.add(net.minecraft.nbt.StringTag.valueOf(info1));
 			list.add(net.minecraft.nbt.StringTag.valueOf(info2));
-			if (!stack.hasTag()) {
-				stack.setTag(new CompoundTag());
-			}
-			CompoundTag tag = Objects.requireNonNull(stack.getTag());
+			CompoundTag tag = CustomDataUtil.getOrCreateTag(stack);
 			tag.put("informationList", list);
 			tag.putDouble("Random-Stack-Prevent", new Random().nextDouble());
+			CustomDataUtil.setTag(stack, tag);
 			return;
 		}
-		if (!stack.hasTag()) {
-			stack.setTag(new CompoundTag());
-		}
-		CompoundTag tag = Objects.requireNonNull(stack.getTag());
+		CompoundTag tag = CustomDataUtil.getOrCreateTag(stack);
 		tag.put("moduleInformation", nbt);
 		if (module instanceof IClientInformationProvider) {
 			List<String> information = ((IClientInformationProvider) module).getClientInformation();
@@ -55,16 +51,17 @@ public class ItemModuleInformationManager {
 			}
 		}
 		tag.putDouble("Random-Stack-Prevent", new Random().nextDouble());
+		CustomDataUtil.setTag(stack, tag);
 	}
 
 	public static void readInformation(@Nonnull ItemStack stack, LogisticsModule module) {
 		if (module == null) {
 			return;
 		}
-		if (stack.hasTag()) {
-			CompoundTag nbt = Objects.requireNonNull(stack.getTag());
+		if (CustomDataUtil.hasTag(stack)) {
+			CompoundTag nbt = CustomDataUtil.getOrCreateTag(stack);
 			if (nbt.contains("moduleInformation")) {
-				CompoundTag moduleInformation = nbt.getCompound("moduleInformation");
+				CompoundTag moduleInformation = nbt.getCompoundOrEmpty("moduleInformation");
 				module.readFromNBT(moduleInformation);
 			}
 		}

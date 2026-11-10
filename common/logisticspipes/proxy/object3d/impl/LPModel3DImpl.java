@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.world.phys.AABB;
 
 import logisticspipes.proxy.SimpleServiceLocator;
@@ -208,23 +208,23 @@ public final class LPModel3DImpl implements IModel3D {
 					finalU = ltt.mapU(uv[0]);
 					finalV = ltt.mapV(uv[1]);
 				}
-				if (pose != null) {
-					buf.vertex(pose, q.x[i], q.y[i], q.z[i])
-						.color(r, g, b, a)
-						.uv(finalU, finalV)
-						.overlayCoords(overlay)
-						.uv2(light)
-						.normal(nrm, q.nx[i], q.ny[i], q.nz[i])
-						.endVertex();
-				} else {
-					buf.vertex(q.x[i], q.y[i], q.z[i])
-						.color(r, g, b, a)
-						.uv(finalU, finalV)
-						.overlayCoords(overlay)
-						.uv2(light)
-						.normal(q.nx[i], q.ny[i], q.nz[i])
-						.endVertex();
+				float nx = q.nx[i], ny = q.ny[i], nz = q.nz[i];
+				if (nrm != null) {
+					org.joml.Vector3f n = nrm.transform(new org.joml.Vector3f(nx, ny, nz)).normalize();
+					nx = n.x;
+					ny = n.y;
+					nz = n.z;
 				}
+				if (pose != null) {
+					buf.addVertex(pose, q.x[i], q.y[i], q.z[i]);
+				} else {
+					buf.addVertex(q.x[i], q.y[i], q.z[i]);
+				}
+				buf.setColor(r, g, b, a)
+					.setUv(finalU, finalV)
+					.setOverlay(overlay)
+					.setLight(light)
+					.setNormal(nx, ny, nz);
 			}
 		}
 	}

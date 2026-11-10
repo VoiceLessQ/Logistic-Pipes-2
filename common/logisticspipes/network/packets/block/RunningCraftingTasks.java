@@ -28,8 +28,8 @@ public class RunningCraftingTasks extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (Minecraft.getInstance().screen instanceof GuiStatistics) {
-			((GuiStatistics) Minecraft.getInstance().screen).handlePacket2(getIdentList());
+		if (Minecraft.getInstance().gui.screen() instanceof GuiStatistics) {
+			((GuiStatistics) Minecraft.getInstance().gui.screen()).handlePacket2(getIdentList());
 		}
 	}
 

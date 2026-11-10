@@ -1,6 +1,8 @@
 package logisticspipes.utils;
 
-import net.minecraftforge.fml.ModList;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.VersionParsingException;
 
 public class ModStatusHelper {
 
@@ -8,15 +10,15 @@ public class ModStatusHelper {
 		if (modId.contains("@")) {
 			String version = modId.substring(modId.indexOf('@') + 1);
 			modId = modId.substring(0, modId.indexOf('@'));
-			if (ModList.get().isLoaded(modId)) {
+			if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(modId)) {
 				final String modIdFinal = modId;
-				return ModList.get().getModContainerById(modIdFinal)
-						.map(mod -> mod.getModInfo().getVersion().toString().startsWith(version))
+				return FabricLoader.getInstance().getModContainer(modIdFinal)
+						.map(mod -> mod.getMetadata().getVersion().getFriendlyString().startsWith(version))
 						.orElse(false);
 			}
 			return false;
 		} else {
-			return ModList.get().isLoaded(modId);
+			return net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(modId);
 		}
 	}
 
@@ -34,9 +36,15 @@ public class ModStatusHelper {
 	}
 
 	public static boolean isModVersionEqualsOrHigher(String modId, String version) {
-		// Numeric-aware maven version compare (lexicographic broke on e.g. 1.10 vs 1.9)
-		return ModList.get().getModContainerById(modId)
-				.map(mod -> mod.getModInfo().getVersion().compareTo(new org.apache.maven.artifact.versioning.DefaultArtifactVersion(version)) >= 0)
+		// Numeric-aware version compare (lexicographic broke on e.g. 1.10 vs 1.9)
+		return FabricLoader.getInstance().getModContainer(modId)
+				.map(mod -> {
+					try {
+						return mod.getMetadata().getVersion().compareTo(SemanticVersion.parse(version)) >= 0;
+					} catch (VersionParsingException e) {
+						return false;
+					}
+				})
 				.orElse(false);
 	}
 }

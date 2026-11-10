@@ -39,11 +39,11 @@ package network.rs485.logisticspipes.gui.guidebook
 
 import logisticspipes.LPItems
 import logisticspipes.LogisticsPipes
-import logisticspipes.modplugins.jei.JEIPluginLoader
 import logisticspipes.utils.MinecraftColor
 import logisticspipes.utils.gui.SimpleGraphics
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.input.MouseButtonEvent
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
@@ -108,16 +108,16 @@ class GuiGuideBook(private val state: ItemGuideBook.GuideBookState) : Screen(Com
         fun onWebLinkClick(webLink: String) {
             try {
                 clickedLinkURI = URI(webLink)
-                minecraft?.setScreen(net.minecraft.client.gui.screens.ConfirmLinkScreen({ confirmed ->
-                    if (confirmed) net.minecraft.Util.getPlatform().openUri(clickedLinkURI!!)
-                    minecraft?.setScreen(this@GuiGuideBook)
+                minecraft?.gui?.setScreen(net.minecraft.client.gui.screens.ConfirmLinkScreen({ confirmed ->
+                    if (confirmed) net.minecraft.util.Util.getPlatform().openUri(clickedLinkURI!!)
+                    minecraft?.gui?.setScreen(this@GuiGuideBook)
                 }, webLink, true))
             } catch (error: URISyntaxException) {
                 LogisticsPipes.log.warn("Could not parse link $webLink in GuiGuideBook", error)
             }
         }
         fun onItemLinkClick(stack: ItemStack) {
-            if (net.minecraftforge.fml.ModList.get().isLoaded(logisticspipes.LPConstants.jeiModID)) JEIPluginLoader.showRecipe(stack)
+            // JEI recipe lookup lives in parked/ until a Fabric recipe viewer integration exists
         }
     }
 
@@ -227,9 +227,9 @@ class GuiGuideBook(private val state: ItemGuideBook.GuideBookState) : Screen(Com
         super.onClose()
     }
 
-    override fun resize(minecraft: Minecraft, width: Int, height: Int) {
+    override fun resize(width: Int, height: Int) {
         state.currentPage.progress = 0.0f
-        super.resize(minecraft, width, height)
+        super.resize(width, height)
     }
 
     // Animates the visible scroll position toward the page's target progress; port of LP1's
@@ -248,15 +248,14 @@ class GuiGuideBook(private val state: ItemGuideBook.GuideBookState) : Screen(Com
         }
     }
 
-    override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
-        // Publish the current GuiGraphics so the guide book drawables (DrawablePage/DrawableWord/
+    override fun extractRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, partialTick: Float) {
+        // Publish the current GuiGraphicsExtractor so the guide book drawables (DrawablePage/DrawableWord/
         // LPFontRenderer) and GuiDrawer helpers can draw against it; mirrors how BaseGuiContainer
         // exposes it for the rest of LP2's GUI code.
         val previousGraphics = SimpleGraphics.guiGraphics
         SimpleGraphics.guiGraphics = guiGraphics
         try {
-            // Darken the world behind the book (equivalent of LP1's drawDefaultBackground).
-            renderBackground(guiGraphics)
+            // The world behind the book is darkened by Screen.extractBackground, which runs before this.
 
             // Background panel (equivalent of LP1's GuiDrawer.drawGuideBookBackground): a tiled dark
             // pattern inset 16px from the outer rectangle, so it sits behind the 24px frame border.
@@ -272,13 +271,13 @@ class GuiGuideBook(private val state: ItemGuideBook.GuideBookState) : Screen(Com
             }
 
             // Inactive bookmark tab bodies render under the frame (LP1 drew them before the frame).
-            tabButtons.forEach { it.render(guiGraphics, mouseX, mouseY, partialTick) }
+            tabButtons.forEach { it.extractRenderState(guiGraphics, mouseX, mouseY, partialTick) }
 
             // Frame and slider rail.
             GuideBookGraphics.blitGuideBookFrame(guiGraphics, outerGui, sliderSeparator)
 
             // Remaining registered widgets (slider, home, add/remove bookmark) render over the frame.
-            renderables.forEach { it.render(guiGraphics, mouseX, mouseY, partialTick) }
+            super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick)
 
             // Foreground pass over the frame (LP1's drawButtonForegroundLayer, in reversed order):
             // the active tab's body + colored circle and the tab tooltips, which must not be
@@ -319,11 +318,14 @@ class GuiGuideBook(private val state: ItemGuideBook.GuideBookState) : Screen(Com
 
     override fun isPauseScreen(): Boolean = false
 
-    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun mouseClicked(event: MouseButtonEvent, doubleClick: Boolean): Boolean {
+        val mouseX = event.x()
+        val mouseY = event.y()
+        val button = event.button()
         // LP1 dispatched button clicks first (mousePressed -> actionPerformed/rightClick) and only
         // then forwarded the click to the page content. The widgets (slider, home, bookmark
         // manager, tabs) handle their own actions in their mouseClicked overrides.
-        if (super.mouseClicked(mouseX, mouseY, button)) {
+        if (super.mouseClicked(event, doubleClick)) {
             updateButtonVisibility()
             return true
         }
@@ -334,11 +336,11 @@ class GuiGuideBook(private val state: ItemGuideBook.GuideBookState) : Screen(Com
         return false
     }
 
-    override fun mouseScrolled(mouseX: Double, mouseY: Double, delta: Double): Boolean {
+    override fun mouseScrolled(mouseX: Double, mouseY: Double, scrollX: Double, delta: Double): Boolean {
         if (state.currentPage.getExtraHeight(visibleArea) > 0 && this::slider.isInitialized) {
             slider.changeProgress((delta * -GuiDrawer.lpFontRenderer.getFontHeight(1.0f)).toInt())
         }
-        return super.mouseScrolled(mouseX, mouseY, delta)
+        return super.mouseScrolled(mouseX, mouseY, scrollX, delta)
     }
 
     private fun addBookmark() = state.currentPage.takeIf { isTabAbsent(it) && tabButtons.size < maxTabs }

@@ -24,8 +24,8 @@ public class InvSysConContent extends InventoryModuleCoordinatesPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (Minecraft.getInstance().screen instanceof GuiInvSysConnector) {
-			((GuiInvSysConnector) Minecraft.getInstance().screen).handleContentAnswer(getIdentList());
+		if (Minecraft.getInstance().gui.screen() instanceof GuiInvSysConnector) {
+			((GuiInvSysConnector) Minecraft.getInstance().gui.screen()).handleContentAnswer(getIdentList());
 		}
 	}
 }

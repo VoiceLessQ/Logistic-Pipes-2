@@ -6,10 +6,10 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 
-import net.minecraftforge.common.util.FakePlayer;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 
 import com.mojang.authlib.GameProfile;
 
@@ -28,7 +28,8 @@ public class FakePlayerLP extends FakePlayer {
 	@Nonnull
 	@Override
 	public Component getDisplayName() {
-		return Component.literal(myName);
+		// called from the FakePlayer constructor, before myName is assigned
+		return Component.literal(myName != null ? myName : LPPLAYER.name());
 	}
 
 	@Override

@@ -28,10 +28,6 @@ public final class LPRenderStateImpl implements IRenderState {
 	/** Current buffer; reset per-frame in {@link #bind}. */
 	public VertexConsumer buffer;
 
-	/** The frame's MultiBufferSource, when the caller has one. Lets render paths that
-	 *  encounter a standalone (non-atlas) texture fetch a matching RenderType buffer. */
-	public net.minecraft.client.renderer.MultiBufferSource bufferSource;
-
 	/** Current PoseStack pose + normal matrices; vertex positions must be multiplied
 	 *  by these in {@link LPModel3DImpl#render} so emitted geometry lands in world space. */
 	public Matrix4f pose;
@@ -87,9 +83,9 @@ public final class LPRenderStateImpl implements IRenderState {
 
 	@Override
 	public void setBrightness(BlockGetter world, BlockPos pos) {
-		if (world instanceof net.minecraft.world.level.BlockAndTintGetter && pos != null) {
-			this.packedLight = net.minecraft.client.renderer.LevelRenderer.getLightColor(
-				(net.minecraft.world.level.BlockAndTintGetter) world, pos);
+		if (world instanceof net.minecraft.world.level.BlockAndLightGetter && pos != null) {
+			this.packedLight = net.minecraft.util.LightCoordsUtil.getLightCoords(
+				(net.minecraft.world.level.BlockAndLightGetter) world, pos);
 		}
 		// Otherwise leave packedLight as supplied by the BER caller.
 	}

@@ -2,8 +2,8 @@ package logisticspipes.request.resources;
 
 import javax.annotation.Nonnull;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.proxy.computers.interfaces.ILPCCTypeHolder;
 import logisticspipes.routing.IRouter;
@@ -36,7 +36,7 @@ public interface IResource extends ILPCCTypeHolder, LPFinalSerializable {
 
 	IResource copyForDisplayWith(int amount);
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	String getDisplayText(ColorCode missing);
 
 	ItemIdentifierStack getDisplayItem();

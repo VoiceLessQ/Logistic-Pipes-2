@@ -1,16 +1,13 @@
 package logisticspipes.renderer;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
-import net.minecraft.client.gui.screens.Screen;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.world.entity.EquipmentSlot;
 import org.joml.Quaternionf;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -24,14 +21,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
 
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 
 
@@ -43,12 +40,12 @@ import logisticspipes.interfaces.IDebugHUDProvider;
 import logisticspipes.interfaces.IHUDConfig;
 import logisticspipes.interfaces.IHeadUpDisplayBlockRendererProvider;
 import logisticspipes.interfaces.IHeadUpDisplayRendererProvider;
-import logisticspipes.modplugins.jei.JEIPluginLoader;
 import logisticspipes.pipes.basic.CoreRoutedPipe;
 import logisticspipes.proxy.SimpleServiceLocator;
 import logisticspipes.routing.IRouter;
 import logisticspipes.routing.LaserData;
 import logisticspipes.routing.PipeRoutingConnectionType;
+import logisticspipes.utils.gui.DevGuiDriver;
 import logisticspipes.utils.gui.LPGuiGraphics;
 import logisticspipes.utils.item.ItemStackRenderer;
 import logisticspipes.utils.item.ItemStackRenderer.DisplayAmount;
@@ -165,8 +162,7 @@ public class LogisticsHUDRenderer {
 	}
 
 	private boolean playerWearsHUD() {
-		return Minecraft.getInstance().player != null && Minecraft.getInstance().player.getInventory() != null && Minecraft.getInstance().player.getInventory().armor != null && !Minecraft.getInstance().player.getInventory().armor.get(3).isEmpty()
-				&& checkItemStackForHUD(Minecraft.getInstance().player.getInventory().armor.get(3));
+		return Minecraft.getInstance().player != null && checkItemStackForHUD(Minecraft.getInstance().player.getItemBySlot(EquipmentSlot.HEAD));
 	}
 
 	private boolean checkItemStackForHUD(@Nonnull ItemStack stack) {
@@ -181,12 +177,11 @@ public class LogisticsHUDRenderer {
 	// LP1's panel size and distance from the block centre toward the viewer.
 	private static final float PANEL_SCALE = 0.01F;
 	private static final float PANEL_OFFSET = 0.4F;
-	private static final boolean JEI_LOADED = net.minecraftforge.fml.ModList.get().isLoaded(logisticspipes.LPConstants.jeiModID);
+	// Solid blocks (power junction/provider) would hide a panel at 0.4; put it just outside the cube.
+	private static final float BLOCK_PANEL_OFFSET = 0.9F;
+	private static final Identifier CROSSHAIR = Identifier.withDefaultNamespace("hud/crosshair");
 
-	//TODO: only load this once, rather than twice
-	private static final ResourceLocation TEXTURE = new ResourceLocation("textures/gui/icons.png");
-
-	public void renderPlayerDisplay(long renderTicks, GuiGraphics guiGraphics) {
+	public void renderPlayerDisplay(long renderTicks, GuiGraphicsExtractor guiGraphics) {
 		if (!displayRenderer()) {
 			return;
 		}
@@ -196,15 +191,13 @@ public class LogisticsHUDRenderer {
 			int height = mc.getWindow().getGuiScaledHeight();
 			if (mc.gui != null && guiGraphics != null) {
 				// LP1 redrew the vanilla crosshair tinted black to mark a HUD target lock.
-				guiGraphics.setColor(0.0f, 0.0f, 0.0f, 1.0f);
-				guiGraphics.blit(TEXTURE, width / 2 - 7, height / 2 - 7, 0.0f, 0.0f, 16, 16, 256, 256);
-				guiGraphics.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+				guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, CROSSHAIR, width / 2 - 7, height / 2 - 7, 15, 15, 0xFF000000);
 			}
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
-	public void renderWorldRelative(long renderTicks, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+	@Environment(EnvType.CLIENT)
+	public void renderWorldRelative(long renderTicks, float partialTick, PoseStack poseStack, SubmitNodeCollector collector, int packedLight) {
 		if (!displayRenderer()) {
 			return;
 		}
@@ -220,7 +213,7 @@ public class LogisticsHUDRenderer {
 		displayCross = false;
 		IHUDConfig config;
 		if (debugHUD == null) {
-			config = new HUDConfig(mc.player.getInventory().armor.get(3));
+			config = new HUDConfig(mc.player.getItemBySlot(EquipmentSlot.HEAD));
 		} else {
 			config = new IHUDConfig() {
 
@@ -298,7 +291,7 @@ public class LogisticsHUDRenderer {
 					if (pos.length == 2) {
 						if (renderer.getRenderer().cursorOnWindow(pos[0], pos[1])) {
 							renderer.getRenderer().handleCursor(pos[0], pos[1]);
-							if (Screen.hasShiftDown()) { //if(Minecraft.getInstance().player.isCrouching()) {
+							if (Minecraft.getInstance().hasShiftDown() || DevGuiDriver.holdShift) { //if(Minecraft.getInstance().player.isCrouching()) {
 								thisIsLast = renderer;
 								displayCross = true;
 							}
@@ -306,50 +299,38 @@ public class LogisticsHUDRenderer {
 						}
 					}
 				}
-				RenderSystem.enableBlend();
-				RenderSystem.defaultBlendFunc();
 				if (thisIsLast != renderer) {
-					displayOneView(renderer, config, partialTick, false, poseStack, bufferSource, packedLight);
+					displayOneView(renderer, config, false, poseStack, collector);
 				}
 				poseStack.popPose();
 			}
 		}
 		if (thisIsLast != null) {
 			poseStack.pushPose();
-			RenderSystem.disableBlend();
-			RenderSystem.disableDepthTest();
-			displayOneView(thisIsLast, config, partialTick, true, poseStack, bufferSource, packedLight);
-			RenderSystem.enableBlend();
-			RenderSystem.enableDepthTest();
+			displayOneView(thisIsLast, config, true, poseStack, collector);
 			poseStack.popPose();
 		}
 
 		poseStack.pushPose();
 		HitResult box = mc.hitResult;
 		if (box != null && box.getType() == HitResult.Type.BLOCK) {
-			if (Screen.hasControlDown()) {
+			if ((Minecraft.getInstance().hasControlDown() || DevGuiDriver.holdControl)) {
 				progress = Math.min(progress + (2 * Math.max(1, (int) Math.floor((System.currentTimeMillis() - last) / 50.0D))), 100);
 			} else {
 				progress = Math.max(progress - (2 * Math.max(1, (int) Math.floor((System.currentTimeMillis() - last) / 50.0D))), 0);
 			}
 			if (progress != 0 && box instanceof BlockHitResult blockHit) {
-				renderBlockInfo(blockHit, progress, poseStack, bufferSource);
+				renderBlockInfo(blockHit, progress, poseStack, collector);
 			}
-		} else if (!Screen.hasControlDown()) {
+		} else if (!(Minecraft.getInstance().hasControlDown() || DevGuiDriver.holdControl)) {
 			progress = 0;
 		}
 		poseStack.popPose();
 
 		//Render Laser
-		RenderSystem.disableDepthTest();
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
 		if (!lasers.isEmpty()) {
-			RenderSystem.setShader(GameRenderer::getPositionColorShader);
-			Tesselator tes = Tesselator.getInstance();
-			BufferBuilder bb = tes.getBuilder();
 			// The pose origin is the interpolated camera, not the player's feet as in 1.12.
-			net.minecraft.world.phys.Vec3 cam = mc.gameRenderer.getMainCamera().getPosition();
+			net.minecraft.world.phys.Vec3 cam = mc.gameRenderer.mainCamera().position();
 			for (LaserData data : lasers) {
 				poseStack.pushPose();
 				double x = data.getPosX() + 0.5 - cam.x;
@@ -365,55 +346,54 @@ public class LogisticsHUDRenderer {
 					default: break;
 				}
 				poseStack.scale(0.01F, 0.01F, 0.01F);
-				org.joml.Matrix4f mat = poseStack.last().pose();
-
-				bb.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-				for (float i = 0; i < 6 * data.getLength(); i += 1.0f) {
-					int[] c = getLaserColor(i, data.getConnectionType());
-					float shift = 100f * i / 6f;
-					float s = (data.isStartPipe() && i == 0) ? -6.0f : 0.0f;
-					// Top
-					bb.vertex(mat, 19.7f+shift, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat, 19.7f+shift, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					// Bottom
-					bb.vertex(mat, 19.7f+shift,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat, 19.7f+shift,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					// +Z side
-					bb.vertex(mat, 19.7f+shift, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat, 19.7f+shift,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					// -Z side
-					bb.vertex(mat, 19.7f+shift,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,  3.0f+shift+s, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat, 19.7f+shift, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-				}
-				if (data.isStartPipe()) {
-					int[] c = getLaserColor(0, data.getConnectionType());
-					bb.vertex(mat,-3, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,-3, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,-3,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,-3,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-				}
-				if (data.isFinalPipe()) {
-					int[] c = getLaserColor(6 * (float) data.getLength() - 1, data.getConnectionType());
-					float ex = 100.0f * data.getLength() + 3f;
-					bb.vertex(mat,ex, 3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,ex, 3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,ex,-3, 3).color(c[0],c[1],c[2],c[3]).endVertex();
-					bb.vertex(mat,ex,-3,-3).color(c[0],c[1],c[2],c[3]).endVertex();
-				}
-				BufferUploader.drawWithShader(bb.end());
+				collector.submitCustomGeometry(poseStack, RenderTypes.debugQuads(), (mat, bb) -> renderLaser(data, mat, bb));
 				poseStack.popPose();
 			}
 		}
-		RenderSystem.enableDepthTest();
 		last = System.currentTimeMillis();
+	}
+
+	private void renderLaser(LaserData data, PoseStack.Pose mat, VertexConsumer bb) {
+		for (float i = 0; i < 6 * data.getLength(); i += 1.0f) {
+			int[] c = getLaserColor(i, data.getConnectionType());
+			float shift = 100f * i / 6f;
+			float s = (data.isStartPipe() && i == 0) ? -6.0f : 0.0f;
+			// Top
+			bb.addVertex(mat, 19.7f+shift, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,  3.0f+shift+s, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,  3.0f+shift+s, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat, 19.7f+shift, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+			// Bottom
+			bb.addVertex(mat, 19.7f+shift,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,  3.0f+shift+s,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,  3.0f+shift+s,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat, 19.7f+shift,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+			// +Z side
+			bb.addVertex(mat, 19.7f+shift, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,  3.0f+shift+s, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,  3.0f+shift+s,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat, 19.7f+shift,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+			// -Z side
+			bb.addVertex(mat, 19.7f+shift,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,  3.0f+shift+s,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,  3.0f+shift+s, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat, 19.7f+shift, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+		}
+		if (data.isStartPipe()) {
+			int[] c = getLaserColor(0, data.getConnectionType());
+			bb.addVertex(mat,-3, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,-3, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,-3,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,-3,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+		}
+		if (data.isFinalPipe()) {
+			int[] c = getLaserColor(6 * (float) data.getLength() - 1, data.getConnectionType());
+			float ex = 100.0f * data.getLength() + 3f;
+			bb.addVertex(mat,ex, 3,-3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,ex, 3, 3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,ex,-3, 3).setColor(c[0],c[1],c[2],c[3]);
+			bb.addVertex(mat,ex,-3,-3).setColor(c[0],c[1],c[2],c[3]);
+		}
 	}
 
 	private int[] getLaserColor(float i, EnumSet<PipeRoutingConnectionType> flags) {
@@ -436,109 +416,89 @@ public class LogisticsHUDRenderer {
 		}
 	}
 
-	private void displayOneView(IHeadUpDisplayRendererProvider renderer, IHUDConfig config, float partialTick, boolean shifted, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+	private void displayOneView(IHeadUpDisplayRendererProvider renderer, IHUDConfig config, boolean shifted, PoseStack poseStack, SubmitNodeCollector collector) {
 		Minecraft mc = Minecraft.getInstance();
 		// The level-stage pose origin is the interpolated camera, not the player's feet as in 1.12.
-		net.minecraft.world.phys.Vec3 cam = mc.gameRenderer.getMainCamera().getPosition();
+		net.minecraft.world.phys.Vec3 cam = mc.gameRenderer.mainCamera().position();
 		double x = renderer.getX() + 0.5 - cam.x;
 		double y = renderer.getY() + 0.5 - cam.y;
 		double z = renderer.getZ() + 0.5 - cam.z;
-		// HUD sub-renderers draw into a GuiGraphics stashed on SimpleGraphics so their existing
-		// guiGraphics.drawString/fill/renderItem calls work without a signature change.
-		// The public 2-arg GuiGraphics ctor creates its own internal PoseStack, so we apply the
-		// HUD billboard transforms to gg.pose() rather than the external poseStack.
-		net.minecraft.client.gui.GuiGraphics previous = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
-		if (bufferSource instanceof net.minecraft.client.renderer.MultiBufferSource.BufferSource bs) {
-			net.minecraft.client.gui.GuiGraphics gg = new net.minecraft.client.gui.GuiGraphics(mc, bs);
-			com.mojang.blaze3d.vertex.PoseStack ggPose = gg.pose();
-			ggPose.pushPose();
-			// Compose the camera orientation from the level renderer; gg.pose() starts at identity.
-			ggPose.mulPoseMatrix(poseStack.last().pose());
-			ggPose.translate((float) x, (float) y, (float) z);
-			ggPose.mulPose(new Quaternionf().rotationX((float) Math.toRadians(90.0F)));
-			ggPose.mulPose(new Quaternionf().rotationZ((float) Math.toRadians(getAngle(z, x) + 90)));
-			// y is camera relative and therefore already eye relative; LP1 subtracted the eye height here.
-			ggPose.mulPose(new Quaternionf().rotationX((float) Math.toRadians((-1) * getAngle(Math.hypot(x, z), y) + 180)));
-			ggPose.translate(0.0F, 0.0F, -PANEL_OFFSET);
-			// Panel +z points away from the viewer, but GuiGraphics layers content toward +z
-			// (items +150, count labels +200). Negative tiny z flips to GUI convention and
-			// flattens those offsets onto the panel, like LP1's scaleZ = -0.0001 item trick.
-			ggPose.scale(PANEL_SCALE, PANEL_SCALE, -0.0001F);
-			logisticspipes.utils.gui.SimpleGraphics.guiGraphics = gg;
-			try {
-				renderer.getRenderer().renderHeadUpDisplay(Math.hypot(x, Math.hypot(y, z)), false, shifted, mc, config);
-			} finally {
-				logisticspipes.utils.gui.SimpleGraphics.guiGraphics = previous;
-				ggPose.popPose();
-			}
-		}
+		double distance = Math.hypot(x, Math.hypot(y, z));
+		poseStack.pushPose();
+		poseStack.translate((float) x, (float) y, (float) z);
+		poseStack.mulPose(new Quaternionf().rotationX((float) Math.toRadians(90.0F)));
+		poseStack.mulPose(new Quaternionf().rotationZ((float) Math.toRadians(getAngle(z, x) + 90)));
+		// y is camera relative and therefore already eye relative; LP1 subtracted the eye height here.
+		poseStack.mulPose(new Quaternionf().rotationX((float) Math.toRadians((-1) * getAngle(Math.hypot(x, z), y) + 180)));
+		poseStack.translate(0.0F, 0.0F, -panelOffset(renderer));
+		poseStack.scale(PANEL_SCALE, PANEL_SCALE, PANEL_SCALE);
+		// LP1 drew the shift-locked panel last without depth test so it stays readable in front of blocks.
+		HUDPanelAtlas.instance().submit(renderer, 1.0F, shifted, poseStack, collector,
+				gg -> renderer.getRenderer().renderHeadUpDisplay(distance, false, shifted, mc, config));
+		poseStack.popPose();
 	}
 
-	/** LP1's Ctrl-hold panel beside the looked-at block; text comes from JEI (LP1 used NEI). */
-	private void renderBlockInfo(BlockHitResult box, int progress, PoseStack poseStack, MultiBufferSource bufferSource) {
+	/** LP1's Ctrl-hold panel beside the looked-at block: the block's item tooltip plus its mod name (LP1 took it from NEI/JEI). */
+	private void renderBlockInfo(BlockHitResult box, int progress, PoseStack poseStack, SubmitNodeCollector collector) {
 		Minecraft mc = Minecraft.getInstance();
-		// JEIPluginLoader links JEI types, so it must not load without JEI
-		if (!JEI_LOADED || mc.level == null || mc.player == null || !(bufferSource instanceof MultiBufferSource.BufferSource bs)) return;
+		if (mc.level == null || mc.player == null) return;
 		BlockPos pos = box.getBlockPos();
-		ItemStack stack = mc.level.getBlockState(pos).getCloneItemStack(box, mc.level, pos, mc.player);
-		List<Component> textData = JEIPluginLoader.getInfo(stack);
-		if (textData.isEmpty()) return;
-		net.minecraft.world.phys.Vec3 cam = mc.gameRenderer.getMainCamera().getPosition();
+		ItemStack stack = mc.level.getBlockState(pos).getCloneItemStack(mc.level, pos, false);
+		if (stack.isEmpty()) return;
+		List<Component> textData = new ArrayList<>(stack.getTooltipLines(net.minecraft.world.item.Item.TooltipContext.of(mc.level), mc.player, net.minecraft.world.item.TooltipFlag.NORMAL));
+		String namespace = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace();
+		net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer(namespace)
+				.ifPresent(mod -> textData.add(Component.literal(mod.getMetadata().getName()).withStyle(net.minecraft.ChatFormatting.BLUE, net.minecraft.ChatFormatting.ITALIC)));
+		net.minecraft.world.phys.Vec3 cam = mc.gameRenderer.mainCamera().position();
 		double x = pos.getX() + 0.5D - cam.x;
 		double y = pos.getY() + 0.5D - cam.y;
 		double z = pos.getZ() + 0.5D - cam.z;
 		// LP1 measured the tilt from the feet
 		double feetY = y + mc.player.getEyeHeight();
 		double dProgress = progress / 100D;
-		net.minecraft.client.gui.GuiGraphics gg = new net.minecraft.client.gui.GuiGraphics(mc, bs);
-		PoseStack ggPose = gg.pose();
-		ggPose.pushPose();
-		ggPose.mulPoseMatrix(poseStack.last().pose());
-		ggPose.translate((float) x, (float) y, (float) z);
-		ggPose.mulPose(new Quaternionf().rotationX((float) Math.toRadians(90.0F)));
-		ggPose.mulPose(new Quaternionf().rotationZ((float) Math.toRadians(getAngle(z, x) + 110F)));
-		ggPose.mulPose(new Quaternionf().rotationX((float) Math.toRadians((-1) * getAngle(Math.hypot(x + 0.8, z + 0.8), feetY + 0.5) + 180)));
-		ggPose.translate((float) (0.4D * dProgress + 0.6D), (float) (-0.2D * dProgress - 0.6D), 0.0F);
-		ggPose.scale(0.01F, 0.01F, -0.0001F);
-		net.minecraft.client.gui.GuiGraphics previous = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
-		logisticspipes.utils.gui.SimpleGraphics.guiGraphics = gg;
-		RenderSystem.disableDepthTest();
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		try {
-			drawBlockInfo(mc, stack, textData, dProgress);
-			gg.flush();
-		} finally {
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-			RenderSystem.enableDepthTest();
-			logisticspipes.utils.gui.SimpleGraphics.guiGraphics = previous;
-			ggPose.popPose();
-		}
-	}
-
-	/** Draws the panel into SimpleGraphics.guiGraphics, origin at its centre. */
-	private static void drawBlockInfo(Minecraft mc, ItemStack stack, List<Component> textData, double dProgress) {
-		net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
-		int heigth = Math.max(32, 10 * textData.size() + 15);
+		int height = Math.max(32, 10 * textData.size() + 15);
 		int width = 0;
 		for (Component s : textData) {
 			width = Math.max(width, mc.font.width(s) + 22);
 		}
 		width = Math.max(32, width + 15);
+		float fit = Math.min(1.0F, (HUDPanelAtlas.CELL - 2.0F) / Math.max(width, height));
+		poseStack.pushPose();
+		poseStack.translate((float) x, (float) y, (float) z);
+		poseStack.mulPose(new Quaternionf().rotationX((float) Math.toRadians(90.0F)));
+		poseStack.mulPose(new Quaternionf().rotationZ((float) Math.toRadians(getAngle(z, x) + 110F)));
+		poseStack.mulPose(new Quaternionf().rotationX((float) Math.toRadians((-1) * getAngle(Math.hypot(x + 0.8, z + 0.8), feetY + 0.5) + 180)));
+		poseStack.translate((float) (0.4D * dProgress + 0.6D), (float) (-0.2D * dProgress - 0.6D), 0.0F);
+		poseStack.scale(0.01F, 0.01F, 0.01F);
+		int panelWidth = width;
+		int panelHeight = height;
+		HUDPanelAtlas.instance().submit(BLOCK_INFO_KEY, fit, true, poseStack, collector,
+				gg -> drawBlockInfo(mc, gg, stack, textData, panelWidth, panelHeight, dProgress));
+		poseStack.popPose();
+	}
+
+	private static final Object BLOCK_INFO_KEY = new Object();
+
+	/** Draws the block info panel, origin at its centre. */
+	private static void drawBlockInfo(Minecraft mc, GuiGraphicsExtractor gg, ItemStack stack, List<Component> textData, int width, int heigth, double dProgress) {
 		int left = (int) ((-0.5 * (width - 32)) * dProgress) - 16;
 		int top = (int) ((-0.5 * (heigth - 32)) * dProgress) - 16;
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 96 / 127F);
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 96 / 127F);
 		LPGuiGraphics.drawGuiBackGround(mc, left, top, (int) ((0.5 * (width - 32)) * dProgress) + 16, (int) ((0.5 * (heigth - 32)) * dProgress) + 16, 0, false);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		SimpleGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 		if (dProgress < 1.0D) return;
-		gg.pose().pushPose();
-		gg.pose().translate(left, top, 0.0F);
+		gg.pose().pushMatrix();
+		gg.pose().translate(left, top);
 		for (int i = 0; i < textData.size(); i++) {
-			gg.drawString(mc.font, textData.get(i), 28, 8 + i * 10, 0x000000, false);
+			SimpleGraphics.drawString(gg, mc.font, textData.get(i), 28, 8 + i * 10, 0x000000, false);
 		}
-		gg.pose().scale(1.5F * 0.8F, 1.5F * 0.8F, 1.0F);
-		gg.renderItem(stack, 5, 6);
-		gg.pose().popPose();
+		gg.pose().scale(1.5F * 0.8F, 1.5F * 0.8F);
+		gg.item(stack, 5, 6);
+		gg.pose().popMatrix();
+	}
+
+	private static float panelOffset(IHeadUpDisplayRendererProvider renderer) {
+		return renderer instanceof IHeadUpDisplayBlockRendererProvider ? BLOCK_PANEL_OFFSET : PANEL_OFFSET;
 	}
 
 	private float getAngle(double x, double y) {
@@ -574,7 +534,7 @@ public class LogisticsHUDRenderer {
 		panelView.z = playerPos.z - panelPos.z;
 
 		// Cursor plane tracks the rendered panel: LP1 used 0.44 for a 0.4 panel offset.
-		panelPos.add(panelView, PANEL_OFFSET + 0.04D);
+		panelPos.add(panelView, panelOffset(renderer) + 0.04D);
 
 		double d = panelPos.x * panelView.x + panelPos.y * panelView.y + panelPos.z * panelView.z;
 		double c = panelView.x * playerPos.x + panelView.y * playerPos.y + panelView.z * playerPos.z;
@@ -649,7 +609,7 @@ public class LogisticsHUDRenderer {
 
 	private boolean displayHUD() {
 		Minecraft mc = Minecraft.getInstance();
-		return (playerWearsHUD() || debugHUD != null) && mc.screen == null && mc.options.getCameraType().isFirstPerson() && !mc.options.hideGui;
+		return (playerWearsHUD() || debugHUD != null) && mc.gui.screen() == null && mc.options.getCameraType().isFirstPerson() && !mc.gui.hud.isHidden();
 	}
 
 	public void resetLasers() {

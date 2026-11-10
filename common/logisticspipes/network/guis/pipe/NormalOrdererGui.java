@@ -2,7 +2,7 @@ package logisticspipes.network.guis.pipe;
 
 import net.minecraft.world.entity.player.Player;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.gui.orderer.NormalGuiOrderer;
 import logisticspipes.network.abstractguis.CoordinatesGuiProvider;
@@ -15,13 +15,13 @@ import network.rs485.logisticspipes.util.LPDataOutput;
 @StaticResolve
 public class NormalOrdererGui extends CoordinatesGuiProvider {
 
-	private ResourceLocation dim = new ResourceLocation("minecraft", "overworld");
+	private Identifier dim = Identifier.fromNamespaceAndPath("minecraft", "overworld");
 
 	public NormalOrdererGui(int id) {
 		super(id);
 	}
 
-	public NormalOrdererGui setDim(ResourceLocation dim) {
+	public NormalOrdererGui setDim(Identifier dim) {
 		this.dim = dim;
 		return this;
 	}
@@ -35,7 +35,7 @@ public class NormalOrdererGui extends CoordinatesGuiProvider {
 	@Override
 	public void readData(LPDataInput input) {
 		super.readData(input);
-		ResourceLocation rl = input.readResourceLocation();
+		Identifier rl = input.readResourceLocation();
 		if (rl != null) dim = rl;
 	}
 

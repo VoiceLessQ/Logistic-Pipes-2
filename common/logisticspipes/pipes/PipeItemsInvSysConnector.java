@@ -275,9 +275,9 @@ public class PipeItemsInvSysConnector extends CoreRoutedPipe implements IChannel
 	@Override
 	public void readFromNBT(CompoundTag nbttagcompound) {
 		super.readFromNBT(nbttagcompound);
-		resistance = nbttagcompound.getInt("resistance");
+		resistance = nbttagcompound.getIntOr("resistance", 0);
 		if (nbttagcompound.contains("connectedChannel")) {
-			connectedChannel = UUID.fromString(nbttagcompound.getString("connectedChannel"));
+			connectedChannel = UUID.fromString(nbttagcompound.getStringOr("connectedChannel", ""));
 		} else {
 			connectedChannel = null;
 		}

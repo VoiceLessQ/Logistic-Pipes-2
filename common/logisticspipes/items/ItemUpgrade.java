@@ -11,11 +11,11 @@ import javax.annotation.Nullable;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.pipes.upgrades.IPipeUpgrade;
 import network.rs485.logisticspipes.util.TextUtil;
@@ -57,15 +57,15 @@ public class ItemUpgrade extends LogisticsItem {
 		this.upgradeType = upgradeType;
 	}
 
-	/** Factory for use with DeferredRegister. */
+	/** Factory for use with LPRegistries.registerItem. */
 	public static ItemUpgrade of(@Nonnull Supplier<? extends IPipeUpgrade> upgradeConstructor) {
 		return new ItemUpgrade(new Upgrade(upgradeConstructor));
 	}
 
 	@Nonnull
-	public static Item getAndCheckUpgrade(ResourceLocation resource) {
+	public static Item getAndCheckUpgrade(Identifier resource) {
 		Objects.requireNonNull(resource, "Resource for upgrade is null. Was the upgrade registered?");
-		return Objects.requireNonNull(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(resource), "Upgrade " + resource.toString() + " not found in Item registry");
+		return Objects.requireNonNull(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(resource), "Upgrade " + resource.toString() + " not found in Item registry");
 	}
 
 	public IPipeUpgrade getUpgradeForItem(@Nonnull ItemStack itemStack, IPipeUpgrade currentUpgrade) {
@@ -98,19 +98,22 @@ public class ItemUpgrade extends LogisticsItem {
 	public static String SHIFT_INFO_PREFIX = "item.upgrade.info.";
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
-		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+	@Environment(EnvType.CLIENT)
+	public void appendHoverText(@Nonnull ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<net.minecraft.network.chat.Component> tooltipConsumer, net.minecraft.world.item.TooltipFlag flagIn) {
+		java.util.List<net.minecraft.network.chat.Component> tooltip = new java.util.ArrayList<>();
+		super.appendHoverText(stack, context, display, tooltipConsumer, flagIn);
 		IPipeUpgrade upgrade = getUpgradeForItem(stack, null);
 		if (upgrade == null) {
+			tooltip.forEach(tooltipConsumer);
 			return;
 		}
 		List<String> pipe = Arrays.asList(upgrade.getAllowedPipes());
 		List<String> module = Arrays.asList(upgrade.getAllowedModules());
 		if (pipe.isEmpty() && module.isEmpty()) {
+			tooltip.forEach(tooltipConsumer);
 			return;
 		}
-		if (Screen.hasShiftDown()) {
+		if (net.minecraft.client.Minecraft.getInstance().hasShiftDown()) {
 			if (!pipe.isEmpty() && !module.isEmpty()) {
 				//Can be applied to {0} pipes
 				//and {0} modules
@@ -130,9 +133,10 @@ public class ItemUpgrade extends LogisticsItem {
 		} else {
 			TextUtil.addTooltipInformation(stack, tooltip, false);
 		}
+		tooltip.forEach(tooltipConsumer);
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	private String join(List<String> join) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < join.size() - 2; i++) {

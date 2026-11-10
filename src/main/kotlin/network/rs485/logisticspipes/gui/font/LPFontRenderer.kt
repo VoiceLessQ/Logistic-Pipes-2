@@ -37,7 +37,6 @@
 
 package network.rs485.logisticspipes.gui.font
 
-import com.mojang.blaze3d.vertex.VertexConsumer
 import network.rs485.grow.Coroutines
 import network.rs485.logisticspipes.util.alpha
 import network.rs485.logisticspipes.util.blue
@@ -48,11 +47,10 @@ import logisticspipes.LPConstants
 import logisticspipes.LogisticsPipes
 import logisticspipes.utils.gui.SimpleGraphics
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.renderer.LightTexture
-import net.minecraft.client.renderer.RenderType
-import net.minecraft.resources.ResourceLocation
-import org.joml.Matrix4f
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.resources.Identifier
+import org.joml.Matrix3x2f
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
@@ -94,7 +92,7 @@ class LPFontRenderer(private val fontName: String) {
 
     private val fontPlain: IFont by lazy {
         val initialTime = System.currentTimeMillis()
-        val fontResourcePlain = ResourceLocation(LPConstants.LP_MOD_ID, "fonts/$fontName.bdf")
+        val fontResourcePlain = Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "fonts/$fontName.bdf")
         FontParser.read(fontResourcePlain).also { LogisticsPipes.log.info("Elapsed time parsing font: ${System.currentTimeMillis() - initialTime}ms") }
             ?: throw IOException("Failed to load ${fontResourcePlain.path}, this is not tolerated.")
     }
@@ -110,14 +108,6 @@ class LPFontRenderer(private val fontName: String) {
 
     fun width(text: String): Int = getStringWidth(text)
 
-    private fun VertexConsumer.putVertex(matrix: Matrix4f, x: Float, y: Float, color: Int, u: Float, v: Float) {
-        vertex(matrix, x, y, zLevel).color(color.red(), color.green(), color.blue(), color.alpha()).uv(u, v).uv2(LightTexture.FULL_BRIGHT).endVertex()
-    }
-
-    private fun VertexConsumer.putVertex(matrix: Matrix4f, x: Float, y: Float, color: Int) {
-        vertex(matrix, x, y, zLevel).color(color.red(), color.green(), color.blue(), color.alpha()).endVertex()
-    }
-
     /**
      * Adds the given char at the given spot with the set color to the buffer and returns the xOffset for the next character.
      *
@@ -130,7 +120,7 @@ class LPFontRenderer(private val fontName: String) {
      * @param scale   This defines the size of the character to be drawn.
      * @return the width of the drawn character
      */
-    private fun putChar(gg: GuiGraphics, char: Char, x: Float, y: Float, color: Int, wrapper: FontWrapper, italics: Boolean, scale: Float): Float {
+    private fun putChar(gg: GuiGraphicsExtractor, char: Char, x: Float, y: Float, color: Int, wrapper: FontWrapper, italics: Boolean, scale: Float): Float {
         // Fall back to the default char when this one has no glyph, draw nothing when neither has one
         val c = if (wrapper.getTexture(char) != null) char else wrapper.defaultChar
         val texture = wrapper.getTexture(c) ?: return 0f
@@ -154,20 +144,16 @@ class LPFontRenderer(private val fontName: String) {
         val y1 = y + ((wrapper.fontLineOffset - glyph.offsetY) * scale)
         val x1 = x0 + sWidth
         val y0 = y1 - sHeight
-        // Texture coordinates calculation (0.0 - 1.0 depending on the position relative to the size of the full texture)
-        val u0 = textureX / width.toFloat()
-        val v0 = textureY / height.toFloat()
-        val u1 = (textureX + glyph.width) / width.toFloat()
-        val v1 = (textureY + glyph.height) / height.toFloat()
         // The offset distance requires a tan calculation because merely adding a fixed value independent of the character's height would lead to slightly different angles for each character.
         val italicsOffset = if (italics) glyph.height * tan(0.2181662f) else 0f
-        // Add character quad to the atlas page's buffer
-        val matrix = gg.pose().last().pose()
-        val buffer = gg.bufferSource().getBuffer(RenderType.text(texture))
-        buffer.putVertex(matrix, x0 + italicsOffset, y0, color, u0, v0)
-        buffer.putVertex(matrix, x0, y1, color, u0, v1)
-        buffer.putVertex(matrix, x1, y1, color, u1, v1)
-        buffer.putVertex(matrix, x1 + italicsOffset, y0, color, u1, v0)
+        // 26.x GUI rendering is deferred blits on a 2D pose: place, shear (italics) and scale the glyph quad, then blit its atlas cell
+        val pose = gg.pose()
+        pose.pushMatrix()
+        pose.translate(x0, y0)
+        if (italics) pose.mul(Matrix3x2f(1f, 0f, -italicsOffset / sHeight, 1f, italicsOffset, 0f))
+        pose.scale(sWidth / glyph.width, sHeight / glyph.height)
+        gg.blit(RenderPipelines.GUI_TEXTURED, texture, 0, 0, textureX.toFloat(), textureY.toFloat(), glyph.width, glyph.height, width, height, color)
+        pose.popMatrix()
         // Return the final width of the character, including the spacing for the next character, while being scaled or bypassing scaling in case the scale is set to 1.
         return glyph.dWidthX * scale
     }
@@ -175,7 +161,7 @@ class LPFontRenderer(private val fontName: String) {
     /**
      * Extension of the previous draw(char), that just implements functionality for bold characters, depending on the available wrappers
      */
-    private fun putChar(gg: GuiGraphics, char: Char, x: Float, y: Float, color: Int, italics: Boolean, bold: Boolean, scale: Float): Float {
+    private fun putChar(gg: GuiGraphicsExtractor, char: Char, x: Float, y: Float, color: Int, italics: Boolean, bold: Boolean, scale: Float): Float {
         return if (bold) {
             putChar(gg, char, x + scale, y, color, wrapperPlain, italics, scale)
             putChar(gg, char, x, y, color, wrapperPlain, italics, scale) + scale
@@ -187,7 +173,7 @@ class LPFontRenderer(private val fontName: String) {
     /**
      * Extension of the previous draw(char), that just implements functionality for shadowed characters.
      */
-    private fun putChar(gg: GuiGraphics, c: Char, x: Float, y: Float, color: Int, italics: Boolean, bold: Boolean, shadow: Boolean, scale: Float): Float {
+    private fun putChar(gg: GuiGraphicsExtractor, c: Char, x: Float, y: Float, color: Int, italics: Boolean, bold: Boolean, shadow: Boolean, scale: Float): Float {
         if (shadow) {
             putChar(gg, c, x + scale, y + scale, shadowColor, italics, bold, scale)
         }
@@ -209,8 +195,6 @@ class LPFontRenderer(private val fontName: String) {
         if (underline || strikethrough) {
             putOverlayFormatting(gg = gg, x = x, y = y, width = stringSize, color = color, italic = italic, underline = underline, strikethrough = strikethrough, shadow = shadow, scale = scale)
         }
-        // draw now so later fills and items layer over the text like LP1
-        gg.flush()
         if (italic) stringSize += scale
         return ceil(stringSize).toInt()
     }
@@ -218,7 +202,7 @@ class LPFontRenderer(private val fontName: String) {
     /**
      * Adds the formatting lines to the buffer, for underline and strikethrough.
      */
-    private fun putOverlayFormatting(gg: GuiGraphics, x: Float, y: Float, width: Float, color: Int, italic: Boolean, underline: Boolean, strikethrough: Boolean, shadow: Boolean, scale: Float) {
+    private fun putOverlayFormatting(gg: GuiGraphicsExtractor, x: Float, y: Float, width: Float, color: Int, italic: Boolean, underline: Boolean, strikethrough: Boolean, shadow: Boolean, scale: Float) {
         if (underline) {
             val underlineY = (wrapperPlain.fontHeight - 1) * scale
             if (shadow) putHorizontalLine(gg = gg, x = x + scale, y = y + underlineY + scale, width = width, thickness = scale, color = shadowColor, italics = italic)
@@ -235,7 +219,6 @@ class LPFontRenderer(private val fontName: String) {
         if (width > 0 && (underline || strikethrough)) {
             val gg = SimpleGraphics.guiGraphics ?: return width
             putOverlayFormatting(gg = gg, x = x, y = y, width = width.toFloat(), color = color, italic = italic, underline = underline, strikethrough = strikethrough, shadow = shadow, scale = scale)
-            gg.flush()
         }
         return width
     }
@@ -270,13 +253,13 @@ class LPFontRenderer(private val fontName: String) {
 
     fun getStringWidth(string: String): Int = getStringWidth(string = string, italics = false, bold = false, scale = 1f)
 
-    private fun putHorizontalLine(gg: GuiGraphics, x: Float, y: Float, width: Float, thickness: Float, color: Int, italics: Boolean) {
+    private fun putHorizontalLine(gg: GuiGraphicsExtractor, x: Float, y: Float, width: Float, thickness: Float, color: Int, italics: Boolean) {
         val italicsOffset = if (italics) thickness else 0f
-        val matrix = gg.pose().last().pose()
-        val buffer = gg.bufferSource().getBuffer(RenderType.gui())
-        buffer.putVertex(matrix, x, y, color)
-        buffer.putVertex(matrix, x, y + thickness, color)
-        buffer.putVertex(matrix, x + width + italicsOffset, y + thickness, color)
-        buffer.putVertex(matrix, x + width + italicsOffset, y, color)
+        val pose = gg.pose()
+        pose.pushMatrix()
+        pose.translate(x, y)
+        pose.scale(width + italicsOffset, thickness)
+        gg.fill(0, 0, 1, 1, color)
+        pose.popMatrix()
     }
 }

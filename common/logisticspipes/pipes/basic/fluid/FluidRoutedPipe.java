@@ -8,10 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.interfaces.ITankUtil;
@@ -35,6 +32,7 @@ import logisticspipes.utils.CacheHolder.CacheTypes;
 import logisticspipes.utils.FluidIdentifier;
 import logisticspipes.utils.FluidIdentifierStack;
 import logisticspipes.utils.FluidSinkReply;
+import logisticspipes.utils.LPFluidTank;
 import logisticspipes.utils.item.ItemIdentifierStack;
 import logisticspipes.utils.tuples.Pair;
 import network.rs485.logisticspipes.connection.LPNeighborTileEntityKt;
@@ -104,13 +102,9 @@ public abstract class FluidRoutedPipe extends CoreRoutedPipe {
 		}
 		boolean fluidTile = false;
 		if (tile != null && tile.getLevel() != null) {
-			IFluidHandler fluidHandler = tile.getCapability(ForgeCapabilities.FLUID_HANDLER, dir).orElse(null);
-			if (fluidHandler != null) {
+			if (FluidStorage.SIDED.find(tile.getLevel(), tile.getBlockPos(), tile.getBlockState(), tile, dir) != null) {
 				fluidTile = true;
 			}
-		}
-		if (tile instanceof IFluidHandler) {
-			fluidTile = true;
 		}
 		if (!fluidTile) {
 			return false;
@@ -125,7 +119,7 @@ public abstract class FluidRoutedPipe extends CoreRoutedPipe {
 			if (!flag) {
 				return false;
 			}
-			if (((LogisticsTileGenericPipe) tile).pipe == null || !(((LogisticsTileGenericPipe) tile).pipe.transport instanceof IFluidHandler)) {
+			if (((LogisticsTileGenericPipe) tile).pipe == null || !(((LogisticsTileGenericPipe) tile).pipe.transport instanceof PipeFluidTransportLogistics)) {
 				return false;
 			}
 		}
@@ -145,16 +139,16 @@ public abstract class FluidRoutedPipe extends CoreRoutedPipe {
 						continue;
 					}
 				}
-				FluidTank internalTank = ((PipeFluidTransportLogistics) transport).sideTanks[pair.getValue1().getDirection().ordinal()];
+				LPFluidTank internalTank = ((PipeFluidTransportLogistics) transport).sideTanks[pair.getValue1().getDirection().ordinal()];
 				validDirections++;
-				if (internalTank.getFluid().isEmpty()) {
+				if (internalTank.isEmpty()) {
 					continue;
 				}
-				int filled = pair.getValue2().fill(FluidIdentifierStack.getFromStack(internalTank.getFluid()), true);
+				int filled = pair.getValue2().fill(internalTank.getFluid(), true);
 				if (filled == 0) {
 					continue;
 				}
-				FluidStack drain = internalTank.drain(filled, IFluidHandler.FluidAction.EXECUTE);
+				FluidIdentifierStack drain = internalTank.drain(filled, true);
 				if (drain == null || filled != drain.getAmount()) {
 					if (LogisticsPipes.isDEBUG()) {
 						throw new UnsupportedOperationException("Fluid Multiplication");
@@ -164,9 +158,9 @@ public abstract class FluidRoutedPipe extends CoreRoutedPipe {
 			if (validDirections == 0) {
 				return;
 			}
-			FluidTank tank = ((PipeFluidTransportLogistics) transport).internalTank;
-			FluidStack stack = tank.getFluid();
-			if (stack.isEmpty()) {
+			LPFluidTank tank = ((PipeFluidTransportLogistics) transport).internalTank;
+			FluidIdentifierStack stack = tank.getFluid();
+			if (stack == null) {
 				return;
 			}
 			for (Pair<NeighborTileEntity<BlockEntity>, ITankUtil> pair : list) {
@@ -175,17 +169,16 @@ public abstract class FluidRoutedPipe extends CoreRoutedPipe {
 						continue;
 					}
 				}
-				FluidTank tankSide = ((PipeFluidTransportLogistics) transport).sideTanks[pair.getValue1().getDirection().ordinal()];
+				LPFluidTank tankSide = ((PipeFluidTransportLogistics) transport).sideTanks[pair.getValue1().getDirection().ordinal()];
 				stack = tank.getFluid();
-				if (stack.isEmpty()) {
+				if (stack == null) {
 					continue;
 				}
-				stack = stack.copy();
-				int filled = tankSide.fill(stack, IFluidHandler.FluidAction.EXECUTE);
+				int filled = tankSide.fill(stack, true);
 				if (filled == 0) {
 					continue;
 				}
-				FluidStack drain = tank.drain(filled, IFluidHandler.FluidAction.EXECUTE);
+				FluidIdentifierStack drain = tank.drain(filled, true);
 				if (drain == null || filled != drain.getAmount()) {
 					if (LogisticsPipes.isDEBUG()) {
 						throw new UnsupportedOperationException("Fluid Multiplication");
@@ -237,14 +230,14 @@ public abstract class FluidRoutedPipe extends CoreRoutedPipe {
 					return true;
 				}
 				//Try inserting the liquid into the pipe side tank
-				filled = ((PipeFluidTransportLogistics) transport).sideTanks[arrivingItem.output.ordinal()].fill(liquid.makeFluidStack(), IFluidHandler.FluidAction.EXECUTE);
+				filled = ((PipeFluidTransportLogistics) transport).sideTanks[arrivingItem.output.ordinal()].fill(liquid, true);
 				if (filled == liquid.getAmount()) {
 					return true;
 				}
 				liquid.lowerAmount(filled);
 			}
 			//Try inserting the liquid into the pipe internal tank
-			filled = ((PipeFluidTransportLogistics) transport).internalTank.fill(liquid.makeFluidStack(), IFluidHandler.FluidAction.EXECUTE);
+			filled = ((PipeFluidTransportLogistics) transport).internalTank.fill(liquid, true);
 			if (filled == liquid.getAmount()) {
 				return true;
 			}

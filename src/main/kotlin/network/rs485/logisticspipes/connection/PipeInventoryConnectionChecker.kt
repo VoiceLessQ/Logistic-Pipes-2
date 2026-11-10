@@ -39,7 +39,6 @@ package network.rs485.logisticspipes.connection
 
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.HopperBlockEntity
-import net.minecraftforge.fml.ModList
 
 class PipeInventoryConnectionChecker {
     private val allowedConnectionClasses = mutableSetOf<Class<*>>()
@@ -51,7 +50,7 @@ class PipeInventoryConnectionChecker {
     }
 
     private fun checkAndAddClass(modId: String, className: String) {
-        if (ModList.get().isLoaded(modId)) {
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(modId)) {
             try {
                 val clazz = Class.forName(className)
                 addSupportedClassType(clazz)

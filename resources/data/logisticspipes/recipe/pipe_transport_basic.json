@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iri",
+    "g g",
+    "iri"
+  ],
+  "key": {
+    "i": "#c:ingots/iron",
+    "r": "#c:dusts/redstone",
+    "g": "#c:glass_blocks"
+  },
+  "result": {
+    "id": "logisticspipes:pipe_transport_basic",
+    "count": 8
+  }
+}

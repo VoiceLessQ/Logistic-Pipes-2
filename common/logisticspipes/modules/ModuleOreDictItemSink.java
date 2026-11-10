@@ -3,7 +3,7 @@ package logisticspipes.modules;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 
 import java.util.ArrayList;
@@ -123,7 +123,7 @@ public class ModuleOreDictItemSink extends LogisticsModule
 		// it to every Item carrying that tag. Damage values no longer exist, so the
 		// inner damage Set is always empty, which sinksItem treats as "match any".
 		for (String orename : oreList) {
-			ResourceLocation loc = ResourceLocation.tryParse(orename);
+			Identifier loc = Identifier.tryParse(orename);
 			ItemStack stackForHud = ItemStack.EMPTY;
 			if (loc != null) {
 				TagKey<Item> tag = TagKey.create(Registries.ITEM, loc);

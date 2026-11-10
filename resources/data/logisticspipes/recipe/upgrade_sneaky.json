@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "rpr",
+    "lbl",
+    "qnq"
+  ],
+  "key": {
+    "r": "minecraft:redstone",
+    "p": "logisticspipes:logistics_programmer",
+    "l": "minecraft:lapis_lazuli",
+    "b": "logisticspipes:chip_basic",
+    "q": "minecraft:paper",
+    "n": "minecraft:gold_nugget"
+  },
+  "result": {
+    "id": "logisticspipes:upgrade_sneaky",
+    "count": 1
+  }
+}

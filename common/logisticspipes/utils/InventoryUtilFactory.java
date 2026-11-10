@@ -15,7 +15,6 @@ import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.interfaces.IInventoryUtil;
@@ -63,8 +62,7 @@ public class InventoryUtilFactory {
 			if (util != null) {
 				return util;
 			}
-			// NeoForge 1.20.1 (47.1.x): old Capability<T> API via BlockEntity.getCapability
-			net.minecraftforge.items.IItemHandler handler = tile.getCapability(ForgeCapabilities.ITEM_HANDLER, direction).orElse(null);
+			StorageItemHandler handler = StorageItemHandler.find(tile, direction);
 			if (handler != null) {
 				return new InventoryUtil(handler, mode);
 			}

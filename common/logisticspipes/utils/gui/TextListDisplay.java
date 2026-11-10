@@ -96,7 +96,7 @@ public class TextListDisplay {
 			}
 			String name = list.getTextAt(i);
 			name = TextUtil.getTrimmedString(name, gui.getXSize() - borderRight - borderLeft - 6, gui.getMC().font, "...");
-			gui.getGuiGraphics().drawString(gui.getMC().font, name, gui.getGuiLeft() + borderLeft + 4, gui.getGuiTop() + borderTop + 4 + ((i - scroll) * 10), list.getTextColor(i), false);
+			SimpleGraphics.drawString(gui.getGuiGraphics(), gui.getMC().font, name, gui.getGuiLeft() + borderLeft + 4, gui.getGuiTop() + borderTop + 4 + ((i - scroll) * 10), list.getTextColor(i), false);
 		}
 
 		if (!flag) {

@@ -4,13 +4,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-
-import net.minecraftforge.event.TickEvent.ClientTickEvent;
-import net.minecraftforge.event.TickEvent.LevelTickEvent;
-import net.minecraftforge.event.TickEvent.Phase;
-import net.minecraftforge.event.TickEvent.ServerTickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import com.google.common.collect.MapMaker;
 import lombok.AccessLevel;
@@ -29,40 +24,30 @@ public class LPTickHandler {
 
 	public static int adjChecksDone = 0;
 
-	@SubscribeEvent
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
-	public void clientTick(ClientTickEvent event) {
-		if (event.phase == Phase.END) {
-			FluidIdentifier.initFromForge(true);
-			SimpleServiceLocator.clientBufferHandler.clientTick();
-			MainProxy.proxy.tickClient();
-			DebugGuiController.instance().execClient();
-		}
+	/** ClientTickEvents.END_CLIENT_TICK */
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
+	public void clientTick() {
+		FluidIdentifier.initFromForge(true);
+		SimpleServiceLocator.clientBufferHandler.clientTick();
+		MainProxy.proxy.tickClient();
+		DebugGuiController.instance().execClient();
 	}
 
-	@SubscribeEvent
-	public void serverTick(ServerTickEvent event) {
-		if (event.phase == Phase.END) {
-			HudUpdateTick.tick();
-			SimpleServiceLocator.serverBufferHandler.serverTick();
-			MainProxy.proxy.tickServer();
-			LPTickHandler.adjChecksDone = 0;
-			DebugGuiController.instance().execServer();
-			ServerTickDispatcher.INSTANCE.tick();
-		}
+	/** ServerTickEvents.END_SERVER_TICK */
+	public void serverTick() {
+		HudUpdateTick.tick();
+		SimpleServiceLocator.serverBufferHandler.serverTick();
+		MainProxy.proxy.tickServer();
+		LPTickHandler.adjChecksDone = 0;
+		DebugGuiController.instance().execServer();
+		ServerTickDispatcher.INSTANCE.tick();
 	}
 
 	private static Map<Level, LPWorldInfo> worldInfo = new MapMaker().weakKeys().makeMap();
 
-	@SubscribeEvent
-	public void worldTick(LevelTickEvent event) {
-		if (event.phase != Phase.END) {
-			return;
-		}
-		if (event.side != net.minecraftforge.fml.LogicalSide.SERVER) {
-			return;
-		}
-		LPWorldInfo info = LPTickHandler.getWorldInfo(event.level);
+	/** ServerTickEvents.END_LEVEL_TICK */
+	public void worldTick(ServerLevel level) {
+		LPWorldInfo info = LPTickHandler.getWorldInfo(level);
 		info.worldTick++;
 	}
 

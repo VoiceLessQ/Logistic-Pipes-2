@@ -1,21 +1,20 @@
 pluginManagement {
     repositories {
-        mavenLocal()
+        maven { name = 'Fabric'; url = 'https://maven.fabricmc.net/' }
+        mavenCentral()
         gradlePluginPortal()
-        maven { url = 'https://maven.neoforged.net/releases' }
     }
-
-    def props = new Properties()
-    file('gradle.properties').withInputStream { props.load(it) }
-
     plugins {
-        id 'net.neoforged.gradle.userdev'          version "${props.neogradle_version}"
-        id 'org.jetbrains.kotlin.jvm'              version "${props.kotlin_version}"
-        id 'org.jetbrains.kotlin.plugin.serialization' version "${props.kotlin_version}"
-        id 'org.jetbrains.kotlin.plugin.lombok'    version "${props.kotlin_version}"
-        id 'io.freefair.lombok'                    version "${props.lombok_plugin_version}"
-        id 'com.github.johnrengelman.shadow'       version "${props.shadow_version}"
+        id 'net.fabricmc.fabric-loom' version "${loom_version}"
+        id 'org.jetbrains.kotlin.jvm' version "${kotlin_version}"
+        id 'org.jetbrains.kotlin.plugin.serialization' version "${kotlin_version}"
+        id 'org.jetbrains.kotlin.plugin.lombok' version "${kotlin_version}"
+        id 'io.freefair.lombok' version '9.8.3'
     }
 }
 
-rootProject.name = 'LogisticsPipes'
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'logisticspipes'

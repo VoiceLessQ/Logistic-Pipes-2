@@ -1,7 +1,8 @@
 
 package logisticspipes.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 
@@ -106,7 +106,7 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
+	protected void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int mouseX, int mouseY) {
 		drawBG();
 		getActiveTab().draw(mouseX, mouseY);
 
@@ -127,7 +127,7 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 		LPGuiGraphics.drawStatsBackground(minecraft, leftPos + 6, topPos + 3);
 
 		// Second Tab
-		guiGraphics.renderItem(new ItemStack(Blocks.CRAFTING_TABLE), leftPos + 31, topPos + 3);
+		guiGraphics.item(new ItemStack(Blocks.CRAFTING_TABLE), leftPos + 31, topPos + 3);
 	}
 
 	@Override
@@ -154,7 +154,7 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		super.renderLabels(guiGraphics, mouseX, mouseY);
 		getActiveTab().drawForegroundLayer(mouseX, mouseY);
 	}
@@ -259,7 +259,7 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 
 				if (task != null) {
 					LPGuiGraphics.drawSlotBackground(minecraft, leftPos + 10, topPos + 99);
-					guiGraphics.renderItem(task.item.unsafeMakeNormalStack(1), leftPos + 12, topPos + 101);
+					guiGraphics.item(task.item.unsafeMakeNormalStack(1), leftPos + 12, topPos + 101);
 					taskNameLabel = StringUtils.getWithMaxWidth(task.item.getFriendlyName(), 136, font);
 
 					int xOrigo = xCenter - 72;
@@ -361,13 +361,13 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 
 		@Override
 		public void drawForegroundLayer(int mouseX, int mouseY) {
-			guiGraphics.drawString(minecraft.font, TextUtil.translate(PREFIX + "amount"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
+			SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(PREFIX + "amount"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
 			if (taskNameLabel != null) {
-				guiGraphics.drawString(minecraft.font, taskNameLabel, 32, 104, Color.getValue(Color.DARKER_GREY), false);
+				SimpleGraphics.drawString(guiGraphics, minecraft.font, taskNameLabel, 32, 104, Color.getValue(Color.DARKER_GREY), false);
 			}
 			for (int i = 0; i < graphTexts.size(); i++) {
 				int[] pos = graphTextPos.get(i);
-				guiGraphics.drawString(minecraft.font, graphTexts.get(i), pos[0], pos[1], pos[2], false);
+				SimpleGraphics.drawString(guiGraphics, minecraft.font, graphTexts.get(i), pos[0], pos[1], pos[2], false);
 			}
 		}
 
@@ -550,13 +550,13 @@ public class GuiStatistics extends LogisticsBaseGuiScreen {
 
 		@Override
 		public void drawForegroundLayer(int mouseX, int mouseY) {
-			guiGraphics.drawString(minecraft.font, TextUtil.translate(PREFIX + "crafting"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
+			SimpleGraphics.drawString(guiGraphics, minecraft.font, TextUtil.translate(PREFIX + "crafting"), 10, 28, Color.getValue(Color.DARKER_GREY), false);
 			if (hasSubGui()) {
 				return;
 			}
 			Object[] tip = itemDisplay != null ? itemDisplay.getToolTip() : null;
 			if (tip != null && tip.length >= 3) {
-				guiGraphics.renderTooltip(minecraft.font, (ItemStack) tip[2], (int) tip[0], (int) tip[1]);
+				guiGraphics.setTooltipForNextFrame(minecraft.font, (ItemStack) tip[2], (int) tip[0], (int) tip[1]);
 			}
 		}
 

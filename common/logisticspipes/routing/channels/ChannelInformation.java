@@ -30,12 +30,12 @@ public class ChannelInformation {
 	private UUID responsibleSecurityID;
 
 	public ChannelInformation(CompoundTag nbt) {
-		name = nbt.getString("name");
-		channelIdentifier = UUID.fromString(nbt.getString("channelIdentifier"));
+		name = nbt.getStringOr("name", "");
+		channelIdentifier = UUID.fromString(nbt.getStringOr("channelIdentifier", ""));
 		owner = PlayerIdentifier.readFromNBT(nbt, "owner");
-		rights = AccessRights.values()[nbt.getInt("rights")];
+		rights = AccessRights.values()[nbt.getIntOr("rights", 0)];
 		if (nbt.contains("responsibleSecurityID")) {
-			responsibleSecurityID = UUID.fromString(nbt.getString("responsibleSecurityID"));
+			responsibleSecurityID = UUID.fromString(nbt.getStringOr("responsibleSecurityID", ""));
 		} else {
 			responsibleSecurityID = null;
 		}

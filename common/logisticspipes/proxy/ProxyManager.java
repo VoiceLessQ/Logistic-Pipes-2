@@ -1,17 +1,16 @@
 package logisticspipes.proxy;
 
-import net.minecraftforge.fml.ModList;
+
+import net.fabricmc.loader.api.FabricLoader;
 
 import logisticspipes.LPConstants;
 import logisticspipes.proxy.cc.CCProxy;
 import logisticspipes.proxy.ccl.CCLProxy;
-import logisticspipes.proxy.enderchest.EnderStorageProxy;
 
 public class ProxyManager {
 
 	public static void load() {
-		// TODO(1.20.1): CCL is now LP's own built-in impl — bypass legacy ASM wrapper so
-		// callers receive real LPRenderStateImpl/LPModel3DImpl instances instead of proxy wrappers.
+		// CCL is LP's own built-in impl; no ASM wrapper, so callers get the real render state/model classes.
 		SimpleServiceLocator.setCCLProxy(new CCLProxy());
 
 		SimpleServiceLocator.setConfigToolHandler(new ConfigToolHandler());
@@ -19,11 +18,16 @@ public class ProxyManager {
 
 		SimpleServiceLocator.setPowerProxy(new PowerProxy());
 
-		if (ModList.get().isLoaded(LPConstants.computerCraftModID)) {
+		if (Boolean.getBoolean("lp.devtest")) {
+			DevTestCommands.register();
+			if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT) {
+				logisticspipes.proxy.side.DevTestClient.register();
+			}
+		}
+
+		if (FabricLoader.getInstance().isModLoaded(LPConstants.computerCraftModID)) {
 			SimpleServiceLocator.setCCProxy(new CCProxy());
 		}
-		if (ModList.get().isLoaded(LPConstants.enderStorageModID)) {
-			SimpleServiceLocator.setEnderStorageProxy(new EnderStorageProxy());
-		}
+		// EnderStorage has no Fabric 26.x build; its proxy stays parked and SimpleServiceLocator keeps the dummy.
 	}
 }

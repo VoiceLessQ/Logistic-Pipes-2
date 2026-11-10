@@ -1,66 +1,108 @@
 package logisticspipes.utils;
 
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 
 import logisticspipes.interfaces.ITankUtil;
 
+/** {@link ITankUtil} over a Transfer API fluid storage; LP millibuckets become droplets here. */
 public class TankUtil implements ITankUtil {
 
-	private final IFluidHandler fluidhandler;
+	private final Storage<FluidVariant> storage;
 
-	public TankUtil(IFluidHandler fluidhandler) {
-		this.fluidhandler = fluidhandler;
+	public TankUtil(Storage<FluidVariant> storage) {
+		this.storage = storage;
 	}
 
 	@Override
 	public boolean containsTanks() {
-		return fluidhandler.getTanks() > 0;
+		return storage.supportsInsertion() || storage.supportsExtraction();
 	}
 
 	@Override
 	public int fill(FluidIdentifierStack stack, boolean doFill) {
-		return fluidhandler.fill(stack.makeFluidStack(),
-				doFill ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE);
+		if (stack == null || stack.getAmount() <= 0) return 0;
+		try (Transaction tx = Transaction.openOuter()) {
+			long inserted = storage.insert(stack.makeFluidVariant(), stack.getDroplets(), tx);
+			int mb = LPFluidTank.toMb(inserted);
+			if (doFill) {
+				if (inserted != LPFluidTank.toDroplets(mb)) {
+					tx.abort();
+					return fillExact(stack.makeFluidVariant(), mb);
+				}
+				tx.commit();
+			}
+			return mb;
+		}
+	}
+
+	private int fillExact(FluidVariant variant, int mb) {
+		if (mb <= 0) return 0;
+		try (Transaction tx = Transaction.openOuter()) {
+			long inserted = storage.insert(variant, LPFluidTank.toDroplets(mb), tx);
+			tx.commit();
+			return LPFluidTank.toMb(inserted);
+		}
 	}
 
 	@Override
 	public FluidIdentifierStack drain(FluidIdentifierStack stack, boolean doDrain) {
-		return FluidIdentifierStack.getFromStack(fluidhandler.drain(stack.makeFluidStack(),
-				doDrain ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE));
+		if (stack == null || stack.getAmount() <= 0) return null;
+		return extract(stack.makeFluidVariant(), stack.getAmount(), doDrain);
 	}
 
 	@Override
 	public FluidIdentifierStack drain(int amount, boolean doDrain) {
-		return FluidIdentifierStack.getFromStack(fluidhandler.drain(amount,
-				doDrain ? IFluidHandler.FluidAction.EXECUTE : IFluidHandler.FluidAction.SIMULATE));
+		for (StorageView<FluidVariant> view : storage.nonEmptyViews()) {
+			FluidIdentifierStack drained = extract(view.getResource(), amount, doDrain);
+			if (drained != null) return drained;
+		}
+		return null;
+	}
+
+	private FluidIdentifierStack extract(FluidVariant variant, int mb, boolean doDrain) {
+		try (Transaction tx = Transaction.openOuter()) {
+			long extracted = storage.extract(variant, LPFluidTank.toDroplets(mb), tx);
+			int extractedMb = LPFluidTank.toMb(extracted);
+			if (extractedMb <= 0) return null;
+			if (doDrain) {
+				if (extracted != LPFluidTank.toDroplets(extractedMb)) {
+					tx.abort();
+					try (Transaction exact = Transaction.openOuter()) {
+						extractedMb = LPFluidTank.toMb(storage.extract(variant, LPFluidTank.toDroplets(extractedMb), exact));
+						exact.commit();
+					}
+				} else {
+					tx.commit();
+				}
+			}
+			return FluidIdentifierStack.getFromVariant(variant, LPFluidTank.toDroplets(extractedMb));
+		}
 	}
 
 	@Override
-	public Stream<FluidStack> tanks() {
-		return IntStream.range(0, fluidhandler.getTanks())
-				.mapToObj(fluidhandler::getFluidInTank)
-				.filter(stack -> !stack.isEmpty());
+	public Stream<FluidIdentifierStack> tanks() {
+		return StreamSupport.stream(storage.nonEmptyViews().spliterator(), false)
+				.map(view -> FluidIdentifierStack.getFromVariant(view.getResource(), view.getAmount()))
+				.filter(stack -> stack != null && stack.getAmount() > 0);
 	}
 
 	@Override
 	public boolean canDrain(FluidIdentifier fluid) {
-		FluidStack probe = fluid.makeFluidStack(1);
-		return !fluidhandler.drain(probe, IFluidHandler.FluidAction.SIMULATE).isEmpty();
+		try (Transaction tx = Transaction.openOuter()) {
+			return storage.extract(fluid.makeFluidVariant(), 1, tx) > 0;
+		}
 	}
 
 	@Override
 	public int getFreeSpaceInsideTank(FluidIdentifier type) {
-		int free = 0;
-		for (int i = 0; i < fluidhandler.getTanks(); i++) {
-			FluidStack content = fluidhandler.getFluidInTank(i);
-			if (content.isEmpty() || FluidIdentifier.get(content) == type) {
-				free += fluidhandler.getTankCapacity(i) - content.getAmount();
-			}
+		try (Transaction tx = Transaction.openOuter()) {
+			return LPFluidTank.toMb(storage.insert(type.makeFluidVariant(), Long.MAX_VALUE / 2, tx));
 		}
-		return free;
 	}
 }

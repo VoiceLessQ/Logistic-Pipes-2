@@ -7,6 +7,8 @@ import javax.annotation.Nonnull;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
+
 import logisticspipes.api.ILPPipeConfigTool;
 import logisticspipes.api.ILPPipeTile;
 import logisticspipes.proxy.interfaces.ILPPipeConfigToolWrapper;
@@ -26,7 +28,7 @@ public class ConfigToolHandler {
 				return wrapped.canWrench(player, wrench, pipe);
 			}
 		}
-		return false;
+		return wrench.is(ConventionalItemTags.WRENCH_TOOLS);
 	}
 
 	public void wrenchUsed(Player player, @Nonnull ItemStack wrench, ILPPipeTile pipe) {
@@ -45,6 +47,6 @@ public class ConfigToolHandler {
 	}
 
 	void registerWrapper() {
-		// BuildCraft IToolWrench / CoFH IToolHammer wrappers removed — neither mod exists on 1.20.1.
+		// Other mods' wrenches (BuildCraft Refabricated, ...) are recognised through the c:tools/wrench tag in canWrench.
 	}
 }

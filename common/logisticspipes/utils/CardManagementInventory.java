@@ -1,5 +1,6 @@
 package logisticspipes.utils;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import javax.annotation.Nonnull;
 
 import net.minecraft.world.entity.player.Player;
@@ -34,16 +35,16 @@ public class CardManagementInventory implements Container {
 		}
 		ItemStack card = inv.getItem(3);
 		if (!card.isEmpty()) {
-			CompoundTag nbt = card.getTag();
+			CompoundTag nbt = CustomDataUtil.getTag(card);
 			if (nbt == null) {
 				nbt = new CompoundTag();
 			}
-			CompoundTag colors = nbt.getCompound("colors");
+			CompoundTag colors = nbt.getCompoundOrEmpty("colors");
 			int slot = i - 4;
 
 			int colorCode;
 			if (colors.contains("color:" + slot)) {
-				colorCode = colors.getInt("color:" + slot);
+				colorCode = colors.getIntOr("color:" + slot, 0);
 			} else {
 				colors.putInt("color:" + slot, 16);
 				colorCode = 16;
@@ -52,7 +53,7 @@ public class CardManagementInventory implements Container {
 			MinecraftColor color = MinecraftColor.values()[colorCode];
 
 			nbt.put("colors", colors);
-			card.setTag(nbt);
+			CustomDataUtil.setTag(card, nbt);
 			inv.setItem(3, card);
 
 			return color.getItemStack();
@@ -83,12 +84,12 @@ public class CardManagementInventory implements Container {
 	public void setItem(int i, @Nonnull ItemStack itemstack) {
 		if (i > -1 && i < 4) {
 			if (i == 0 && !itemstack.isEmpty() && !inv.getItem(1).isEmpty() && inv.getItem(2).isEmpty() && inv.getItem(1).getDamageValue() == itemstack.getDamageValue()) {
-				itemstack.setTag(inv.getItem(1).getTag());
+				CustomDataUtil.setTag(itemstack, CustomDataUtil.getTag(inv.getItem(1)));
 				inv.setItem(2, itemstack);
 				return;
 			}
 			if (i == 1 && !itemstack.isEmpty() && !inv.getItem(0).isEmpty() && inv.getItem(2).isEmpty() && inv.getItem(0).getDamageValue() == itemstack.getDamageValue()) {
-				itemstack.setTag(inv.getItem(0).getTag());
+				CustomDataUtil.setTag(itemstack, CustomDataUtil.getTag(inv.getItem(0)));
 				inv.setItem(2, itemstack);
 				return;
 			}
@@ -97,15 +98,15 @@ public class CardManagementInventory implements Container {
 		}
 		ItemStack card = inv.getItem(3);
 		if (!card.isEmpty()) {
-			CompoundTag nbt = card.getTag();
+			CompoundTag nbt = CustomDataUtil.getTag(card);
 			if (nbt == null) {
 				nbt = new CompoundTag();
 			}
-			CompoundTag colors = nbt.getCompound("colors");
+			CompoundTag colors = nbt.getCompoundOrEmpty("colors");
 			int slot = i - 4;
 			colors.putInt("color:" + slot, MinecraftColor.getColor(itemstack).ordinal());
 			nbt.put("colors", colors);
-			card.setTag(nbt);
+			CustomDataUtil.setTag(card, nbt);
 			inv.setItem(3, card);
 		}
 	}
@@ -138,10 +139,10 @@ public class CardManagementInventory implements Container {
 	public void setChanged() {}
 
 	@Override
-	public void startOpen(@Nonnull Player player) {}
+	public void startOpen(@Nonnull net.minecraft.world.entity.ContainerUser player) {}
 
 	@Override
-	public void stopOpen(@Nonnull Player player) {}
+	public void stopOpen(@Nonnull net.minecraft.world.entity.ContainerUser player) {}
 
 	@Override
 	public boolean canPlaceItem(int i, @Nonnull ItemStack itemstack) {

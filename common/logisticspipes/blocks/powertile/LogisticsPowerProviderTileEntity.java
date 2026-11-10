@@ -1,5 +1,8 @@
 package logisticspipes.blocks.powertile;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.utils.TagUtil;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -229,22 +232,25 @@ public abstract class LogisticsPowerProviderTileEntity extends LogisticsSolidTil
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag nbt = TagUtil.read(input);
+		super.loadAdditional(input);
 		if (nbt.get("internalStorage") instanceof FloatTag) { // support for old float
-			internalStorage = nbt.getFloat("internalStorage");
+			internalStorage = nbt.getFloatOr("internalStorage", 0f);
 		} else {
-			internalStorage = nbt.getDouble("internalStorage");
+			internalStorage = nbt.getDoubleOr("internalStorageDouble", 0.0);
 		}
-		maxMode = nbt.getInt("maxMode");
+		maxMode = nbt.getIntOr("maxMode", 0);
 
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag nbt = new CompoundTag();
+		super.saveAdditional(output);
 		nbt.putDouble("internalStorageDouble", internalStorage);
 		nbt.putInt("maxMode", maxMode);
+		TagUtil.write(output, nbt);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package logisticspipes.gui.hud;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import javax.annotation.Nonnull;
 
 import net.minecraft.client.Minecraft;
@@ -63,7 +64,7 @@ public class HUDSatellite extends BasicHUDGui {
 
 	@Override
 	public void renderHeadUpDisplay(double distance, boolean day, boolean shifted, Minecraft minecraft, IHUDConfig config) {
-		net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		net.minecraft.client.gui.GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		int textColor = 0xff000000;
 		if (pipe.getItemList().size() > 0) {
 			LPGuiGraphics.setHudColor(day, 64);
@@ -74,17 +75,17 @@ public class HUDSatellite extends BasicHUDGui {
 			String message = pipe.getSatellitePipeName();
 			if (gg != null) {
 				if (minecraft.font.width(message) > 40) {
-					gg.pose().pushPose();
-					gg.pose().scale(0.45F, 0.45F, 1F);
-					gg.drawString(minecraft.font, message, -100, -85, textColor, false);
-					gg.pose().popPose();
+					gg.pose().pushMatrix();
+					gg.pose().scale(0.45F, 0.45F);
+					SimpleGraphics.drawString(gg, minecraft.font, message, -100, -85, textColor, false);
+					gg.pose().popMatrix();
 				} else {
-					gg.drawString(minecraft.font, message, -42, -40, textColor, false);
+					SimpleGraphics.drawString(gg, minecraft.font, message, -42, -40, textColor, false);
 				}
 			}
 			ItemStackRenderer.renderItemIdentifierStackListIntoGui(pipe.getItemList(), null, page, -35, -20, 4, 12, 18, 18, 100.0F, DisplayAmount.ALWAYS, false, shifted);
 			if (gg != null) {
-				gg.drawString(minecraft.font, String.format("(%d/%d)", page + 1, getMaxPage()), 9, -41, textColor, false);
+				SimpleGraphics.drawString(gg, minecraft.font, String.format("(%d/%d)", page + 1, getMaxPage()), 9, -41, textColor, false);
 			}
 		} else {
 			LPGuiGraphics.setHudColor(day, 64);
@@ -93,7 +94,7 @@ public class HUDSatellite extends BasicHUDGui {
 			super.renderHeadUpDisplay(distance, day, shifted, minecraft, config);
 			String message = pipe.getSatellitePipeName();
 			if (gg != null) {
-				gg.drawString(minecraft.font, message, -(minecraft.font.width(message) / 2), -2, textColor, false);
+				SimpleGraphics.drawString(gg, minecraft.font, message, -(minecraft.font.width(message) / 2), -2, textColor, false);
 			}
 		}
 	}

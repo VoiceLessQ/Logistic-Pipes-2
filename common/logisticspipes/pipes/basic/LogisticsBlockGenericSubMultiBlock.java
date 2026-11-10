@@ -32,7 +32,7 @@ public class LogisticsBlockGenericSubMultiBlock extends Block implements EntityB
 	public static boolean redirectedToMainPipe = false;
 
 	public LogisticsBlockGenericSubMultiBlock() {
-		super(BlockBehaviour.Properties.of().strength(0.5F).noOcclusion());
+		super(logisticspipes.LPRegistries.blockProperties().strength(0.5F).noOcclusion());
 	}
 
 	@Override
@@ -76,20 +76,20 @@ public class LogisticsBlockGenericSubMultiBlock extends Block implements EntityB
 
 	@Override
 	@Nonnull
-	public ItemStack getCloneItemStack(@Nonnull BlockState state, HitResult target, @Nonnull BlockGetter level, @Nonnull BlockPos pos, Player player) {
+	protected ItemStack getCloneItemStack(@Nonnull net.minecraft.world.level.LevelReader level, @Nonnull BlockPos pos, @Nonnull BlockState state, boolean includeData) {
 		BlockEntity tile = level.getBlockEntity(pos);
 		if (tile instanceof LogisticsTileGenericSubMultiBlock) {
 			for (LogisticsTileGenericPipe mainPipe : ((LogisticsTileGenericSubMultiBlock) tile).getConnectedMainPipes()) {
 				if (mainPipe.isMultiBlock()) {
 					BlockState mainState = level.getBlockState(mainPipe.getBlockPos());
-					ItemStack pick = LPBlocks.pipe.get().getCloneItemStack(mainState, target, level, mainPipe.getBlockPos(), player);
+					ItemStack pick = mainState.getCloneItemStack(level, mainPipe.getBlockPos(), includeData);
 					if (!pick.isEmpty()) {
 						return pick;
 					}
 				}
 			}
 		}
-		return super.getCloneItemStack(state, target, level, pos, player);
+		return super.getCloneItemStack(level, pos, state, includeData);
 	}
 
 	@Nullable
@@ -124,7 +124,7 @@ public class LogisticsBlockGenericSubMultiBlock extends Block implements EntityB
 
 	// TODO: getIcon(IBlockAccess, int, int, int, int) removed in 1.20.1 — rendering rewrite needed (deferred)
 	// @Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	@SuppressWarnings({ "all" })
 	// getIcon_DEAD — stub removed; IBlockAccess and TextureAtlasSprite-based getIcon removed in 1.20.1
 	*/
@@ -132,10 +132,10 @@ public class LogisticsBlockGenericSubMultiBlock extends Block implements EntityB
 	public static DoubleCoordinates currentCreatedMultiBlock;
 
 	@Override
-	public void onRemove(@Nonnull BlockState state, @Nonnull Level worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
-		if (state.getBlock() != newState.getBlock()) {
+	protected void affectNeighborsAfterRemoval(@Nonnull BlockState state, @Nonnull net.minecraft.server.level.ServerLevel worldIn, @Nonnull BlockPos pos, boolean isMoving) {
+		{
 			if (redirectedToMainPipe) {
-				super.onRemove(state, worldIn, pos, newState, isMoving);
+				super.affectNeighborsAfterRemoval(state, worldIn, pos, isMoving);
 				return;
 			}
 			BlockEntity tile = worldIn.getBlockEntity(pos);
@@ -147,18 +147,18 @@ public class LogisticsBlockGenericSubMultiBlock extends Block implements EntityB
 						.forEach(mainPipe -> {
 							redirectedToMainPipe = true;
 							BlockState mainState = worldIn.getBlockState(mainPipe.getBlockPos());
-							LPBlocks.pipe.get().onRemove(mainState, worldIn, mainPipe.getBlockPos(), mainState, false);
+							LogisticsBlockGenericPipe.removePipe(LogisticsBlockGenericPipe.getPipe(worldIn, mainPipe.getBlockPos()));
 							redirectedToMainPipe = false;
 							worldIn.removeBlock(mainPipe.getBlockPos(), false);
 						});
 			}
 		}
-		super.onRemove(state, worldIn, pos, newState, isMoving);
+		super.affectNeighborsAfterRemoval(state, worldIn, pos, isMoving);
 	}
 
 	@Override
-	public void neighborChanged(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Block block, @Nonnull BlockPos fromPos, boolean isMoving) {
-		super.neighborChanged(state, world, pos, block, fromPos, isMoving);
+	protected void neighborChanged(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Block block, @Nullable net.minecraft.world.level.redstone.Orientation orientation, boolean isMoving) {
+		super.neighborChanged(state, world, pos, block, orientation, isMoving);
 		BlockEntity tile = world.getBlockEntity(pos);
 		if (tile instanceof LogisticsTileGenericSubMultiBlock) {
 			((LogisticsTileGenericSubMultiBlock) tile).scheduleNeighborChange();

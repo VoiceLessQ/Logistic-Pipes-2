@@ -22,17 +22,17 @@ public class OpenChatGui extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT) {
 			openChatScreen();
 		}
 	}
 
 	// Client body kept out of processPacket's verified bytecode. The dedicated server links this
-	// packet (so it can SEND it) only when no client class appears in a non-@OnlyIn method; the
-	// RuntimeDistCleaner strips this @OnlyIn helper before verification on the server.
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	// packet (so it can SEND it) only when no client class appears in a non-@Environment method; the
+	// RuntimeDistCleaner strips this @Environment helper before verification on the server.
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 	private void openChatScreen() {
-		net.minecraft.client.Minecraft.getInstance().setScreen(new ChatScreen(""));
+		net.minecraft.client.Minecraft.getInstance().gui.setScreen(new ChatScreen("", false));
 	}
 
 	@Override

@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.Minecraft;
 
@@ -226,8 +226,8 @@ public abstract class PipeLogisticsChassis extends CoreRoutedPipe
 			if (idStack != null) {
 				moduleStack = idStack.getItem().makeNormalStack(1);
 			} else {
-				ResourceLocation resourceLocation = LPItems.modules.get(module.getLPName());
-				Item item = BuiltInRegistries.ITEM.get(resourceLocation);
+				Identifier resourceLocation = LPItems.modules.get(module.getLPName());
+				Item item = BuiltInRegistries.ITEM.getValue(resourceLocation);
 				if (item == null) return;
 				moduleStack = new ItemStack(item);
 			}
@@ -401,8 +401,8 @@ public abstract class PipeLogisticsChassis extends CoreRoutedPipe
 		}
 		if (reInitGui) {
 			if (MainProxy.isClient(getWorld())) {
-				if (Minecraft.getInstance().screen instanceof GuiChassisPipe) {
-					Minecraft.getInstance().setScreen(Minecraft.getInstance().screen); // re-init screen (1.20.1: init() is no longer public no-arg)
+				if (Minecraft.getInstance().gui.screen() instanceof GuiChassisPipe) {
+					Minecraft.getInstance().gui.setScreen(Minecraft.getInstance().gui.screen()); // re-init screen
 				}
 			}
 		}

@@ -46,22 +46,22 @@ public class MissingItems extends ModernPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == net.fabricmc.api.EnvType.CLIENT) {
 			handleClient(player);
 		}
 	}
 
-	// See OpenChatGui: the client refs (Minecraft/LP GUI screens) live in this @OnlyIn helper so they
+	// See OpenChatGui: the client refs (Minecraft/LP GUI screens) live in this @Environment helper so they
 	// are stripped before verification on the dedicated server, letting the packet class link and be
 	// sent server-side. processPacket stays free of client classes.
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 	private void handleClient(Player player) {
-		if (Configs.DISPLAY_POPUP && Minecraft.getInstance().screen instanceof GuiOrderer) {
-			((GuiOrderer) Minecraft.getInstance().screen)
-					.handleRequestAnswer(getItems(), isFlag(), (GuiOrderer) Minecraft.getInstance().screen, player);
-		} else if (Configs.DISPLAY_POPUP && Minecraft.getInstance().screen instanceof GuiRequestTable) {
-			((GuiRequestTable) Minecraft.getInstance().screen)
-					.handleRequestAnswer(getItems(), isFlag(), (GuiRequestTable) Minecraft.getInstance().screen, player);
+		if (Configs.DISPLAY_POPUP && Minecraft.getInstance().gui.screen() instanceof GuiOrderer) {
+			((GuiOrderer) Minecraft.getInstance().gui.screen())
+					.handleRequestAnswer(getItems(), isFlag(), (GuiOrderer) Minecraft.getInstance().gui.screen(), player);
+		} else if (Configs.DISPLAY_POPUP && Minecraft.getInstance().gui.screen() instanceof GuiRequestTable) {
+			((GuiRequestTable) Minecraft.getInstance().gui.screen())
+					.handleRequestAnswer(getItems(), isFlag(), (GuiRequestTable) Minecraft.getInstance().gui.screen(), player);
 		} else if (isFlag()) {
 			for (IResource item : items) {
 				player.sendSystemMessage(Component.literal(ChatColor.RED + "Missing: " + item.getDisplayText(ColorCode.MISSING)));

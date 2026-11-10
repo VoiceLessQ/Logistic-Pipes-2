@@ -4,13 +4,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.items.ItemLogisticsPipe;
@@ -64,8 +63,8 @@ public class ServerProxy implements IProxy {
 	public void sendNameUpdateRequest(Player player) {}
 
 	@Override
-	public LogisticsTileGenericPipe getPipeInDimensionAt(ResourceLocation dimension, int x, int y, int z, Player player) {
-		var server = ServerLifecycleHooks.getCurrentServer();
+	public LogisticsTileGenericPipe getPipeInDimensionAt(Identifier dimension, int x, int y, int z, Player player) {
+		var server = logisticspipes.LogisticsPipes.getServer();
 		if (server == null) return null;
 		Level lvl = server.getLevel(ResourceKey.create(Registries.DIMENSION, dimension));
 		return getPipe(lvl, x, y, z);
@@ -84,7 +83,7 @@ public class ServerProxy implements IProxy {
 
 	@Override
 	public void sendBroadCast(String message) {
-		var server = ServerLifecycleHooks.getCurrentServer();
+		var server = logisticspipes.LogisticsPipes.getServer();
 		if (server != null && server.getPlayerList() != null) {
 			for (ServerPlayer p : server.getPlayerList().getPlayers()) {
 				p.sendSystemMessage(Component.literal("[LP] Server: " + message));

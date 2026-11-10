@@ -4,10 +4,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
 
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.event.TickEvent.Phase;
-import net.minecraftforge.event.TickEvent.ServerTickEvent;
-
 import logisticspipes.proxy.MainProxy;
 import logisticspipes.transport.LPTravelingItem;
 import logisticspipes.utils.tuples.Pair;
@@ -29,12 +25,9 @@ public class QueuedTasks {
 		}
 	}
 
+	/** ServerTickEvents.END_SERVER_TICK */
 	@SuppressWarnings({ "rawtypes" })
-	@SubscribeEvent
-	public void tickEnd(ServerTickEvent event) {
-		if (event.phase != Phase.END) {
-			return;
-		}
+	public void tickEnd() {
 		Callable call;
 		while (!QueuedTasks.queue.isEmpty()) {
 			synchronized (QueuedTasks.queue) {

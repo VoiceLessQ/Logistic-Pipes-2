@@ -10,7 +10,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.nbt.CompoundTag;
 
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import logisticspipes.utils.LPFluidTank;
 
 import lombok.Getter;
 
@@ -132,23 +132,23 @@ public class PipeFluidSupplierMk2 extends FluidRoutedPipe implements IRequestFlu
 
 			//Check what is inside the connected tank
 			fluidHandlerDirectionPair.getValue2().tanks()
-					.map(tank -> FluidIdentifierStack.getFromStack(tank))
+					
 					.filter(Objects::nonNull)
 					.forEach(fluid -> haveFluids.merge(fluid.getFluid(), fluid.getAmount(), Integer::sum));
 
 			//What does our sided internal tank have
 			int directionOrdinal = fluidHandlerDirectionPair.getValue1().getDirection().ordinal();
 			if (directionOrdinal < ((PipeFluidTransportLogistics) transport).sideTanks.length) {
-				FluidTank sideTank = ((PipeFluidTransportLogistics) transport).sideTanks[directionOrdinal];
-				if (sideTank != null && sideTank.getFluid() != null && wantFluids.containsKey(FluidIdentifier.get(sideTank.getFluid()))) {
-					haveFluids.merge(FluidIdentifier.get(sideTank.getFluid()), sideTank.getFluid().getAmount(), Integer::sum);
+				LPFluidTank sideTank = ((PipeFluidTransportLogistics) transport).sideTanks[directionOrdinal];
+				if (sideTank != null && sideTank.getFluid() != null && wantFluids.containsKey(sideTank.getFluid().getFluid())) {
+					haveFluids.merge(sideTank.getFluid().getFluid(), sideTank.getFluid().getAmount(), Integer::sum);
 				}
 			}
 
 			//What does our center internal tank have
-			FluidTank centerTank = ((PipeFluidTransportLogistics) transport).internalTank;
-			if (centerTank != null && centerTank.getFluid() != null && wantFluids.containsKey(FluidIdentifier.get(centerTank.getFluid()))) {
-				haveFluids.merge(FluidIdentifier.get(centerTank.getFluid()), centerTank.getFluid().getAmount(), Integer::sum);
+			LPFluidTank centerTank = ((PipeFluidTransportLogistics) transport).internalTank;
+			if (centerTank != null && centerTank.getFluid() != null && wantFluids.containsKey(centerTank.getFluid().getFluid())) {
+				haveFluids.merge(centerTank.getFluid().getFluid(), centerTank.getFluid().getAmount(), Integer::sum);
 			}
 
 			//HashMap<Integer, Integer> needFluids = new HashMap<Integer, Integer>();
@@ -211,9 +211,9 @@ public class PipeFluidSupplierMk2 extends FluidRoutedPipe implements IRequestFlu
 	public void readFromNBT(CompoundTag nbttagcompound) {
 		super.readFromNBT(nbttagcompound);
 		dummyInventory.readFromNBT(nbttagcompound, "");
-		_requestPartials = nbttagcompound.getBoolean("requestpartials");
-		amount = nbttagcompound.getInt("amount");
-		_bucketMinimum = MinMode.values()[nbttagcompound.getByte("_bucketMinimum")];
+		_requestPartials = nbttagcompound.getBooleanOr("requestpartials", false);
+		amount = nbttagcompound.getIntOr("amount", 0);
+		_bucketMinimum = MinMode.values()[nbttagcompound.getByteOr("_bucketMinimum", (byte) 0)];
 	}
 
 	@Override

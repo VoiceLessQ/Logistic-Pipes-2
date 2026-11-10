@@ -94,7 +94,7 @@ class UnmodifiableItemSlot(
     slot: Slot,
 ) : GhostSlot(
     inventoryIn = slot.container,
-    index = slot.slotIndex,
+    index = slot.containerSlot,
     xPosition = slot.x,
     yPosition = slot.y,
 ), Unmodifiable, Item
@@ -103,7 +103,7 @@ class FuzzyUnmodifiableItemSlot(
     fuzzySlot: FuzzyItemSlot,
 ) : FuzzyItemSlot(
     inventoryIn = fuzzySlot.container,
-    index = fuzzySlot.slotIndex,
+    index = fuzzySlot.containerSlot,
     xPosition = fuzzySlot.x,
     yPosition = fuzzySlot.y,
     usedFlags = fuzzySlot.usedFlags,

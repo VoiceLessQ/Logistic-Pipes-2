@@ -7,8 +7,10 @@
 
 package logisticspipes.gui.orderer;
 
+import net.minecraft.client.Minecraft;
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import net.minecraft.SharedConstants;
 import java.util.Collection;
@@ -19,7 +21,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -62,12 +64,12 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 	public final int xCoord;
 	public final int yCoord;
 	public final int zCoord;
-	public ResourceLocation dimension;
+	public Identifier dimension;
 
-	public static ResourceLocation dimensioncache;
+	public static Identifier dimensioncache;
 	public static long cachetime;
 
-	public GuiOrderer(int x, int y, int z, ResourceLocation dim, Player entityPlayer) {
+	public GuiOrderer(int x, int y, int z, Identifier dim, Player entityPlayer) {
 		super(buildDummy(entityPlayer), 220, 240, 0, 0);
 		xCoord = x;
 		yCoord = y;
@@ -129,7 +131,7 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 	}
 
 	@Override
-	public void renderBg(@Nonnull GuiGraphics guiGraphics, float f, int i, int j) {
+	public void renderBg(@Nonnull GuiGraphicsExtractor guiGraphics, float f, int i, int j) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, leftPos, topPos, right, bottom, 0.0f, true);
 
 		itemDisplay.renderPageNumber(right - 47, topPos + 6);
@@ -143,20 +145,20 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 	}
 
 	@Override
-	public void renderLabels(GuiGraphics guiGraphics, int par1, int par2) {
+	public void renderLabels(GuiGraphicsExtractor guiGraphics, int par1, int par2) {
 		super.renderLabels(guiGraphics, par1, par2);
-		guiGraphics.drawString(minecraft.font, _title, minecraft.font.width(_title) / 2, 6, 0x404040, false);
+		SimpleGraphics.drawString(guiGraphics, minecraft.font, _title, minecraft.font.width(_title) / 2, 6, 0x404040, false);
 		if (popupCheck != null && popupCheck.getState()) {
-			guiGraphics.drawString(minecraft.font, "Popup", 25, bottom - topPos - 56, 0x404040, false);
+			SimpleGraphics.drawString(guiGraphics, minecraft.font, "Popup", 25, bottom - topPos - 56, 0x404040, false);
 		} else {
-			guiGraphics.drawString(minecraft.font, "Popup", 25, bottom - topPos - 56, Color.getValue(Color.GREY), false);
+			SimpleGraphics.drawString(guiGraphics, minecraft.font, "Popup", 25, bottom - topPos - 56, Color.getValue(Color.GREY), false);
 		}
 		if (super.hasSubGui()) {
 			return;
 		}
 		Object[] tip = itemDisplay != null ? itemDisplay.getToolTip() : null;
 		if (tip != null && tip.length >= 3) {
-			guiGraphics.renderTooltip(minecraft.font, (ItemStack) tip[2], (int) tip[0], (int) tip[1]);
+			guiGraphics.setTooltipForNextFrame(minecraft.font, (ItemStack) tip[2], (int) tip[0], (int) tip[1]);
 		}
 	}
 
@@ -170,9 +172,8 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 		}
 		//if(isSearched(String.valueOf(BuiltInRegistries.ITEM.getId(item.item)), search.getContent())) return true;
 		//Enchantment? Enchantment!
-		Map<Enchantment, Integer> enchantIdLvlMap = EnchantmentHelper.getEnchantments(item.unsafeMakeNormalStack(1));
-		for (Entry<Enchantment, Integer> e : enchantIdLvlMap.entrySet()) {
-			String enchantname = e.getKey().getDescriptionId();
+		for (net.minecraft.core.Holder<Enchantment> e : EnchantmentHelper.getEnchantmentsForCrafting(item.unsafeMakeNormalStack(1)).keySet()) {
+			String enchantname = e.value().description().getString();
 			if (enchantname != null) {
 				if (isSearched(enchantname.toLowerCase(Locale.US), search.getText().toLowerCase(Locale.US))) {
 					return true;
@@ -235,8 +236,7 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 
 	private void handleBtn(int id, net.minecraft.client.gui.components.AbstractButton guibutton) {
 		if (id == 0 && itemDisplay.getSelectedItem() != null) {
-			final ItemIdentifierStack stack = itemDisplay.getSelectedItem().getItem().makeStack(itemDisplay.getRequestCount());
-			MainProxy.sendPacketToServer(PacketHandler.getPacket(RequestSubmitPacket.class).setStack(stack).setPosX(xCoord).setPosY(yCoord).setPosZ(zCoord).setDimension(dimension));
+			submitRequest(itemDisplay.getSelectedItem().getItem().makeStack(itemDisplay.getRequestCount()));
 			refreshItems();
 		} else if (id == 1) {
 			itemDisplay.nextPage();
@@ -270,6 +270,10 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 		// super.actionPerformed removed — no such method in 1.20.1 Screen
 	}
 
+	protected void submitRequest(ItemIdentifierStack stack) {
+		MainProxy.sendPacketToServer(PacketHandler.getPacket(RequestSubmitPacket.class).setStack(stack).setPosX(xCoord).setPosY(yCoord).setPosZ(zCoord).setDimension(dimension));
+	}
+
 	protected int getStackAmount() {
 		return 64;
 	}
@@ -279,16 +283,16 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 		if (hasSubGui()) {
 			return super.keyPressed(keyCode, scanCode, modifiers);
 		}
-		if (search.isFocused() && !search.isEmpty() && search.keyPressed(keyCode, scanCode, modifiers)) {
+		if (search.isFocused() && !search.isEmpty() && search.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 			return true;
 		}
 		if (itemDisplay.keyPressed(keyCode, scanCode, modifiers)) {
 			return true;
 		}
-		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_A && Screen.hasControlDown()) {
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_A && Minecraft.getInstance().hasControlDown()) {
 			itemDisplay.setMaxAmount();
 			return true;
-		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_D && Screen.hasControlDown()) {
+		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_D && Minecraft.getInstance().hasControlDown()) {
 			itemDisplay.resetAmount();
 			return true;
 		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_PAGE_UP) {
@@ -299,7 +303,7 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 			return true;
 		}
 		// Track everything except Escape when in search bar
-		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || !search.keyPressed(keyCode, scanCode, modifiers)) {
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || !search.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 			return super.keyPressed(keyCode, scanCode, modifiers);
 		}
 		return true;
@@ -311,7 +315,7 @@ public abstract class GuiOrderer extends LogisticsBaseGuiScreen implements IItem
 			if (!search.isEmpty() && search.handleKey(c, i)) {
 				return true;
 			}
-		} else if (Screen.hasAltDown() && SharedConstants.isAllowedChatCharacter(c)) {
+		} else if (Minecraft.getInstance().hasAltDown() && net.minecraft.util.StringUtil.isAllowedChatCharacter(c)) {
 			itemDisplay.setFocused(false);
 			search.setFocused(true);
 			search.setText("");

@@ -2,11 +2,10 @@ package logisticspipes.textures.provider;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas; // was TextureAtlas
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.renderer.IIconProvider;
 
@@ -20,17 +19,17 @@ public class LPActionTriggerIconProvider implements IIconProvider {
 	public static int triggerHasDestinationIconIndex = 5;
 	public static int actionRobotRoutingIconIndex = 6;
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	private TextureAtlasSprite[] icons;
 
 	public LPActionTriggerIconProvider() {
-		if (FMLEnvironment.dist == Dist.CLIENT) {
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			icons = new TextureAtlasSprite[7];
 		}
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public TextureAtlasSprite getIcon(int iconIndex) {
 		if (iconIndex > 6) {
 			return null;
@@ -39,7 +38,7 @@ public class LPActionTriggerIconProvider implements IIconProvider {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public void registerIcons(Object icon) {
 		// TextureAtlas.registerSprite removed in 1.20.1 — BuildCraft integration not ported
 	}

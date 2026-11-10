@@ -57,13 +57,13 @@ class AdjacentProperty @JvmOverloads constructor(
 
     override fun readFromNBT(tag: CompoundTag) {
         if (tag.contains(tagKey)) {
-            val adjacentConnectionsTagList = tag.getList(tagKey, 8)
+            val adjacentConnectionsTagList = tag.getListOrEmpty(tagKey)
             assert(adjacentConnectionsTagList.size in 0..6)
             if (adjacentConnectionsTagList.size == 0) {
                 value = NoAdjacent
                 return
             }
-            val adjacentConnections = (0..5).map { idx -> adjacentConnectionsTagList.getString(idx) }
+            val adjacentConnections = (0..5).map { idx -> adjacentConnectionsTagList.getStringOr(idx, "") }
             val activeConnections = adjacentConnections.withIndex().filter { it.value.isNotBlank() }
             value = when (activeConnections.size) {
                 0 -> NoAdjacent

@@ -7,13 +7,13 @@ import javax.annotation.Nonnull;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Direction;
 
-import net.minecraftforge.items.IItemHandler;
+import logisticspipes.utils.StorageItemHandler;
 
 public class TransactorSimple extends Transactor {
 
-	protected IItemHandler inventory;
+	protected StorageItemHandler inventory;
 
-	public TransactorSimple(IItemHandler inventory) {
+	public TransactorSimple(StorageItemHandler inventory) {
 		this.inventory = inventory;
 	}
 
@@ -85,6 +85,6 @@ public class TransactorSimple extends Transactor {
 		if (!ItemStack.isSameItem(stack1, stack2)) {
 			return false;
 		}
-		return ItemStack.isSameItemSameTags(stack1, stack2);
+		return ItemStack.isSameItemSameComponents(stack1, stack2);
 	}
 }

@@ -1,5 +1,6 @@
 package logisticspipes.gui.hud.modules;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,11 +61,11 @@ public class HUDStringBasedItemSink implements IHUDModuleRenderer {
 	@Override
 	public void renderContent(boolean shifted) {
 		Minecraft mc = Minecraft.getInstance();
-		net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		net.minecraft.client.gui.GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		if (gg == null) return;
 		for (int i = page * 6; i < itemSink.stringListProperty().size() && i < 6 + (page * 6); i++) {
 			String mod = itemSink.stringListProperty().get(i);
-			gg.drawString(mc.font, mod.substring(0, Math.min(12, mod.length())), -28, -25 + ((i - (page * 6)) * 10), 0xff404040, false);
+			SimpleGraphics.drawString(gg, mc.font, mod.substring(0, Math.min(12, mod.length())), -28, -25 + ((i - (page * 6)) * 10), 0xff404040, false);
 		}
 	}
 

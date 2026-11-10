@@ -110,8 +110,7 @@ public class PipeMultiBlockTransportLogistics extends PipeTransportLogistics {
 				return;
 			}
 		}
-		Explosion explosion = new Explosion(this.getWorld(), null, this.getPipe().getX(), this.getPipe().getY(), this.getPipe().getZ(), 4.0F, false, net.minecraft.world.level.Explosion.BlockInteraction.DESTROY);
-		explosion.finalizeExplosion(true);
+		this.getWorld().explode(null, this.getPipe().getX(), this.getPipe().getY(), this.getPipe().getZ(), 4.0F, net.minecraft.world.level.Level.ExplosionInteraction.BLOCK);
 	}
 
 	@Override
@@ -129,8 +128,7 @@ public class PipeMultiBlockTransportLogistics extends PipeTransportLogistics {
 				return;
 			}
 		}
-		Explosion explosion = new Explosion(this.getWorld(), null, this.getPipe().getX(), this.getPipe().getY(), this.getPipe().getZ(), 4.0F, false, net.minecraft.world.level.Explosion.BlockInteraction.DESTROY);
-		explosion.finalizeExplosion(true);
+		this.getWorld().explode(null, this.getPipe().getX(), this.getPipe().getY(), this.getPipe().getZ(), 4.0F, net.minecraft.world.level.Level.ExplosionInteraction.BLOCK);
 	}
 
 	@Override

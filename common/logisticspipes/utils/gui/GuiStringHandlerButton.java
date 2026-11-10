@@ -1,10 +1,10 @@
 package logisticspipes.utils.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 
-public class GuiStringHandlerButton extends Button {
+public class GuiStringHandlerButton extends Button.Plain {
 
 	private final StringHandler handler;
 
@@ -33,9 +33,9 @@ public class GuiStringHandlerButton extends Button {
 	}
 
 	@Override
-	public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+	protected void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
 		setMessage(Component.literal(handler.getContent()));
-		super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+		super.extractContents(guiGraphics, mouseX, mouseY, partialTick);
 	}
 
 	public interface StringHandler {

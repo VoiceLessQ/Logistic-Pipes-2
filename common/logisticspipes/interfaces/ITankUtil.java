@@ -2,7 +2,6 @@ package logisticspipes.interfaces;
 
 import java.util.stream.Stream;
 
-import net.minecraftforge.fluids.FluidStack;
 
 import logisticspipes.utils.FluidIdentifier;
 import logisticspipes.utils.FluidIdentifierStack;
@@ -18,7 +17,7 @@ public interface ITankUtil {
 	FluidIdentifierStack drain(int amount, boolean doDrain);
 
 	/** Returns the contents of each non-empty tank slot. */
-	Stream<FluidStack> tanks();
+	Stream<FluidIdentifierStack> tanks();
 
 	/**
 	 * Type only — amount is ignored

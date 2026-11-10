@@ -45,12 +45,12 @@ import logisticspipes.LogisticsPipes
 import logisticspipes.modules.LogisticsModule
 import logisticspipes.utils.gui.ModuleSlot
 import net.minecraft.world.Container
-import net.minecraftforge.api.distmarker.Dist
-import net.minecraftforge.api.distmarker.OnlyIn
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.MenuType
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import java.util.*
@@ -126,7 +126,7 @@ abstract class LPBaseContainer<out M : LogisticsModule>(val module: M) : Abstrac
     }
 
 
-    override fun clicked(slotId: Int, dragType: Int, clickTypeIn: ClickType, player: Player) {
+    override fun clicked(slotId: Int, dragType: Int, clickTypeIn: ContainerInput, player: Player) {
 
         // slotId -999 is a special case for when the ItemStack is being drag-split between slots.
         if (slotId < 0) {
@@ -299,7 +299,7 @@ abstract class LPBaseContainer<out M : LogisticsModule>(val module: M) : Abstrac
         slot: GhostSlot,
         grabbedItemStack: ItemStack,
         dragType: Int,
-        clickTypeIn: ClickType,
+        clickTypeIn: ContainerInput,
         player: Player,
     ) = when (slot) {
         is Item -> handleGhostItemSlotClick(slot, grabbedItemStack, dragType, clickTypeIn, player)
@@ -311,17 +311,17 @@ abstract class LPBaseContainer<out M : LogisticsModule>(val module: M) : Abstrac
      * @param slot Clicked slot
      * @param grabbedItemStack ItemStack grabbed by the mouse, EMPTY if none.
      * @param dragType stage of multi slot dragging
-     * @param clickTypeIn type of action being performed @see ClickType
+     * @param clickTypeIn type of action being performed @see ContainerInput
      * @param player interacting with the container
      */
     open fun handleGhostItemSlotClick(
         slot: GhostSlot,
         grabbedItemStack: ItemStack,
         dragType: Int,
-        clickTypeIn: ClickType,
+        clickTypeIn: ContainerInput,
         player: Player,
     ) {
-        LogisticsPipes.log.info("DragType $dragType, ClickType: $clickTypeIn")
+        LogisticsPipes.log.info("DragType $dragType, ContainerInput: $clickTypeIn")
         // Copy the grabbedStack and insert it into the GhostItemSlot
         if (slot !is Unmodifiable) {
             applyItemStackToGhostItemSlot(grabbedItemStack, slot)
@@ -342,11 +342,11 @@ abstract class LPBaseContainer<out M : LogisticsModule>(val module: M) : Abstrac
         // external change, access underlying property directly
         val slot = slots.getOrNull(slotID)
         slot?.let { directSlotPropertyMap[slot] }?.also { property ->
-            property.setItem(slot.slotIndex, stack)
+            property.setItem(slot.containerSlot, stack)
         } ?: slot?.set(stack)
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     fun setAll(slotStacks: MutableList<ItemStack>) {
         for (slotIdx in slotStacks.indices) {
             putStackInSlot(slotIdx, slotStacks[slotIdx])

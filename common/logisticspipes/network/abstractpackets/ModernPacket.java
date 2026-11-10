@@ -3,7 +3,7 @@ package logisticspipes.network.abstractpackets;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
@@ -35,7 +35,7 @@ public abstract class ModernPacket {
 	@Setter
 	private int debugId = 0;
 	@Getter
-	private ResourceLocation dimension = new ResourceLocation("minecraft", "overworld");
+	private Identifier dimension = Identifier.fromNamespaceAndPath("minecraft", "overworld");
 
 	public List<IPacketContent<?>> content = Collections.emptyList();
 
@@ -43,19 +43,19 @@ public abstract class ModernPacket {
 		this.id = id;
 	}
 
-	public ModernPacket setDimension(ResourceLocation dimension) {
+	public ModernPacket setDimension(Identifier dimension) {
 		this.dimension = dimension;
 		return this;
 	}
 
 	public ModernPacket setDimension(Level world) {
-		this.dimension = world.dimension().location();
+		this.dimension = world.dimension().identifier();
 		return this;
 	}
 
 	public void readData(LPDataInput input) {
-		ResourceLocation rl = input.readResourceLocation();
-		dimension = rl != null ? rl : new ResourceLocation("minecraft", "overworld");
+		Identifier rl = input.readResourceLocation();
+		dimension = rl != null ? rl : Identifier.fromNamespaceAndPath("minecraft", "overworld");
 		content.forEach(it -> it.readData(input));
 	}
 

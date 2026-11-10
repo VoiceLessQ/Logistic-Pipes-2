@@ -689,7 +689,7 @@ public abstract class CoreRoutedPipe extends CoreUnroutedPipe
 			}
 			MainProxy.sendPacketToAllWatchingChunk(container, PacketHandler.getPacket(ParticleFX.class).setParticles(tosend).setPosX(getX()).setPosY(getY()).setPosZ(getZ()));
 		} else {
-			if (Minecraft.useFancyGraphics()) {
+			if (Minecraft.getInstance().options.graphicsPreset().get() != net.minecraft.client.GraphicsPreset.FAST) {
 				for (int i = 0; i < queuedParticles.length; i++) {
 					if (queuedParticles[i] > 0) {
 						PipeFXRenderHandler.spawnGenericParticle(Particles.values()[i], getX(), getY(), getZ(), queuedParticles[i]);
@@ -783,36 +783,36 @@ public abstract class CoreRoutedPipe extends CoreUnroutedPipe
 		super.readFromNBT(nbttagcompound);
 
 		synchronized (routerIdLock) {
-			routerId = nbttagcompound.getString("routerId");
+			routerId = nbttagcompound.getStringOr("routerId", "");
 		}
 
-		stat_lifetime_sent = nbttagcompound.getLong("stat_lifetime_sent");
-		stat_lifetime_recieved = nbttagcompound.getLong("stat_lifetime_recieved");
-		stat_lifetime_relayed = nbttagcompound.getLong("stat_lifetime_relayed");
+		stat_lifetime_sent = nbttagcompound.getLongOr("stat_lifetime_sent", 0L);
+		stat_lifetime_recieved = nbttagcompound.getLongOr("stat_lifetime_recieved", 0L);
+		stat_lifetime_relayed = nbttagcompound.getLongOr("stat_lifetime_relayed", 0L);
 		if (getLogisticsModule() != null) {
 			getLogisticsModule().readFromNBT(nbttagcompound);
 		}
-		upgradeManager.readFromNBT(nbttagcompound.getCompound("upgradeManager"));
-		powerHandler.readFromNBT(nbttagcompound.getCompound("powerHandler"));
+		upgradeManager.readFromNBT(nbttagcompound.getCompoundOrEmpty("upgradeManager"));
+		powerHandler.readFromNBT(nbttagcompound.getCompoundOrEmpty("powerHandler"));
 
 		_sendQueue.clear();
-		ListTag sendqueue = nbttagcompound.getList("sendqueue", nbttagcompound.getId());
+		ListTag sendqueue = nbttagcompound.getListOrEmpty("sendqueue");
 		for (int i = 0; i < sendqueue.size(); i++) {
-			CompoundTag tagentry = sendqueue.getCompound(i);
-			CompoundTag tagentityitem = tagentry.getCompound("entityitem");
+			CompoundTag tagentry = sendqueue.getCompoundOrEmpty(i);
+			CompoundTag tagentityitem = tagentry.getCompoundOrEmpty("entityitem");
 			LPTravelingItemServer item = new LPTravelingItemServer(tagentityitem);
-			Direction from = Direction.values()[tagentry.getByte("from")];
-			ItemSendMode mode = ItemSendMode.values()[tagentry.getByte("mode")];
+			Direction from = Direction.values()[tagentry.getByteOr("from", (byte) 0)];
+			ItemSendMode mode = ItemSendMode.values()[tagentry.getByteOr("mode", (byte) 0)];
 			_sendQueue.add(new Triplet<>(item, from, mode));
 		}
 		for (int i = 0; i < 6; i++) {
-			if (nbttagcompound.getBoolean("PipeSign_" + i)) {
-				int type = nbttagcompound.getInt("PipeSign_" + i + "_type");
+			if (nbttagcompound.getBooleanOr("PipeSign_" + i, false)) {
+				int type = nbttagcompound.getIntOr("PipeSign_" + i + "_type", 0);
 				Class<? extends IPipeSign> typeClass = ItemPipeSignCreator.signTypes.get(type);
 				try {
 					signItem[i] = typeClass.newInstance();
 					signItem[i].init(this, DirectionUtil.getOrientation(i));
-					signItem[i].readFromNBT(nbttagcompound.getCompound("PipeSign_" + i + "_tags"));
+					signItem[i].readFromNBT(nbttagcompound.getCompoundOrEmpty("PipeSign_" + i + "_tags"));
 				} catch (InstantiationException | IllegalAccessException e) {
 					throw new RuntimeException(e);
 				}
@@ -829,7 +829,7 @@ public abstract class CoreRoutedPipe extends CoreUnroutedPipe
 	public IRouter getRouter() {
 		if (stillNeedReplace) {
 			LogisticsPipes.log.debug("Pipe not ready at ({}, {}, {}, '{}')", this.getX(), this.getY(), this.getZ(),
-					getWorld() != null ? getWorld().dimension().location().toString() : "unknown");
+					getWorld() != null ? getWorld().dimension().identifier().toString() : "unknown");
 		}
 		if (router == null) {
 			synchronized (routerIdLock) {
@@ -905,7 +905,7 @@ public abstract class CoreRoutedPipe extends CoreUnroutedPipe
 				if (settings == null || settings.openRequest) {
 					logisticspipes.network.guis.pipe.NormalOrdererGui gui = logisticspipes.network.NewGuiHandler.getGui(logisticspipes.network.guis.pipe.NormalOrdererGui.class);
 					gui.setPosX(getX()).setPosY(getY()).setPosZ(getZ());
-					gui.setDim(entityplayer.level().dimension().location());
+					gui.setDim(entityplayer.level().dimension().identifier());
 					gui.open(entityplayer);
 				} else {
 					entityplayer.sendSystemMessage(Component.translatable("lp.chat.permissiondenied"));
@@ -1031,7 +1031,8 @@ public abstract class CoreRoutedPipe extends CoreUnroutedPipe
 	}
 
 	public void connectionUpdate() {
-		if (container != null && !stillNeedReplace) {
+		// never sync-load an unloading chunk: its UNKNOWN ticket hung server shutdown
+		if (container != null && !stillNeedReplace && getWorld().isLoaded(getPos())) {
 			if (MainProxy.isClient(getWorld())) throw new IllegalStateException("Wont do connectionUpdate on client-side");
 			container.scheduleNeighborChange();
 			BlockState state = getWorld().getBlockState(getPos());

@@ -50,7 +50,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import io.netty.buffer.ByteBuf;
 
@@ -110,7 +110,7 @@ public interface LPDataInput {
 	Direction readFacing();
 
 	@Nullable
-	ResourceLocation readResourceLocation();
+	Identifier readResourceLocation();
 
 	@Nonnull
 	<T extends Enum<T>> EnumSet<T> readEnumSet(Class<T> clazz);

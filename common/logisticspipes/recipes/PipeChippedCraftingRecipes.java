@@ -10,10 +10,9 @@ import java.util.stream.Collectors;
 
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.LPItems;
 import logisticspipes.blocks.LogisticsProgramCompilerTileEntity;
@@ -29,15 +28,15 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 		ENDER_2,
 	}
 
-	private void registerPipeRecipeCategory(ResourceLocation recipeCategory, Item targetPipe) {
+	private void registerPipeRecipeCategory(Identifier recipeCategory, Item targetPipe) {
 		if (!LogisticsProgramCompilerTileEntity.programByCategory.containsKey(recipeCategory)) {
 			LogisticsProgramCompilerTileEntity.programByCategory.put(recipeCategory, new HashSet<>());
 		}
 		LogisticsProgramCompilerTileEntity.programByCategory.get(recipeCategory).add(BuiltInRegistries.ITEM.getKey(targetPipe));
 	}
 
-	private void registerPipeRecipe(CraftingParts parts, RecipeType type, ResourceLocation recipeCategory, Item targetPipe, Item basePipe) {
-		Ingredient programmer = getIngredientForProgrammer(targetPipe);
+	private void registerPipeRecipe(CraftingParts parts, RecipeType type, Identifier recipeCategory, Item targetPipe, Item basePipe) {
+		NBTIngredient programmer = getIngredientForProgrammer(targetPipe);
 
 		registerPipeRecipeCategory(recipeCategory, targetPipe);
 
@@ -98,15 +97,14 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 					.filter(recipeIndex -> !(fLayout.getLine1() + fLayout.getLine2() + fLayout.getLine3()).replace(recipeIndex.getIndex(), ' ')
 							.equals((fLayout.getLine1() + fLayout.getLine2() + fLayout.getLine3()))).collect(Collectors.toCollection(LinkedList::new));
 			indexToUse.addFirst(layout);
-			RecipeManager.craftingManager.addRecipe(new ItemStack(targetPipe), indexToUse.toArray());
+			RecipeManager.craftingManager.addRecipe(targetPipe, 1, indexToUse.toArray());
 		}
 	}
 
-	private Ingredient getIngredientForProgrammer(Item targetPipe) {
-		ItemStack programmerStack = new ItemStack(LPItems.logisticsProgrammer.get());
-		programmerStack.setTag(new CompoundTag());
-		programmerStack.getTag().putString(ItemLogisticsProgrammer.RECIPE_TARGET, BuiltInRegistries.ITEM.getKey(targetPipe).toString());
-		return NBTIngredient.fromStacks(programmerStack);
+	private NBTIngredient getIngredientForProgrammer(Item targetPipe) {
+		CompoundTag tag = new CompoundTag();
+		tag.putString(ItemLogisticsProgrammer.RECIPE_TARGET, BuiltInRegistries.ITEM.getKey(targetPipe).toString());
+		return NBTIngredient.of(LPItems.logisticsProgrammer.get(), tag);
 	}
 
 	@Override
@@ -125,7 +123,7 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 		registerPipeRecipe(parts, RecipeType.ENDER_2, LogisticsProgramCompilerTileEntity.ProgrammCategories.TIER_3, LPItems.pipeFirewall.get(), LPItems.pipeBasic.get());
 
 		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.CHASSIS, LPItems.pipeChassisMk1.get());
-		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeChassisMk1.get()),
+		RecipeManager.craftingManager.addRecipe(LPItems.pipeChassisMk1.get(), 1,
 				new RecipeManager.RecipeLayout(
 						" p ",
 						" b ",
@@ -138,7 +136,7 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 		);
 
 		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.CHASSIS, LPItems.pipeChassisMk2.get());
-		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeChassisMk2.get()),
+		RecipeManager.craftingManager.addRecipe(LPItems.pipeChassisMk2.get(), 1,
 				new RecipeManager.RecipeLayout(
 						" p ",
 						"bsb",
@@ -152,7 +150,7 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 		);
 
 		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.CHASSIS, LPItems.pipeChassisMk3.get());
-		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeChassisMk3.get()),
+		RecipeManager.craftingManager.addRecipe(LPItems.pipeChassisMk3.get(), 1,
 				new RecipeManager.RecipeLayout(
 						" p ",
 						"gsg",
@@ -166,7 +164,7 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 		);
 
 		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.CHASSIS, LPItems.pipeChassisMk4.get());
-		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeChassisMk4.get()),
+		RecipeManager.craftingManager.addRecipe(LPItems.pipeChassisMk4.get(), 1,
 				new RecipeManager.RecipeLayout(
 						" p ",
 						"bsb",
@@ -180,7 +178,7 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 		);
 
 		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.CHASSIS, LPItems.pipeChassisMk5.get());
-		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeChassisMk5.get()),
+		RecipeManager.craftingManager.addRecipe(LPItems.pipeChassisMk5.get(), 1,
 				new RecipeManager.RecipeLayout(
 						" p ",
 						"asa",
@@ -194,7 +192,7 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 		);
 
 		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidSupplier.get());
-		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeFluidSupplier.get()),
+		RecipeManager.craftingManager.addRecipe(LPItems.pipeFluidSupplier.get(), 1,
 				new RecipeManager.RecipeLayout(
 						" p ",
 						"bsb",
@@ -208,7 +206,7 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 		);
 
 		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidBasic.get());
-		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeFluidBasic.get()),
+		RecipeManager.craftingManager.addRecipe(LPItems.pipeFluidBasic.get(), 1,
 				new RecipeManager.RecipeLayout(
 						" p ",
 						"bsb",
@@ -222,7 +220,7 @@ public class PipeChippedCraftingRecipes extends CraftingPartRecipes {
 		);
 
 		registerPipeRecipeCategory(LogisticsProgramCompilerTileEntity.ProgrammCategories.FLUID, LPItems.pipeFluidTerminus.get());
-		RecipeManager.craftingManager.addRecipe(new ItemStack(LPItems.pipeFluidTerminus.get()),
+		RecipeManager.craftingManager.addRecipe(LPItems.pipeFluidTerminus.get(), 1,
 				new RecipeManager.RecipeLayout(
 						" p ",
 						"wsv",

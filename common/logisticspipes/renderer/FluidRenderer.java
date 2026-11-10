@@ -1,7 +1,7 @@
 /*
 package logisticspipes.renderer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import logisticspipes.utils.gui.SimpleGraphics;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlas; // was TextureAtlas
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 import net.minecraftforge.fluids.Fluid;
@@ -23,7 +23,7 @@ import net.minecraftforge.fluids.FluidStack;
 public final class FluidRenderer {
 
 	public static final int DISPLAY_STAGES = 100;
-	//private static final ResourceLocation BLOCK_TEXTURE = TextureAtlas.locationBlocksTexture;
+	//private static final Identifier BLOCK_TEXTURE = TextureAtlas.locationBlocksTexture;
 	private static Map<Fluid, int[]> flowingRenderCache = new HashMap<>();
 	private static Map<Fluid, int[]> stillRenderCache = new HashMap<>();
 	private static final RenderInfo liquidBlock = new RenderInfo();
@@ -53,14 +53,14 @@ public final class FluidRenderer {
 		return icon;
 	}
 
-	public static ResourceLocation getFluidSheet(FluidStack liquid) {
+	public static Identifier getFluidSheet(FluidStack liquid) {
 		if (liquid == null) {
 			return FluidRenderer.BLOCK_TEXTURE;
 		}
 		return FluidRenderer.getFluidSheet(liquid.getFluid());
 	}
 
-	public static ResourceLocation getFluidSheet(Fluid liquid) {
+	public static Identifier getFluidSheet(Fluid liquid) {
 		return FluidRenderer.BLOCK_TEXTURE;
 	}
 
@@ -77,7 +77,7 @@ public final class FluidRenderer {
 		float red = (color >> 16 & 255) / 255.0F;
 		float green = (color >> 8 & 255) / 255.0F;
 		float blue = (color & 255) / 255.0F;
-		RenderSystem.setShaderColor(red, green, blue, 1.0F);
+		SimpleGraphics.setColor(red, green, blue, 1.0F);
 	}
 
 	public static int[] getFluidDisplayLists(FluidStack fluidStack, Level world, boolean flowing) {
@@ -107,7 +107,6 @@ public final class FluidRenderer {
 		cache.put(fluid, diplayLists);
 
 		// GL_LIGHTING removed — use shaders
-		RenderSystem.disableBlend();
 		// TODO: GL11.glDisable(GL11.GL_CULL_FACE) → RenderSystem equivalent
 
 		for (int s = 0; s < FluidRenderer.DISPLAY_STAGES; ++s) {
@@ -127,9 +126,8 @@ public final class FluidRenderer {
 			// TODO: glEndList removed
 		}
 
-		RenderSystem.setShaderColor(1, 1, 1, 1);
+		SimpleGraphics.setColor(1, 1, 1, 1);
 		// TODO: GL11.glEnable(GL11.GL_CULL_FACE) → RenderSystem equivalent
-		RenderSystem.enableBlend();
 		// GL_LIGHTING removed — use shaders
 
 		return diplayLists;

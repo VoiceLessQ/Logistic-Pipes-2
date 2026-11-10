@@ -21,7 +21,7 @@ public class NormalGuiOrderer extends GuiOrderer {
 
 	protected DisplayOptions displayOptions = DisplayOptions.Both;
 
-	public NormalGuiOrderer(int x, int y, int z, net.minecraft.resources.ResourceLocation dim, Player entityPlayer) {
+	public NormalGuiOrderer(int x, int y, int z, net.minecraft.resources.Identifier dim, Player entityPlayer) {
 		super(x, y, z, dim, entityPlayer);
 		refreshItems();
 	}

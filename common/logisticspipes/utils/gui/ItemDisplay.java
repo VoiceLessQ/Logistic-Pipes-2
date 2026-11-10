@@ -1,7 +1,6 @@
 package logisticspipes.utils.gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gui.screens.Screen;
 import java.util.Collection;
@@ -15,7 +14,7 @@ import java.util.Objects;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 
 
@@ -44,7 +43,7 @@ public class ItemDisplay {
 		NAME_DOWN,
 	}
 
-	private static final ResourceLocation TEXTURE = new ResourceLocation("textures/gui/icons.png");
+	private static final Identifier TEXTURE = Identifier.parse("textures/gui/icons.png");
 	private static final int PANELSIZEX = 20;
 	private static final int PANELSIZEY = 20;
 
@@ -206,7 +205,7 @@ public class ItemDisplay {
 			up = false;
 		}
 		name += !up ? " /\\" : " \\/";
-		screen.guiGraphics.drawString(font, name, x - font.width(name) / 2, y, 0x404040, false);
+		SimpleGraphics.drawString(screen.guiGraphics, font, name, x - font.width(name) / 2, y, 0x404040, false);
 	}
 
 	public void renderPageNumber(int x, int y) {
@@ -218,7 +217,7 @@ public class ItemDisplay {
 			page = maxPage;
 		}
 		String pageString = "Page " + (page + 1) + " / " + (maxPage + 1);
-		screen.guiGraphics.drawString(font, pageString, x - font.width(pageString) / 2, y, 0x404040, false);
+		SimpleGraphics.drawString(screen.guiGraphics, font, pageString, x - font.width(pageString) / 2, y, 0x404040, false);
 	}
 
 	private int getSearchedItemNumber() {
@@ -234,8 +233,8 @@ public class ItemDisplay {
 	public void renderAmount(int stackAmount) {
 		int requestCount = requestCountBar.getInt();
 		String StackrequestCount = "" + (requestCount / stackAmount) + "+" + (requestCount % stackAmount);
-		//screen.guiGraphics.drawString(font, requestCount + "", x - font.width(requestCount + "") / 2, y, 0x404040, false);
-		screen.guiGraphics.drawString(font, StackrequestCount + "", this.amountPosLeft - font.width(StackrequestCount + "") / 2, this.amountPosTop + 11, 0x404040, false);
+		//SimpleGraphics.drawString(screen.guiGraphics, font, requestCount + "", x - font.width(requestCount + "") / 2, y, 0x404040, false);
+		SimpleGraphics.drawString(screen.guiGraphics, font, StackrequestCount + "", this.amountPosLeft - font.width(StackrequestCount + "") / 2, this.amountPosTop + 11, 0x404040, false);
 
 		requestCountBar.drawTextBox();
 	}
@@ -312,8 +311,8 @@ public class ItemDisplay {
 	}
 
 	public void handleMouse(double delta) {
-		boolean isShift = Screen.hasShiftDown();
-		boolean isControl = Screen.hasControlDown();
+		boolean isShift = Minecraft.getInstance().hasShiftDown();
+		boolean isControl = Minecraft.getInstance().hasControlDown();
 		int wheel = (int)(delta);
 		if (wheel == 0) {
 			return;
@@ -493,15 +492,15 @@ public class ItemDisplay {
 
 	/** Editing keys (backspace, arrows) for the amount field; chars arrive via keyTyped. */
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		return requestCountBar.isFocused() && requestCountBar.keyPressed(keyCode, scanCode, modifiers);
+		return requestCountBar.isFocused() && requestCountBar.keyPressed(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers));
 	}
 
 	public boolean keyTyped(char c, int i) {
 		if (!requestCountBar.handleKey(c, i)) {
-			if (i == 30 && Screen.hasControlDown()) { //Ctrl-a
+			if (i == 30 && Minecraft.getInstance().hasControlDown()) { //Ctrl-a
 				setMaxAmount();
 				return true;
-			} else if (i == 32 && Screen.hasControlDown()) { //Ctrl-d
+			} else if (i == 32 && Minecraft.getInstance().hasControlDown()) { //Ctrl-d
 				resetAmount();
 				return true;
 			} else if (i == 201) { //PgUp

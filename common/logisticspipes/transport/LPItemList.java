@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
 import com.google.common.collect.BiMap;
@@ -107,6 +108,11 @@ public class LPItemList implements Iterable<LPTravelingItem> {
 	@Override
 	public Iterator<LPTravelingItem> iterator() {
 		return items.values().iterator();
+	}
+
+	/** Moving items plus the ones loaded from NBT that are still waiting out the load delay. */
+	public Stream<LPTravelingItem> stored() {
+		return Stream.concat(items.values().stream(), toLoad.stream());
 	}
 
 	void clear() {

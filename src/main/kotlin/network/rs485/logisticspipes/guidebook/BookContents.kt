@@ -42,7 +42,7 @@ import logisticspipes.LPConstants
 import logisticspipes.LogisticsPipes
 import net.minecraft.client.Minecraft
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import network.rs485.logisticspipes.gui.guidebook.DrawablePage
 import network.rs485.logisticspipes.gui.guidebook.DrawablePageFactory
 import network.rs485.logisticspipes.util.TextUtil
@@ -96,7 +96,7 @@ private val metadataRegex = "^\\s*<!---\\s*\\n(.*?)\\n\\s*--->\\s*(.*)$".toRegex
 fun loadPage(path: String, lang: String): PageInfoProvider {
     val resolvedLocation = resolveAbsoluteLocation(resolvedLocation = Paths.get(path), language = lang).toLocation(false)
     return try {
-        val bookFile = Minecraft.getInstance().resourceManager.getResource(ResourceLocation(LPConstants.LP_MOD_ID, resolvedLocation))
+        val bookFile = Minecraft.getInstance().resourceManager.getResource(Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, resolvedLocation))
             .orElseThrow { IOException("Resource not found: $resolvedLocation") }
         LoadedPage(
             fileLocation = path,
@@ -233,11 +233,8 @@ class LoadedPage(override val fileLocation: String, override val language: Strin
             if (LogisticsPipes.isDEBUG()) {
                 try {
                     it.icon.split(":").apply {
-                        val item = BuiltInRegistries.ITEM.get(
-                            ResourceLocation(
-                                this@apply[0],
-                                this@apply[1],
-                            )
+                        val item = BuiltInRegistries.ITEM.getValue(
+                            Identifier.fromNamespaceAndPath(this@apply[0], this@apply[1])
                         )
                         if (item == null) LogisticsPipes.log.error("Item does not exist! ${it.icon}")
                     }
@@ -270,7 +267,7 @@ fun resolveAbsoluteLocation(resolvedLocation: Path, language: String): Path =
 
 interface PageInfoProvider {
     fun resolveLocation(location: String): Path = Paths.get(fileLocation).resolveSibling(location).normalize()
-    fun resolveResource(location: String): ResourceLocation =
+    fun resolveResource(location: String): Identifier =
         location.lastIndexOf(':').let { idx ->
             val resourceDomain = when (idx) {
                 -1 -> LPConstants.LP_MOD_ID
@@ -281,7 +278,7 @@ interface PageInfoProvider {
                 key = resourcePath,
                 defaultValue = resolveAbsoluteLocation(resolveLocation(resourcePath), language).toLocation(false)
             )
-            ResourceLocation(resourceDomain, resourcePath)
+            Identifier.fromNamespaceAndPath(resourceDomain, resourcePath)
         }
 
     val language: String

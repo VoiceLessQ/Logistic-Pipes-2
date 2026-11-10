@@ -41,9 +41,8 @@ import network.rs485.grow.Coroutines
 import logisticspipes.LogisticsPipes
 import logisticspipes.modules.LogisticsModule
 import net.minecraft.client.Minecraft
-import net.minecraftforge.api.distmarker.Dist
-import net.minecraftforge.api.distmarker.OnlyIn
-import net.minecraftforge.fml.loading.FMLEnvironment
+import net.fabricmc.api.EnvType
+import net.fabricmc.api.Environment
 import net.minecraft.world.level.block.entity.BlockEntity
 import java.time.Duration
 import kotlinx.coroutines.Deferred
@@ -91,7 +90,7 @@ abstract class AsyncModule<S, C> : LogisticsModule() {
                             tickAsync(setup)
                         }
                     } catch (e: RuntimeException) {
-                        val isGamePaused = world?.isClientSide == false && FMLEnvironment.dist == Dist.CLIENT && isClientPaused()
+                        val isGamePaused = world?.isClientSide == false && net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT && isClientPaused()
                         if (e !is TimeoutCancellationException && !isGamePaused) {
                             val connected = connectedEntity?.let { " connected to $it at ${it.blockPos}" } ?: ""
                             LogisticsPipes.log.error("Error in ticking async module $module$connected", e)
@@ -134,5 +133,5 @@ abstract class AsyncModule<S, C> : LogisticsModule() {
 }
 
 // 1.20.1 MinecraftServer has no isPaused; only an integrated server can be paused.
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 private fun isClientPaused(): Boolean = Minecraft.getInstance().isPaused

@@ -1,5 +1,6 @@
 package logisticspipes.gui.popup;
 
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.LinkedList;
@@ -7,11 +8,13 @@ import java.util.List;
 import java.util.Locale;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.nbt.ListTag;
 
 
@@ -64,18 +67,22 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 		loadMacroItems();
 	}
 
+	private CompoundTag diskTag() {
+		return diskProvider.getDisk().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+	}
+
 	private void loadMacroItems() {
 		if ((name1 + name2).equals("")) {
 			return;
 		}
 		ListTag inventar = null;
 
-		ListTag list = diskProvider.getDisk().getOrCreateTag().getList("macroList", 10);
+		ListTag list = diskTag().getListOrEmpty("macroList");
 		for (int i = 0; i < list.size(); i++) {
-			CompoundTag tag = list.getCompound(i);
-			String name = tag.getString("name");
+			CompoundTag tag = list.getCompoundOrEmpty(i);
+			String name = tag.getStringOr("name", "");
 			if (name.equals(name1 + name2)) {
-				inventar = tag.getList("inventar", 10);
+				inventar = tag.getListOrEmpty("inventar");
 				break;
 			}
 		}
@@ -83,15 +90,15 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 			return;
 		}
 		for (int i = 0; i < inventar.size(); i++) {
-			CompoundTag itemNBT = inventar.getCompound(i);
-			int itemID = itemNBT.getInt("id");
-			int itemData = itemNBT.getInt("data");
+			CompoundTag itemNBT = inventar.getCompoundOrEmpty(i);
+			int itemID = itemNBT.getIntOr("id", 0);
+			int itemData = itemNBT.getIntOr("data", 0);
 			CompoundTag tag = null;
 			if (itemNBT.contains("nbt")) {
-				tag = itemNBT.getCompound("nbt");
+				tag = itemNBT.getCompoundOrEmpty("nbt");
 			}
 			ItemIdentifier item = ItemIdentifier.get(BuiltInRegistries.ITEM.byId(itemID), itemData, tag);
-			int amount = itemNBT.getInt("amount");
+			int amount = itemNBT.getIntOr("amount", 0);
 			ItemIdentifierStack stack = new ItemIdentifierStack(item, amount);
 			macroItems.add(stack);
 		}
@@ -132,11 +139,12 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 			}
 
 			boolean flag = false;
-			ListTag list = diskProvider.getDisk().getOrCreateTag().getList("macroList", 10);
+			CompoundTag diskTag = diskTag();
+			ListTag list = diskTag.getListOrEmpty("macroList");
 
 			for (int i = 0; i < list.size(); i++) {
-				CompoundTag tag = list.getCompound(i);
-				String name = tag.getString("name");
+				CompoundTag tag = list.getCompoundOrEmpty(i);
+				String name = tag.getStringOr("name", "");
 				if (name.equals(name1 + name2)) {
 					flag = true;
 					tag.put("inventar", inventar);
@@ -149,7 +157,8 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 				nbt.put("inventar", inventar);
 				list.add(nbt);
 			}
-			diskProvider.getDisk().getOrCreateTag().put("macroList", list);
+			diskTag.put("macroList", list);
+			CustomData.set(DataComponents.CUSTOM_DATA, diskProvider.getDisk(), diskTag);
 			MainProxy.sendPacketToServer(PacketHandler.getPacket(DiscContent.class).setStack(diskProvider.getDisk()).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
 			exitGui();
 		} else if (macroItems.size() != 0) {
@@ -184,12 +193,12 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 	@Override
 	protected void renderToolTips(int mouseX, int mouseY, float par3) {
 		if (tooltip != null && tooltip.length >= 3) {
-			getGuiGraphics().renderTooltip(minecraft.font, (net.minecraft.world.item.ItemStack) tooltip[2], (int) tooltip[0], (int) tooltip[1]);
+			getGuiGraphics().setTooltipForNextFrame(minecraft.font, (net.minecraft.world.item.ItemStack) tooltip[2], (int) tooltip[0], (int) tooltip[1]);
 		}
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	protected void renderLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		int panelXSize = 20;
 		int panelYSize = 20;
 
@@ -331,7 +340,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 	@Override
 	protected void renderGuiBackground(int mouseX, int mouseY) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, guiLeft, guiTop, right, bottom, 0.0f, false);
-		getGuiGraphics().drawString(minecraft.font, "Add Macro", guiLeft +minecraft.font.width("Add Macro") / 2, guiTop +6, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, "Add Macro", guiLeft +minecraft.font.width("Add Macro") / 2, guiTop +6, 0x404040, false);
 
 		maxPageAll = (int) Math.floor((getSearchedItemNumber(diskProvider.getItemDisplay()._allItems) - 1) / 45F);
 		if (maxPageAll == -1) {
@@ -342,9 +351,9 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 		}
 
 		String pageString1 = "Page " + (pageAll + 1) + " / " + (maxPageAll + 1);
-		getGuiGraphics().drawString(minecraft.font, pageString1, right - 47 - minecraft.font.width(pageString1) / 2, guiTop +6, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, pageString1, right - 47 - minecraft.font.width(pageString1) / 2, guiTop +6, 0x404040, false);
 
-		getGuiGraphics().drawString(minecraft.font, "Macro Items", guiLeft +minecraft.font.width("Add Macro") / 2, guiTop +136, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, "Macro Items", guiLeft +minecraft.font.width("Add Macro") / 2, guiTop +136, 0x404040, false);
 
 		maxPageMacro = (int) Math.floor((getSearchedItemNumber(macroItems) - 1) / 9F);
 		if (maxPageMacro == -1) {
@@ -355,9 +364,9 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 		}
 
 		String pageString2 = "Page " + (pageMacro + 1) + " / " + (maxPageMacro + 1);
-		getGuiGraphics().drawString(minecraft.font, pageString2, right - 47 - minecraft.font.width(pageString2) / 2, guiTop +136, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, pageString2, right - 47 - minecraft.font.width(pageString2) / 2, guiTop +136, 0x404040, false);
 
-		getGuiGraphics().drawString(minecraft.font, "Search:", guiLeft +8, guiTop +122, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, "Search:", guiLeft +8, guiTop +122, 0x404040, false);
 
 		if (editSearch) {
 			getGuiGraphics().fill(guiLeft +50, bottom - 66, right - 10, bottom - 83, Color.getValue(Color.BLACK));
@@ -367,7 +376,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 		}
 		getGuiGraphics().fill(guiLeft +52, bottom - 68, right - 12, bottom - 81, Color.getValue(Color.DARKER_GREY));
 
-		getGuiGraphics().drawString(minecraft.font, Search1 + Search2, guiLeft +55, guiTop +122, 0xFFFFFF, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, Search1 + Search2, guiLeft +55, guiTop +122, 0xFFFFFF, false);
 
 		if (editSearch) {
 			int lineX = guiLeft +55 + minecraft.font.width(Search1);
@@ -380,7 +389,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 			}
 		}
 
-		getGuiGraphics().drawString(minecraft.font, "Name:", guiLeft +8, bottom - 20, 0x404040, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, "Name:", guiLeft +8, bottom - 20, 0x404040, false);
 
 		if (editName) {
 			getGuiGraphics().fill(guiLeft +36, bottom - 8, right - 40, bottom - 25, Color.getValue(Color.BLACK));
@@ -390,7 +399,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 		}
 		getGuiGraphics().fill(guiLeft +38, bottom - 10, right - 42, bottom - 23, Color.getValue(Color.DARKER_GREY));
 
-		getGuiGraphics().drawString(minecraft.font, name1 + name2, guiLeft +41, bottom - 20, 0xFFFFFF, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, name1 + name2, guiLeft +41, bottom - 20, 0xFFFFFF, false);
 
 		if (editName) {
 			int lineX = guiLeft +41 + minecraft.font.width(name1);
@@ -474,7 +483,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 		if (editName) {
-			if (Screen.isPaste(keyCode)) {
+			if (new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers).isPaste()) {
 				name1 = name1 + Minecraft.getInstance().keyboardHandler.getClipboard();
 			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE) {
 				if (name1.length() > 0) {
@@ -504,7 +513,7 @@ public class GuiAddMacro extends SubGuiScreen implements IItemSearch {
 				}
 			}
 		} else if (editSearch) {
-			if (Screen.isPaste(keyCode)) {
+			if (new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers).isPaste()) {
 				Search1 = Search1 + Minecraft.getInstance().keyboardHandler.getClipboard();
 			} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE) {
 				if (Search1.length() > 0) {

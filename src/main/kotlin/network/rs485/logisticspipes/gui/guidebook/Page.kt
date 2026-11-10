@@ -48,9 +48,9 @@ interface IPageData : LPSerializable {
     var progress: Float
 
     fun fromTag(tag: CompoundTag) {
-        page = tag.getString("page")
-        color = if (tag.contains("color")) tag.getInt("color") else null
-        progress = tag.getFloat("progress")
+        page = tag.getStringOr("page", "")
+        color = if (tag.contains("color")) tag.getIntOr("color", 0) else null
+        progress = tag.getFloatOr("progress", 0f)
     }
 
     fun toTag(): CompoundTag {

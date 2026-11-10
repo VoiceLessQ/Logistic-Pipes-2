@@ -1,8 +1,12 @@
 package logisticspipes.gui.popup;
 
+import net.minecraft.client.Minecraft;
+import logisticspipes.utils.gui.SimpleGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.world.item.component.CustomData;
 
 
 
@@ -34,8 +38,8 @@ public class GuiDiskPopup extends SubGuiScreen {
 		super(150, 200, 0, 0);
 		this.diskProvider = diskProvider;
 		name2 = "";
-		if (diskProvider.getDisk().hasTag()) {
-			name1 = diskProvider.getDisk().getTag().getString("name");
+		if (diskProvider.getDisk().has(DataComponents.CUSTOM_DATA)) {
+			name1 = diskTag().getStringOr("name", "");
 		} else {
 			name1 = "Disk";
 		}
@@ -43,34 +47,12 @@ public class GuiDiskPopup extends SubGuiScreen {
 
 			@Override
 			public int getSize() {
-				CompoundTag nbt = diskProvider.getDisk().getTag();
-				if (nbt == null) {
-					diskProvider.getDisk().setTag(new CompoundTag());
-					nbt = diskProvider.getDisk().getTag();
-				}
-
-				if (!nbt.contains("macroList")) {
-					ListTag list = new ListTag();
-					nbt.put("macroList", list);
-				}
-				ListTag list = nbt.getList("macroList", 10);
-				return list.size();
+				return diskTag().getListOrEmpty("macroList").size();
 			}
 
 			@Override
 			public String getTextAt(int index) {
-				CompoundTag nbt = diskProvider.getDisk().getTag();
-				if (nbt == null) {
-					diskProvider.getDisk().setTag(new CompoundTag());
-					nbt = diskProvider.getDisk().getTag();
-				}
-
-				if (!nbt.contains("macroList")) {
-					ListTag list = new ListTag();
-					nbt.put("macroList", list);
-				}
-				ListTag list = nbt.getList("macroList", 10);
-				return list.getCompound(index).getString("name");
+				return diskTag().getListOrEmpty("macroList").getCompoundOrEmpty(index).getStringOr("name", "");
 			}
 
 			@Override
@@ -102,12 +84,9 @@ public class GuiDiskPopup extends SubGuiScreen {
 	private void writeDiskName() {
 		editName = false;
 		MainProxy.sendPacketToServer(PacketHandler.getPacket(DiskSetNamePacket.class).setString(name1 + name2).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
-		CompoundTag nbt = new CompoundTag();
-		if (diskProvider.getDisk().hasTag()) {
-			nbt = diskProvider.getDisk().getTag();
-		}
+		CompoundTag nbt = diskTag();
 		nbt.putString("name", name1 + name2);
-		diskProvider.getDisk().setTag(nbt);
+		CustomData.set(DataComponents.CUSTOM_DATA, diskProvider.getDisk(), nbt);
 		MainProxy.sendPacketToServer(PacketHandler.getPacket(DiscContent.class).setStack(diskProvider.getDisk()).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
 	}
 
@@ -137,7 +116,7 @@ public class GuiDiskPopup extends SubGuiScreen {
 	@Override
 	protected void renderGuiBackground(int mouseX, int mouseY) {
 		LPGuiGraphics.drawGuiBackGround(minecraft, guiLeft, guiTop, right, bottom, 0.0f, true);
-		getGuiGraphics().drawString(minecraft.font, "Disk", xCenter - (minecraft.font.width("Disk") / 2), guiTop + 10, 0xFFFFFF, true);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, "Disk", xCenter - (minecraft.font.width("Disk") / 2), guiTop + 10, 0xFFFFFF, true);
 
 		//NameInput
 		if (editName) {
@@ -148,7 +127,7 @@ public class GuiDiskPopup extends SubGuiScreen {
 		}
 		getGuiGraphics().fill(guiLeft + 12, guiTop + 30, right - 12, guiTop + 43, Color.getValue(Color.DARKER_GREY));
 
-		getGuiGraphics().drawString(minecraft.font, name1 + name2, guiLeft + 15, guiTop + 33, 0xFFFFFF, false);
+		SimpleGraphics.drawString(getGuiGraphics(), minecraft.font, name1 + name2, guiLeft + 15, guiTop + 33, 0xFFFFFF, false);
 
 		//getGuiGraphics().fill(guiLeft + 6, guiTop + 46, right - 6, bottom - 30, Color.getValue(Color.GREY));
 
@@ -185,42 +164,31 @@ public class GuiDiskPopup extends SubGuiScreen {
 		MainProxy.sendPacketToServer(PacketHandler.getPacket(DiskMacroRequestPacket.class).putInt(textList.getSelected()).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
 	}
 
+	private CompoundTag diskTag() {
+		return diskProvider.getDisk().getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+	}
+
 	private void handleDelete() {
-		CompoundTag nbt = diskProvider.getDisk().getTag();
-		if (nbt == null) {
-			diskProvider.getDisk().setTag(new CompoundTag());
-			nbt = diskProvider.getDisk().getTag();
-		}
-
-		if (!nbt.contains("macroList")) {
-			ListTag list = new ListTag();
-			nbt.put("macroList", list);
-		}
-
-		ListTag list = nbt.getList("macroList", 10);
+		CompoundTag nbt = diskTag();
+		ListTag list = nbt.getListOrEmpty("macroList");
 		ListTag newList = new ListTag();
 
 		for (int i = 0; i < list.size(); i++) {
 			if (i != textList.getSelected()) {
-				newList.add(list.getCompound(i));
+				newList.add(list.getCompoundOrEmpty(i));
 			}
 		}
 		textList.setSelected(-1);
 		nbt.put("macroList", newList);
+		CustomData.set(DataComponents.CUSTOM_DATA, diskProvider.getDisk(), nbt);
 		MainProxy.sendPacketToServer(PacketHandler.getPacket(DiscContent.class).setStack(diskProvider.getDisk()).setPosX(diskProvider.getX()).setPosY(diskProvider.getY()).setPosZ(diskProvider.getZ()));
 	}
 
 	private void handleAddEdit() {
 		String macroName = "";
-		CompoundTag nbt = diskProvider.getDisk().getTag();
-		if (nbt != null) {
-			if (nbt.contains("macroList")) {
-				ListTag list = nbt.getList("macroList", 10);
-				if (textList.getSelected() != -1 && textList.getSelected() < list.size()) {
-					CompoundTag entry = list.getCompound(textList.getSelected());
-					macroName = entry.getString("name");
-				}
-			}
+		ListTag list = diskTag().getListOrEmpty("macroList");
+		if (textList.getSelected() != -1 && textList.getSelected() < list.size()) {
+			macroName = list.getCompoundOrEmpty(textList.getSelected()).getStringOr("name", "");
 		}
 		setSubGui(new GuiAddMacro(diskProvider, macroName));
 	}
@@ -230,7 +198,7 @@ public class GuiDiskPopup extends SubGuiScreen {
 		if (!editName) {
 			return super.keyPressed(keyCode, scanCode, modifiers);
 		}
-		if (Screen.isPaste(keyCode)) {
+		if (new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers).isPaste()) {
 			name1 = name1 + net.minecraft.client.Minecraft.getInstance().keyboardHandler.getClipboard();
 		} else if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_BACKSPACE) {
 			if (name1.length() > 0) {

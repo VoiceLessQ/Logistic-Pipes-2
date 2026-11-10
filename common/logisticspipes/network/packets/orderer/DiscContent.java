@@ -1,5 +1,6 @@
 package logisticspipes.network.packets.orderer;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import net.minecraft.world.entity.player.Player;
 
 import logisticspipes.LPItems;
@@ -33,7 +34,7 @@ public class DiscContent extends ItemPacket {
 			if (MainProxy.isServer(tile.getLevel())) {
 				if (!((PipeItemsRequestLogisticsMk2) tile.pipe).getDisk().isEmpty() && ((PipeItemsRequestLogisticsMk2) tile.pipe).getDisk().getItem().equals(LPItems.disk.get())) {
 					if (!getStack().isEmpty() && getStack().getItem().equals(LPItems.disk.get())) {
-						((PipeItemsRequestLogisticsMk2) tile.pipe).getDisk().setTag(getStack().getTag());
+						CustomDataUtil.setTag(((PipeItemsRequestLogisticsMk2) tile.pipe).getDisk(), CustomDataUtil.getTag(getStack()));
 					}
 				}
 			} else {
@@ -44,7 +45,7 @@ public class DiscContent extends ItemPacket {
 			if (MainProxy.isServer(tile.getLevel())) {
 				if (!((PipeBlockRequestTable) tile.pipe).diskInv.getItem(0).isEmpty() && ((PipeBlockRequestTable) tile.pipe).diskInv.getItem(0).getItem().equals(LPItems.disk.get())) {
 					if (!getStack().isEmpty() && getStack().getItem().equals(LPItems.disk.get())) {
-						((PipeBlockRequestTable) tile.pipe).diskInv.getItem(0).setTag(getStack().getTag());
+						CustomDataUtil.setTag(((PipeBlockRequestTable) tile.pipe).diskInv.getItem(0), CustomDataUtil.getTag(getStack()));
 					}
 				}
 			} else {

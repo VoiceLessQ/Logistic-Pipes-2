@@ -12,10 +12,8 @@ import net.minecraft.server.level.ServerPlayer;
 
 import net.minecraft.network.chat.Component;
 
-import net.minecraftforge.client.event.ClientChatReceivedEvent;
-import net.minecraftforge.event.ServerChatEvent;
-
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
+import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 
 import logisticspipes.LogisticsPipes;
 import logisticspipes.network.PacketHandler;
@@ -31,11 +29,23 @@ public class LPChatListener {
 
 	private List<String> sendChatMessages = null;
 
-	@SubscribeEvent
-	public void serverChat(ServerChatEvent event) {
-		ServerPlayer player = event.getPlayer();
+	public static void register() {
+		LPChatListener listener = new LPChatListener();
+		ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> listener.serverChat(sender, message.decoratedContent()));
+	}
+
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
+	public static void registerClient() {
+		LPChatListener listener = new LPChatListener();
+		ClientReceiveMessageEvents.ALLOW_GAME.register((message, overlay) -> listener.clientChat(message));
+		ClientReceiveMessageEvents.ALLOW_CHAT.register((message, signedMessage, sender, params, receptionTimestamp) -> listener.clientChat(message));
+	}
+
+	/** @return false to cancel the chat message (Forge ServerChatEvent) */
+	public boolean serverChat(ServerPlayer player, Component message) {
+		boolean canceled = false;
 		String playerName = player.getName().getString();
-		String chatMessage = event.getMessage().getString();
+		String chatMessage = message.getString();
 		if (LPChatListener.tasks.containsKey(playerName)) {
 			if (chatMessage.startsWith("/")) {
 				player.sendSystemMessage(Component.literal(ChatColor.RED + "You need to answer the question, before you can use any other command"));
@@ -55,26 +65,27 @@ public class LPChatListener {
 					}
 				}
 			}
-			event.setCanceled(true);
+			canceled = true;
 		} else if (LPChatListener.morePageDisplays.containsKey(playerName)) {
 			if (!LPChatListener.morePageDisplays.get(playerName).isTerminated()) {
 				if (chatMessage.startsWith("/")) {
 					player.sendSystemMessage(Component.literal(ChatColor.RED + "Exit " + ChatColor.AQUA + "PageView" + ChatColor.RED + " first!"));
 					MainProxy.sendPacketToPlayer(PacketHandler.getPacket(OpenChatGui.class), player);
-					event.setCanceled(true);
+					canceled = true;
 				} else {
 					if (LPChatListener.morePageDisplays.get(playerName).handleChat(chatMessage, player.createCommandSourceStack())) {
-						event.setCanceled(true);
+						canceled = true;
 					}
 				}
 			}
 		}
+		return !canceled;
 	}
 
-	@SubscribeEvent
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
-	public void clientChat(ClientChatReceivedEvent event) {
-		Component message = event.getMessage();
+	/** @return false to cancel the received message (Forge ClientChatReceivedEvent) */
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
+	public boolean clientChat(Component message) {
+		boolean canceled = false;
 		if (message != null) {
 			String realMessage = null;
 			try {
@@ -87,19 +98,19 @@ public class LPChatListener {
 			if (realMessage != null) {
 				if (realMessage.equals("%LPCLEARCHAT%")) {
 					clearChat();
-					event.setCanceled(true);
+					canceled = true;
 				}
 				if (realMessage.equals("%LPSTORESENDMESSAGE%")) {
 					storeSendMessages();
-					event.setCanceled(true);
+					canceled = true;
 				}
 				if (realMessage.equals("%LPRESTORESENDMESSAGE%")) {
 					restoreSendMessages();
-					event.setCanceled(true);
+					canceled = true;
 				}
 				if (realMessage.startsWith("%LPADDTOSENDMESSAGE%")) {
 					addSendMessages(realMessage.substring(20));
-					event.setCanceled(true);
+					canceled = true;
 				}
 				if (realMessage.contains("LPDISPLAYMISSING") && LogisticsPipes.isDEBUG()) {
 					System.out.println("LIST:");
@@ -107,22 +118,23 @@ public class LPChatListener {
 				}
 			}
 		}
+		return !canceled;
 	}
 
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 	private void clearChat() {
-		net.minecraft.client.Minecraft.getInstance().gui.getChat().clearMessages(true);
+		net.minecraft.client.Minecraft.getInstance().gui.hud.getChat().clearMessages(true);
 	}
 
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 	private void storeSendMessages() {
-		sendChatMessages = new ArrayList<>(net.minecraft.client.Minecraft.getInstance().gui.getChat().getRecentChat());
+		sendChatMessages = new ArrayList<>(net.minecraft.client.Minecraft.getInstance().gui.hud.getChat().getRecentChat());
 	}
 
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 	private void restoreSendMessages() {
 		if (sendChatMessages != null) {
-			net.minecraft.client.gui.components.ChatComponent chat = net.minecraft.client.Minecraft.getInstance().gui.getChat();
+			net.minecraft.client.gui.components.ChatComponent chat = net.minecraft.client.Minecraft.getInstance().gui.hud.getChat();
 			for (String msg : sendChatMessages) {
 				chat.addRecentChat(msg);
 			}
@@ -130,9 +142,9 @@ public class LPChatListener {
 		sendChatMessages = null;
 	}
 
-	@net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 	private void addSendMessages(String substring) {
-		net.minecraft.client.Minecraft.getInstance().gui.getChat().addRecentChat(substring);
+		net.minecraft.client.Minecraft.getInstance().gui.hud.getChat().addRecentChat(substring);
 	}
 
 	public static void register(MorePageDisplay displayInput, String name) {

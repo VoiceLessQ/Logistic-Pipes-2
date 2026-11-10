@@ -7,7 +7,7 @@ import java.util.Map;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter; // was BlockGetter
 
@@ -41,7 +41,7 @@ public class PipeRenderState implements IClientState {
 	private boolean savedStateHasMCMultiParts = false;
 
 	public int[] buffer = null;
-	public Map<ResourceLocation, GLRenderList> renderLists;
+	public Map<Identifier, GLRenderList> renderLists;
 
 	private boolean dirty = true;
 

@@ -6,12 +6,13 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 
-import dan200.computercraft.api.ForgeComputerCraftAPI;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import dan200.computercraft.api.peripheral.PeripheralLookup;
 
 import logisticspipes.LPConstants;
 import logisticspipes.blocks.LogisticsSolidTileEntity;
@@ -26,10 +27,10 @@ import logisticspipes.proxy.interfaces.ICCProxy;
 public class CCProxy implements ICCProxy {
 
 	public CCProxy() {
-		ForgeComputerCraftAPI.registerPeripheralProvider((level, pos, side) -> {
-			IPeripheral peripheral = createPeripheral(level.getBlockEntity(pos), side);
-			return peripheral == null ? net.minecraftforge.common.util.LazyOptional.empty() : net.minecraftforge.common.util.LazyOptional.of(() -> peripheral);
-		});
+		BlockEntityType<?>[] lpTypes = BuiltInRegistries.BLOCK_ENTITY_TYPE.stream()
+				.filter(type -> BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(type).getNamespace().equals(LPConstants.LP_MOD_ID))
+				.toArray(BlockEntityType<?>[]::new);
+		PeripheralLookup.get().registerForBlockEntities(CCProxy::createPeripheral, lpTypes);
 	}
 
 	@Nullable
@@ -53,7 +54,7 @@ public class CCProxy implements ICCProxy {
 		if (tile == null) {
 			return false;
 		}
-		ResourceLocation type = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(tile.getType());
+		Identifier type = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(tile.getType());
 		return type != null && type.getNamespace().equals(LPConstants.computerCraftModID) && type.getPath().startsWith("turtle");
 	}
 

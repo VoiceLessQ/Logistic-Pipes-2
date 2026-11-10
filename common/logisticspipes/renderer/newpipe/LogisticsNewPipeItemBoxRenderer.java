@@ -8,18 +8,18 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 
 
 import logisticspipes.items.LogisticsFluidContainer;
 import logisticspipes.proxy.SimpleServiceLocator;
+import logisticspipes.renderer.LogisticsRenderPipe;
 import logisticspipes.utils.FluidIdentifier;
 import logisticspipes.utils.FluidIdentifierStack;
 import logisticspipes.utils.item.ItemIdentifierStack;
@@ -29,11 +29,11 @@ public class LogisticsNewPipeItemBoxRenderer {
 	private static final int RENDER_SIZE = 40;
 
 	private int renderList = -1;
-	private static final ResourceLocation BLOCKS = new ResourceLocation("textures/atlas/blocks.png");
+	private static final Identifier BLOCKS = Identifier.parse("textures/atlas/blocks.png");
 	private static final Map<FluidIdentifier, int[]> renderLists = new HashMap<>();
 
-	@OnlyIn(Dist.CLIENT)
-	public void doRenderItem(@Nonnull ItemStack itemstack, float light, double x, double y, double z, double boxScale, double yaw, double pitch, double yawForPitch, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+	@Environment(EnvType.CLIENT)
+	public void doRenderItem(@Nonnull ItemStack itemstack, float light, double x, double y, double z, double boxScale, double yaw, double pitch, double yawForPitch, PoseStack poseStack, SubmitNodeCollector collector, int packedLight, int packedOverlay) {
 		if (LogisticsNewRenderPipe.innerTransportBox == null) return;
 		poseStack.pushPose();
 
@@ -49,20 +49,8 @@ public class LogisticsNewPipeItemBoxRenderer {
 		poseStack.mulPose(new org.joml.Quaternionf().rotationY((float) Math.toRadians(-yawForPitch)));
 		poseStack.translate(-0.5, -0.5, -0.5);
 
-		// Re-bind a fresh buffer on the RenderState. Any earlier MultiBufferSource.getBuffer()
-		// call (e.g. from LogisticsRenderPipe.render for the main pipe geometry) may have been
-		// drained when a different RenderType was requested further down the render path, so
-		// the cached rs.buffer reference would point at an un-started BufferBuilder. Fetching
-		// it again here returns a valid VertexConsumer for the current RenderType batch.
-		if (SimpleServiceLocator.cclProxy.getRenderState() instanceof logisticspipes.proxy.object3d.impl.LPRenderStateImpl) {
-			logisticspipes.proxy.object3d.impl.LPRenderStateImpl rs =
-				(logisticspipes.proxy.object3d.impl.LPRenderStateImpl) SimpleServiceLocator.cclProxy.getRenderState();
-			VertexConsumer buffer = bufferSource.getBuffer(RenderType.cutoutMipped());
-			rs.bind(buffer, poseStack.last().pose(), poseStack.last().normal(), packedLight, packedOverlay);
-		}
-		SimpleServiceLocator.cclProxy.getRenderState().reset();
-		LogisticsNewRenderPipe.innerTransportBox.render(LogisticsNewRenderPipe.innerBoxTexture);
-		SimpleServiceLocator.cclProxy.getRenderState().draw();
+		LogisticsRenderPipe.submitGeometry(collector, poseStack, LogisticsRenderPipe.ATLAS_TYPE, packedLight, packedOverlay,
+				() -> LogisticsNewRenderPipe.innerTransportBox.render(LogisticsNewRenderPipe.innerBoxTexture));
 
 		if (!itemstack.isEmpty() && itemstack.getItem() instanceof LogisticsFluidContainer) {
 			FluidIdentifierStack f = SimpleServiceLocator.logisticsFluidManager.getFluidFromContainer(ItemIdentifierStack.getFromStack(itemstack));
@@ -73,7 +61,6 @@ public class LogisticsNewPipeItemBoxRenderer {
 				// TODO: glPushAttrib removed
 				// TODO: GL11.glEnable(GL11.GL_CULL_FACE) → RenderSystem equivalent
 				// GL_LIGHTING removed — use shaders
-				RenderSystem.enableBlend();
 				// TODO: glBlendFunc → RenderSystem.blendFunc()
 
 				// TODO: glCallList removed — use vertex buffer rendering

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " c ",
+    "rfr",
+    "ili"
+  ],
+  "key": {
+    "c": "logisticspipes:chip_basic",
+    "r": "minecraft:redstone",
+    "f": "logisticspipes:frame",
+    "i": "#c:ingots/iron",
+    "l": "#c:gems/lapis"
+  },
+  "result": {
+    "id": "logisticspipes:program_compiler"
+  }
+}

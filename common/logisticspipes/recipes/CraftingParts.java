@@ -2,7 +2,7 @@ package logisticspipes.recipes;
 
 import javax.annotation.Nonnull;
 
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 
 import lombok.Data;
 
@@ -14,17 +14,17 @@ public class CraftingParts {
 	 * FPGA
 	 */
 	@Nonnull
-	private final ItemStack chipFpga;
+	private final Item chipFpga;
 	/**
 	 * Gold Chip
 	 * Basic Microcontroller
 	 */
 	@Nonnull
-	private final ItemStack chipBasic;
+	private final Item chipBasic;
 	/**
 	 * Diamond Chip
 	 * Advanced Microcontroller
 	 */
 	@Nonnull
-	private final ItemStack chipAdvanced;
+	private final Item chipAdvanced;
 }

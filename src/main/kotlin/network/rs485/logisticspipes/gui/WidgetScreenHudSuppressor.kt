@@ -7,40 +7,33 @@
  */
 package network.rs485.logisticspipes.gui
 
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
 import net.minecraft.client.Minecraft
-import net.minecraftforge.client.event.RenderGuiOverlayEvent
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay
-import net.minecraftforge.eventbus.api.EventPriority
-import net.minecraftforge.eventbus.api.SubscribeEvent
 
-/**
- * When a widget-based LP GUI (any subclass of [BaseGuiContainer]) is the active screen,
- * suppress the vanilla HUD overlays that would otherwise leak through behind the panel —
- * principally the hotbar, but also crosshair, health/food bars, and chat. Other inventory
- * screens (chest, furnace, etc.) are left alone.
- *
- * 1.20.1 renders `gui.render(...)` unconditionally while a screen is open
- * ([GameRenderer.java:947]); the screen's semi-transparent `renderBackground` gradient only
- * dims the HUD, it doesn't hide it. Cancelling the overlay pre-event is the clean fix.
- */
 object WidgetScreenHudSuppressor {
 
-    private val SUPPRESSED = setOf(
-        VanillaGuiOverlay.HOTBAR.id(),
-        VanillaGuiOverlay.CROSSHAIR.id(),
-        VanillaGuiOverlay.PLAYER_HEALTH.id(),
-        VanillaGuiOverlay.FOOD_LEVEL.id(),
-        VanillaGuiOverlay.ARMOR_LEVEL.id(),
-        VanillaGuiOverlay.EXPERIENCE_BAR.id(),
-        VanillaGuiOverlay.AIR_LEVEL.id(),
-        VanillaGuiOverlay.MOUNT_HEALTH.id(),
-        VanillaGuiOverlay.JUMP_BAR.id(),
-        VanillaGuiOverlay.CHAT_PANEL.id(),
+    private val SUPPRESSED = listOf(
+        VanillaHudElements.HOTBAR,
+        VanillaHudElements.CROSSHAIR,
+        VanillaHudElements.HEALTH_BAR,
+        VanillaHudElements.FOOD_BAR,
+        VanillaHudElements.ARMOR_BAR,
+        VanillaHudElements.EXPERIENCE_LEVEL,
+        VanillaHudElements.AIR_BAR,
+        VanillaHudElements.MOUNT_HEALTH,
+        VanillaHudElements.INFO_BAR,
+        VanillaHudElements.CHAT,
     )
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    fun onRenderOverlay(event: RenderGuiOverlayEvent.Pre) {
-        if (Minecraft.getInstance().screen !is BaseGuiContainer) return
-        if (event.overlay.id() in SUPPRESSED) event.isCanceled = true
+    fun register() {
+        SUPPRESSED.forEach { id ->
+            HudElementRegistry.replaceElement(id) { original ->
+                HudElement { graphics, deltaTracker ->
+                    if (Minecraft.getInstance().gui.screen() !is BaseGuiContainer) original.extractRenderState(graphics, deltaTracker)
+                }
+            }
+        }
     }
 }

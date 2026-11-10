@@ -1,5 +1,6 @@
 package logisticspipes.network.packets.orderer;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -38,18 +39,18 @@ public class DiskMacroRequestPacket extends IntegerCoordinatesPacket {
 			if (!((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().getItem().equals(LPItems.disk.get())) {
 				return;
 			}
-			if (!((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().hasTag()) {
+			if (!CustomDataUtil.hasTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk())) {
 				return;
 			}
-			CompoundTag nbt = ((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk().getTag();
+			CompoundTag nbt = CustomDataUtil.getOrCreateTag(((PipeItemsRequestLogisticsMk2) pipe.pipe).getDisk());
 			if (!nbt.contains("macroList")) {
 				ListTag list = new ListTag();
 				nbt.put("macroList", list);
 			}
-			ListTag list = nbt.getList("macroList", 10);
+			ListTag list = nbt.getListOrEmpty("macroList");
 			for (int i = 0; i < list.size(); i++) {
 				if (i == getInteger()) {
-					CompoundTag itemlist = list.getCompound(i);
+					CompoundTag itemlist = list.getCompoundOrEmpty(i);
 					RequestHandler.requestMacrolist(itemlist, (PipeItemsRequestLogisticsMk2) pipe.pipe, player);
 					break;
 				}
@@ -62,18 +63,18 @@ public class DiskMacroRequestPacket extends IntegerCoordinatesPacket {
 			if (!((PipeBlockRequestTable) pipe.pipe).getDisk().getItem().equals(LPItems.disk.get())) {
 				return;
 			}
-			if (!((PipeBlockRequestTable) pipe.pipe).getDisk().hasTag()) {
+			if (!CustomDataUtil.hasTag(((PipeBlockRequestTable) pipe.pipe).getDisk())) {
 				return;
 			}
-			CompoundTag nbt = ((PipeBlockRequestTable) pipe.pipe).getDisk().getTag();
+			CompoundTag nbt = CustomDataUtil.getOrCreateTag(((PipeBlockRequestTable) pipe.pipe).getDisk());
 			if (!nbt.contains("macroList")) {
 				ListTag list = new ListTag();
 				nbt.put("macroList", list);
 			}
-			ListTag list = nbt.getList("macroList", 10);
+			ListTag list = nbt.getListOrEmpty("macroList");
 			for (int i = 0; i < list.size(); i++) {
 				if (i == getInteger()) {
-					CompoundTag itemlist = list.getCompound(i);
+					CompoundTag itemlist = list.getCompoundOrEmpty(i);
 					RequestHandler.requestMacrolist(itemlist, (PipeBlockRequestTable) pipe.pipe, player);
 					break;
 				}

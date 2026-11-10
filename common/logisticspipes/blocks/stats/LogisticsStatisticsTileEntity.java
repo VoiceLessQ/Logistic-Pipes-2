@@ -1,5 +1,8 @@
 package logisticspipes.blocks.stats;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.utils.TagUtil;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,9 +50,10 @@ public class LogisticsStatisticsTileEntity extends LogisticsSolidTileEntity impl
 	}
 
 	@Override
-	public void load(CompoundTag nbt) {
-		super.load(nbt);
-		int size = nbt.getInt("taskSize");
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag nbt = TagUtil.read(input);
+		super.loadAdditional(input);
+		int size = nbt.getIntOr("taskSize", 0);
 		for (int i = 0; i < size; i++) {
 			CompoundTag tag = (CompoundTag) nbt.get("Task_" + i);
 			TrackingTask task = new TrackingTask();
@@ -59,8 +63,9 @@ public class LogisticsStatisticsTileEntity extends LogisticsSolidTileEntity impl
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbt) {
-		super.saveAdditional(nbt);
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag nbt = new CompoundTag();
+		super.saveAdditional(output);
 		nbt.putInt("taskSize", tasks.size());
 		int count = 0;
 		for (TrackingTask task : tasks) {
@@ -69,6 +74,7 @@ public class LogisticsStatisticsTileEntity extends LogisticsSolidTileEntity impl
 			nbt.put("Task_" + count, tag);
 			count++;
 		}
+		TagUtil.write(output, nbt);
 	}
 
 	@Override

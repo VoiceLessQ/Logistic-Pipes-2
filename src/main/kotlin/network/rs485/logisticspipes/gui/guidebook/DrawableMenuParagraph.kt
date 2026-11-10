@@ -41,7 +41,7 @@ import logisticspipes.LPItems
 import logisticspipes.utils.MinecraftColor
 import logisticspipes.utils.gui.SimpleGraphics
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import network.rs485.logisticspipes.gui.GuiDrawer
@@ -61,7 +61,7 @@ private fun iconStack(icon: String): ItemStack {
     // so treat AIR as "not found" and fall back to LP's broken item (matching LP1's broken-icon look).
     // tryParse instead of the constructor: book pages are data-driven and a malformed identifier
     // (e.g. uppercase) must degrade to the broken item, not throw (1.12's constructor never threw).
-    val item = ResourceLocation.tryParse(icon)?.let { BuiltInRegistries.ITEM.get(it) }
+    val item = Identifier.tryParse(icon)?.let { BuiltInRegistries.ITEM.getValue(it) }
     return if (item == null || item === Items.AIR) ItemStack(LPItems.getBrokenItem()) else ItemStack(item)
 }
 
@@ -185,11 +185,11 @@ class DrawableMenuTile(private val linkedPage: String, private val pageName: Str
             val guiGraphics = SimpleGraphics.guiGraphics ?: return
             // renderItem draws at native 16x16; scale the pose by iconScale around the icon origin.
             val pose = guiGraphics.pose()
-            pose.pushPose()
-            pose.translate(itemRect.left, itemRect.top, 0.0f)
-            pose.scale(iconScale, iconScale, 1.0f)
-            guiGraphics.renderItem(iconStack(icon), 0, 0)
-            pose.popPose()
+            pose.pushMatrix()
+            pose.translate(itemRect.left, itemRect.top)
+            pose.scale(iconScale, iconScale)
+            guiGraphics.item(iconStack(icon), 0, 0)
+            pose.popMatrix()
         }
     }
 
@@ -239,7 +239,7 @@ class DrawableMenuListEntry(private val linkedPage: String, private val pageName
                 format = EnumSet.of(TextFormat.Shadow),
                 scale = 1.0f
             )
-            SimpleGraphics.guiGraphics?.renderItem(iconStack(icon), itemRect.roundedLeft, itemRect.roundedTop)
+            SimpleGraphics.guiGraphics?.item(iconStack(icon), itemRect.roundedLeft, itemRect.roundedTop)
         }
         if (hovered) {
             GuiDrawer.drawInteractionIndicator(mouseX, mouseY)

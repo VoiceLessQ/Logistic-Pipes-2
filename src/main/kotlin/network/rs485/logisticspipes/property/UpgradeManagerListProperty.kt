@@ -108,7 +108,7 @@ class UpgradeManagerListProperty : ListProperty<ModuleUpgradeManager> {
         parentChassis.originalUpgradeManager,
     ).apply {
         if (tag.contains(key)) {
-            readFromNBT(tag.getCompound(key), "")
+            readFromNBT(tag.getCompoundOrEmpty(key), "")
         }
     }
 

@@ -40,13 +40,13 @@ public class SlotFinderOpenGuiPacket extends ModuleCoordinatesPacket {
 	@Override
 	public void processPacket(Player player) {
 		//hack to avoid wrenching blocks
-		int savedEquipped = player.getInventory().selected;
+		int savedEquipped = player.getInventory().getSelectedSlot();
 		boolean foundSlot = false;
 		//try to find a empty slot
 		for (int i = 0; i < 9; i++) {
 			if (player.getInventory().getItem(i).isEmpty()) {
 				foundSlot = true;
-				player.getInventory().selected = i;
+				player.getInventory().setSelectedSlot(i);
 				break;
 			}
 		}
@@ -56,14 +56,14 @@ public class SlotFinderOpenGuiPacket extends ModuleCoordinatesPacket {
 				ItemStack is = player.getInventory().getItem(i);
 				if (!is.isEmpty() && is.getItem() instanceof BlockItem) {
 					foundSlot = true;
-					player.getInventory().selected = i;
+					player.getInventory().setSelectedSlot(i);
 					break;
 				}
 			}
 		}
 		//give up and select whatever is right of the current slot
 		if (!foundSlot) {
-			player.getInventory().selected = (player.getInventory().selected + 1) % 9;
+			player.getInventory().setSelectedSlot((player.getInventory().getSelectedSlot() + 1) % 9);
 		}
 
 		boolean openedGui = false;
@@ -100,7 +100,11 @@ public class SlotFinderOpenGuiPacket extends ModuleCoordinatesPacket {
 							net.minecraft.world.phys.BlockHitResult blockHit = new net.minecraft.world.phys.BlockHitResult(
 									new net.minecraft.world.phys.Vec3(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5),
 									Direction.UP, blockPos, false);
-							if (block.use(blockState, player.level(), blockPos, player, InteractionHand.MAIN_HAND, blockHit) != net.minecraft.world.InteractionResult.PASS) {
+							net.minecraft.world.InteractionResult useResult = blockState.useItemOn(player.getMainHandItem(), player.level(), player, InteractionHand.MAIN_HAND, blockHit);
+							if (useResult instanceof net.minecraft.world.InteractionResult.TryEmptyHandInteraction) {
+								useResult = blockState.useWithoutItem(player.level(), player, blockHit);
+							}
+							if (useResult != net.minecraft.world.InteractionResult.PASS) {
 								MainProxy.sendPacketToPlayer(PacketHandler.getPacket(SlotFinderActivatePacket.class)
 										.setTargetPosX(xCoord)
 										.setTargetPosY(yCoord)
@@ -119,7 +123,7 @@ public class SlotFinderOpenGuiPacket extends ModuleCoordinatesPacket {
 			LogisticsPipes.log.warn("Ignored SlotFinderOpenGuiPacket from " + player.toString() + ", because of failing preconditions");
 		}
 
-		player.getInventory().selected = savedEquipped;
+		player.getInventory().setSelectedSlot(savedEquipped);
 	}
 
 	@Override

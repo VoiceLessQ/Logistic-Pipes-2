@@ -18,8 +18,8 @@ import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import logisticspipes.interfaces.routing.IFilter;
 import logisticspipes.pipes.basic.CoreRoutedPipe;
@@ -71,7 +71,7 @@ public class ExitRoute implements Comparable<ExitRoute>, LPFinalSerializable {
 		this.blockDistance = blockDistance;
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public ExitRoute(LPDataInput input) {
 		if (!input.readBoolean()) {
 			throw new RuntimeException("Cannot read an ExitRoute without destination");
@@ -119,7 +119,7 @@ public class ExitRoute implements Comparable<ExitRoute>, LPFinalSerializable {
 		filters = Collections.unmodifiableList(filter);
 	}
 
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	private IRouter readRouter(LPDataInput input) {
 		DoubleCoordinates pos = new DoubleCoordinates(input);
 		BlockEntity tile = pos.getTileEntity(MainProxy.getClientMainWorld());

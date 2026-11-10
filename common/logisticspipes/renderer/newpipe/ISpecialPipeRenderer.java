@@ -5,7 +5,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import logisticspipes.pipes.basic.CoreUnroutedPipe;
 import logisticspipes.proxy.object3d.interfaces.I3DOperation;
@@ -37,6 +37,6 @@ public interface ISpecialPipeRenderer {
 	List<IModel3D> getModelsFromPipe(@Nonnull CoreUnroutedPipe pipe);
 
 	@Nonnull
-	ResourceLocation getTexture();
+	Identifier getTexture();
 
 }

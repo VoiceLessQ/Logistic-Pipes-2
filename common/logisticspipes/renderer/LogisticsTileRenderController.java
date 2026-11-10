@@ -9,8 +9,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -74,7 +74,7 @@ public class LogisticsTileRenderController {
 		}
 
 		@Getter
-		@OnlyIn(Dist.CLIENT)
+		@Environment(EnvType.CLIENT)
 		final PipeFXLaserPowerBeam entity;
 
 		@Override
@@ -129,7 +129,7 @@ public class LogisticsTileRenderController {
 		}
 
 		@Getter
-		@OnlyIn(Dist.CLIENT)
+		@Environment(EnvType.CLIENT)
 		final PipeFXLaserPowerBall entity;
 
 		@Override

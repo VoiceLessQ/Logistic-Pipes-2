@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "logisticspipes:item/crafting_table",
+    "model": {
+      "type": "logisticspipes:solid_block"
+    }
+  }
+}

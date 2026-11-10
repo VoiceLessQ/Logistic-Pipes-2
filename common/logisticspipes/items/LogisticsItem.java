@@ -20,8 +20,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 
 
@@ -32,7 +32,7 @@ import network.rs485.logisticspipes.util.TextUtil;
 public class LogisticsItem extends Item implements ILogisticsItem {
 
 	public LogisticsItem() {
-		super(new Item.Properties()); // creative tab registration handled via event in 1.20.1
+		super(logisticspipes.LPRegistries.itemProperties());
 	}
 
 	protected LogisticsItem(Item.Properties properties) {
@@ -60,13 +60,6 @@ public class LogisticsItem extends Item implements ILogisticsItem {
 		return 1;
 	}
 
-	@Nonnull
-	@Override
-	public String getDescriptionId(@Nonnull ItemStack stack) {
-		// getHasSubtypes() removed in 1.20.1 (damage-based subtypes no longer exist)
-		return super.getDescriptionId(stack);
-	}
-
 	/**
 	 * Adds all keys from the translation file in the format:
 	 * item.className.tip([0-9]*) Tips start from 1 and increment. Sparse rows
@@ -74,12 +67,14 @@ public class LogisticsItem extends Item implements ILogisticsItem {
 	 * shows full tooltip, without it, you just get the first line.
 	 */
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level worldIn, java.util.List<net.minecraft.network.chat.Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
-		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+	@Environment(EnvType.CLIENT)
+	public void appendHoverText(@Nonnull ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<net.minecraft.network.chat.Component> tooltipConsumer, net.minecraft.world.item.TooltipFlag flagIn) {
+		java.util.List<net.minecraft.network.chat.Component> tooltip = new java.util.ArrayList<>();
+		super.appendHoverText(stack, context, display, tooltipConsumer, flagIn);
 		if (addShiftInfo()) {
-			TextUtil.addTooltipInformation(stack, tooltip, Screen.hasShiftDown());
+			TextUtil.addTooltipInformation(stack, tooltip, net.minecraft.client.Minecraft.getInstance().hasShiftDown());
 		}
+		tooltip.forEach(tooltipConsumer);
 	}
 
 	public boolean addShiftInfo() {

@@ -25,10 +25,10 @@ public class OrdererContent extends InventoryModuleCoordinatesPacket {
 
 	@Override
 	public void processPacket(Player player) {
-		if (Minecraft.getInstance().screen instanceof GuiOrderer) {
-			((GuiOrderer) Minecraft.getInstance().screen).handlePacket(getIdentList());
-		} else if (Minecraft.getInstance().screen instanceof GuiRequestTable) {
-			((GuiRequestTable) Minecraft.getInstance().screen).handlePacket(getIdentList());
+		if (Minecraft.getInstance().gui.screen() instanceof GuiOrderer) {
+			((GuiOrderer) Minecraft.getInstance().gui.screen()).handlePacket(getIdentList());
+		} else if (Minecraft.getInstance().gui.screen() instanceof GuiRequestTable) {
+			((GuiRequestTable) Minecraft.getInstance().gui.screen()).handlePacket(getIdentList());
 		}
 	}
 }

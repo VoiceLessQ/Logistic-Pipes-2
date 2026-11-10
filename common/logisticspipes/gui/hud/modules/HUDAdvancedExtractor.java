@@ -1,5 +1,6 @@
 package logisticspipes.gui.hud.modules;
-import net.minecraft.client.gui.GuiGraphics;
+import logisticspipes.utils.gui.SimpleGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,20 +37,20 @@ public class HUDAdvancedExtractor implements IHUDModuleRenderer {
 	@Override
 	public void renderContent(boolean shifted) {
 		Minecraft mc = Minecraft.getInstance();
-		GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		if (selected == 0) {
 			Direction d = module.getSneakyDirection();
 			if (gg != null) {
-				gg.drawString(mc.font, "Extract", -22, -22, 0xff000000, false);
-				gg.drawString(mc.font, "from:", -22, -9, 0xff000000, false);
-				gg.drawString(mc.font, d == null ? "DEFAULT" : d.name(), -22, 18, 0xff000000, false);
+				SimpleGraphics.drawString(gg, mc.font, "Extract", -22, -22, 0xff000000, false);
+				SimpleGraphics.drawString(gg, mc.font, "from:", -22, -9, 0xff000000, false);
+				SimpleGraphics.drawString(gg, mc.font, d == null ? "DEFAULT" : d.name(), -22, 18, 0xff000000, false);
 			}
 		} else {
 			ItemStackRenderer.renderItemIdentifierStackListIntoGui(
 					ItemIdentifierStack.getListFromInventory(module.getFilterInventory()), null, 0, -25, -32, 3, 9, 18,
 					18, 100.0F, DisplayAmount.NEVER, false, shifted);
 			if (gg != null) {
-				gg.drawString(mc.font, module.getItemsIncluded().getValue() ? "Included" : "Excluded", -22, 25, 0xff000000, false);
+				SimpleGraphics.drawString(gg, mc.font, module.getItemsIncluded().getValue() ? "Included" : "Excluded", -22, 25, 0xff000000, false);
 			}
 		}
 	}
@@ -98,11 +99,11 @@ public class HUDAdvancedExtractor implements IHUDModuleRenderer {
 			} else {
 				color = Color.getValue(Color.DARK_GREY);
 			}
-			GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+			GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 			if (gg != null) {
 				int tx = -(mc.font.width(label) / 2) + posX + sizeX / 2;
 				int ty = posY + (sizeY - 8) / 2 + 2;
-				gg.drawString(mc.font, label, tx, ty, color, false);
+				SimpleGraphics.drawString(gg, mc.font, label, tx, ty, color, false);
 			}
 		}
 

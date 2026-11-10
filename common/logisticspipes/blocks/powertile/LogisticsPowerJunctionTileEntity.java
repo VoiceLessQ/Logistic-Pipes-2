@@ -1,5 +1,9 @@
 package logisticspipes.blocks.powertile;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import logisticspipes.proxy.interfaces.IEnergyStorage;
+import logisticspipes.utils.TagUtil;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -12,10 +16,6 @@ import net.minecraft.core.Direction;
 
 
 // CapabilityEnergy removed in NeoForge 1.20.1 — use ForgeCapabilities.EnergyStorage.BLOCK
-import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.Capability;
 
 // import buildcraft.api.mj.IMjConnector;
 // import buildcraft.api.mj.IMjReceiver;
@@ -42,7 +42,9 @@ import logisticspipes.network.guis.block.PowerJunctionGui;
 import logisticspipes.network.packets.block.PowerJunctionLevel;
 import logisticspipes.network.packets.hud.HUDStartBlockWatchingPacket;
 import logisticspipes.network.packets.hud.HUDStopBlockWatchingPacket;
+import logisticspipes.proxy.IC2RebornEnergy;
 import logisticspipes.proxy.MainProxy;
+import logisticspipes.proxy.TREnergyStorage;
 import logisticspipes.proxy.computers.interfaces.CCCommand;
 import logisticspipes.proxy.computers.interfaces.CCType;
 import logisticspipes.renderer.LogisticsHUDRenderer;
@@ -127,6 +129,8 @@ public class LogisticsPowerJunctionTileEntity extends LogisticsSolidTileEntity i
 		}
 	};
 
+	private final TREnergyStorage trEnergy = new TREnergyStorage(energyInterface);
+
 	public LogisticsPowerJunctionTileEntity(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
 		super(logisticspipes.LPRegistries.BE_POWER_JUNCTION.get(), pos, state);
 		HUD = new HUDPowerLevel(this);
@@ -191,25 +195,32 @@ public class LogisticsPowerJunctionTileEntity extends LogisticsSolidTileEntity i
 	}
 
 	@Override
-	public void load(CompoundTag par1nbtTagCompound) {
-		super.load(par1nbtTagCompound);
-		internalStorage = par1nbtTagCompound.getInt("powerLevel");
+	protected void loadAdditional(ValueInput input) {
+		CompoundTag par1nbtTagCompound = TagUtil.read(input);
+		super.loadAdditional(input);
+		internalStorage = par1nbtTagCompound.getIntOr("powerLevel", 0);
 		if (par1nbtTagCompound.contains("needMorePowerTriggerCheck")) {
-			needMorePowerTriggerCheck = par1nbtTagCompound.getBoolean("needMorePowerTriggerCheck");
+			needMorePowerTriggerCheck = par1nbtTagCompound.getBooleanOr("needMorePowerTriggerCheck", false);
 		}
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag par1nbtTagCompound) {
-		super.saveAdditional(par1nbtTagCompound);
+	protected void saveAdditional(ValueOutput output) {
+		CompoundTag par1nbtTagCompound = new CompoundTag();
+		super.saveAdditional(output);
 		par1nbtTagCompound.putInt("powerLevel", internalStorage);
 		par1nbtTagCompound.putBoolean("needMorePowerTriggerCheck", needMorePowerTriggerCheck);
+		TagUtil.write(output, par1nbtTagCompound);
 	}
 
 	@Override
 	public void update() {
 		super.update();
 		if (MainProxy.isServer(getWorld())) {
+			int eu = IC2RebornEnergy.pull(this, freeSpace() / LogisticsPowerJunctionTileEntity.IC2Multiplier);
+			if (eu > 0) {
+				addEnergy(eu * LogisticsPowerJunctionTileEntity.IC2Multiplier);
+			}
 			if (internalStorage != lastUpdateStorage) {
 				updateClients();
 			}
@@ -395,17 +406,12 @@ public class LogisticsPowerJunctionTileEntity extends LogisticsSolidTileEntity i
 		return isRemoved();
 	}
 
-	public net.minecraftforge.energy.IEnergyStorage getEnergyInterface() {
+	public IEnergyStorage getEnergyInterface() {
 		return energyInterface;
 	}
 
-	@Nonnull
-	@Override
-	public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-		if (cap == ForgeCapabilities.ENERGY) {
-			return ForgeCapabilities.ENERGY.orEmpty(cap, LazyOptional.of(() -> energyInterface));
-		}
-		return super.getCapability(cap, side);
+	public TREnergyStorage getTREnergy() {
+		return trEnergy;
 	}
 
 	@Override

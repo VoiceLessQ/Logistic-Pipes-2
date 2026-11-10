@@ -769,10 +769,10 @@ public class ModuleCrafter extends LogisticsModule
 	 */
 	public boolean openAttachedGui(Player player) {
 		if (MainProxy.isClient(player.level())) {
-			if (player instanceof ServerPlayer) {
-				player.closeContainer();
-			} else if (player instanceof LocalPlayer) {
-				player.closeContainer();
+			if (player instanceof ServerPlayer serverPlayer) {
+				serverPlayer.closeContainer();
+			} else if (player instanceof LocalPlayer localPlayer) {
+				localPlayer.closeContainer();
 			}
 			MainProxy.sendPacketToServer(
 					PacketHandler.getPacket(CraftingPipeOpenConnectedGuiPacket.class).setModulePos(this));
@@ -785,13 +785,13 @@ public class ModuleCrafter extends LogisticsModule
 		if (worldProvider == null) return false;
 
 		// hack to avoid wrenching blocks
-		int savedEquipped = player.getInventory().selected;
+		int savedEquipped = player.getInventory().getSelectedSlot();
 		boolean foundSlot = false;
 		// try to find a empty slot
 		for (int i = 0; i < 9; i++) {
 			if (player.getInventory().getItem(i).isEmpty()) {
 				foundSlot = true;
-				player.getInventory().selected = i;
+				player.getInventory().setSelectedSlot(i);
 				break;
 			}
 		}
@@ -801,14 +801,14 @@ public class ModuleCrafter extends LogisticsModule
 				ItemStack is = player.getInventory().getItem(i);
 				if (is.getItem() instanceof BlockItem) {
 					foundSlot = true;
-					player.getInventory().selected = i;
+					player.getInventory().setSelectedSlot(i);
 					break;
 				}
 			}
 		}
 		// give up and select whatever is right of the current slot
 		if (!foundSlot) {
-			player.getInventory().selected = (player.getInventory().selected + 1) % 9;
+			player.getInventory().setSelectedSlot((player.getInventory().getSelectedSlot() + 1) % 9);
 		}
 
 		final boolean guiOpened = service.getAvailableAdjacent().neighbors().keySet().stream().anyMatch(neighbor -> {
@@ -816,12 +816,14 @@ public class ModuleCrafter extends LogisticsModule
 					.anyMatch(provider -> provider.canOpenGui(neighbor.getTileEntity()))) {
 				final BlockPos pos = neighbor.getTileEntity().getBlockPos();
 				BlockState blockState = worldProvider.getWorld().getBlockState(pos);
-				return !blockState.isAir() && blockState.getBlock()
-						.use(blockState, worldProvider.getWorld(), pos, player, InteractionHand.MAIN_HAND,
-								new net.minecraft.world.phys.BlockHitResult(
-										net.minecraft.world.phys.Vec3.atCenterOf(pos),
-										net.minecraft.core.Direction.UP, pos, false))
-						!= net.minecraft.world.InteractionResult.PASS;
+				if (blockState.isAir()) return false;
+				net.minecraft.world.phys.BlockHitResult hit = new net.minecraft.world.phys.BlockHitResult(
+						net.minecraft.world.phys.Vec3.atCenterOf(pos), net.minecraft.core.Direction.UP, pos, false);
+				net.minecraft.world.InteractionResult result = blockState.useItemOn(player.getMainHandItem(), worldProvider.getWorld(), player, InteractionHand.MAIN_HAND, hit);
+				if (result instanceof net.minecraft.world.InteractionResult.TryEmptyHandInteraction) {
+					result = blockState.useWithoutItem(worldProvider.getWorld(), player, hit);
+				}
+				return result != net.minecraft.world.InteractionResult.PASS;
 			} else {
 				return false;
 			}
@@ -829,7 +831,7 @@ public class ModuleCrafter extends LogisticsModule
 		if (!guiOpened) {
 			LogisticsPipes.log.warn("Ignored open attached GUI request at " + player.level() + " @ " + getBlockPos());
 		}
-		player.getInventory().selected = savedEquipped;
+		player.getInventory().setSelectedSlot(savedEquipped);
 		return guiOpened;
 	}
 
@@ -1128,7 +1130,7 @@ public class ModuleCrafter extends LogisticsModule
 				if (!ItemStack.isSameItem(retStack, stack)) {
 					break;
 				}
-				if (!ItemStack.isSameItemSameTags(retStack, stack)) {
+				if (!ItemStack.isSameItemSameComponents(retStack, stack)) {
 					break;
 				}
 			}

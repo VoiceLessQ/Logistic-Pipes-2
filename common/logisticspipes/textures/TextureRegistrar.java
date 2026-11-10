@@ -3,26 +3,30 @@ package logisticspipes.textures;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.fabricmc.fabric.api.resource.v1.reloader.ResourceReloaderKeys;
 
 import logisticspipes.LPConstants;
+import logisticspipes.renderer.LogisticsSolidBlockRenderer;
 
 /**
  * Collects (index, fileName) pairs registered via {@link Textures#registerBlockIcons(Object)}
  * and binds real {@link TextureAtlasSprite}s into the LP icon providers during the block
- * atlas stitch events. Powered / unpowered / un-overlayed variants resolve to LP1's
+ * atlas reload. Powered / unpowered / un-overlayed variants resolve to LP1's
  * pre-generated composites under {@code blocks/pipes/overlay_gen/} (stitched via the
  * atlas config in {@code assets/minecraft/atlases/blocks.json}).
  */
-@Mod.EventBusSubscriber(modid = LPConstants.LP_MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class TextureRegistrar {
+
+	private static final Identifier RELOADER_ID = Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "sprites");
 
 	private static final List<Entry> ENTRIES = new ArrayList<>();
 	private static final List<Entry> NEW_ENTRIES = new ArrayList<>();
@@ -32,14 +36,14 @@ public class TextureRegistrar {
 		if (fileName == null || fileName.isEmpty()) return;
 		String path = resolvePath(fileName);
 		if (path == null) return;
-		ENTRIES.add(new Entry(index, new ResourceLocation(LPConstants.LP_MOD_ID, path)));
+		ENTRIES.add(new Entry(index, Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, path)));
 	}
 
 	public static void recordNew(int index, String fileName) {
 		if (fileName == null || fileName.isEmpty()) return;
 		String path = resolvePath(fileName);
 		if (path == null) return;
-		NEW_ENTRIES.add(new Entry(index, new ResourceLocation(LPConstants.LP_MOD_ID, path)));
+		NEW_ENTRIES.add(new Entry(index, Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, path)));
 	}
 
 	/**
@@ -51,7 +55,7 @@ public class TextureRegistrar {
 		if (fileName == null || fileName.isEmpty() || overlayName == null || overlayName.isEmpty()) return;
 		String path = "blocks/" + fileName.replace("pipes/", "pipes/overlay_gen/")
 				+ "/" + overlayName.replace("pipes/status_overlay/", "");
-		ENTRIES.add(new Entry(index, new ResourceLocation(LPConstants.LP_MOD_ID, path)));
+		ENTRIES.add(new Entry(index, Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, path)));
 	}
 
 	// Maps the legacy Textures.java fileName (e.g. "pipes/basic") to the actual
@@ -88,26 +92,34 @@ public class TextureRegistrar {
 		new Textures().registerBlockIcons(null);
 	}
 
-	@SubscribeEvent
-	public static void onPost(TextureStitchEvent.Post event) {
-		if (!event.getAtlas().location().equals(TextureAtlas.LOCATION_BLOCKS)) return;
+	/** Re-binds the sprites after every resource reload, once the atlases are stitched. */
+	public static void register() {
+		ResourceLoader loader = ResourceLoader.get(PackType.CLIENT_RESOURCES);
+		loader.registerReloadListener(RELOADER_ID, (ResourceManagerReloadListener) resourceManager -> onPost());
+		loader.addListenerOrdering(ResourceReloaderKeys.Client.ATLAS, RELOADER_ID);
+	}
+
+	private static void onPost() {
 		collectOnce();
+		LogisticsSolidBlockRenderer.clearCache();
+		logisticspipes.renderer.LogisticsRenderPipe.requestTableIcon = null;
+		TextureAtlas atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS);
 
 		// Bind the three static pipe-model textures consumed directly by
 		// LogisticsNewRenderPipe (basicPipeTexture / statusTexture / statusBCTexture).
-		// These are looked up by ResourceLocation rather than by Textures.java index.
-		TextureAtlasSprite base = event.getAtlas().getSprite(
-			new ResourceLocation(LPConstants.LP_MOD_ID, "blocks/pipes/pipemodel"));
-		TextureAtlasSprite status = event.getAtlas().getSprite(
-			new ResourceLocation(LPConstants.LP_MOD_ID, "blocks/pipes/pipemodel-status"));
-		TextureAtlasSprite statusBC = event.getAtlas().getSprite(
-			new ResourceLocation(LPConstants.LP_MOD_ID, "blocks/pipes/pipemodel-status-bc"));
-		TextureAtlasSprite inactive = event.getAtlas().getSprite(
-			new ResourceLocation(LPConstants.LP_MOD_ID, "blocks/pipes/pipemodel-inactive"));
-		TextureAtlasSprite innerBox = event.getAtlas().getSprite(
-			new ResourceLocation(LPConstants.LP_MOD_ID, "blocks/pipes/innerbox"));
-		TextureAtlasSprite glassCenter = event.getAtlas().getSprite(
-			new ResourceLocation(LPConstants.LP_MOD_ID, "blocks/pipes/glass_texture_center"));
+		// These are looked up by Identifier rather than by Textures.java index.
+		TextureAtlasSprite base = atlas.getSprite(
+			Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "blocks/pipes/pipemodel"));
+		TextureAtlasSprite status = atlas.getSprite(
+			Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "blocks/pipes/pipemodel-status"));
+		TextureAtlasSprite statusBC = atlas.getSprite(
+			Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "blocks/pipes/pipemodel-status-bc"));
+		TextureAtlasSprite inactive = atlas.getSprite(
+			Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "blocks/pipes/pipemodel-inactive"));
+		TextureAtlasSprite innerBox = atlas.getSprite(
+			Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "blocks/pipes/innerbox"));
+		TextureAtlasSprite glassCenter = atlas.getSprite(
+			Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "blocks/pipes/glass_texture_center"));
 		if (base != null) {
 			logisticspipes.renderer.newpipe.LogisticsNewRenderPipe.basicPipeTexture =
 				logisticspipes.proxy.SimpleServiceLocator.cclProxy.createIconTransformer(base);
@@ -133,14 +145,14 @@ public class TextureRegistrar {
 				logisticspipes.proxy.SimpleServiceLocator.cclProxy.createIconTransformer(glassCenter);
 		}
 		for (Entry e : ENTRIES) {
-			TextureAtlasSprite sprite = event.getAtlas().getSprite(e.rl);
+			TextureAtlasSprite sprite = atlas.getSprite(e.rl);
 			if (sprite == null) continue;
 			if (Textures.LPpipeIconProvider != null) {
 				Textures.LPpipeIconProvider.setIcon(e.index, sprite);
 			}
 		}
 		for (Entry e : NEW_ENTRIES) {
-			TextureAtlasSprite sprite = event.getAtlas().getSprite(e.rl);
+			TextureAtlasSprite sprite = atlas.getSprite(e.rl);
 			if (sprite == null) continue;
 			if (Textures.LPnewPipeIconProvider != null) {
 				Textures.LPnewPipeIconProvider.setIcon(e.index, sprite);
@@ -148,5 +160,5 @@ public class TextureRegistrar {
 		}
 	}
 
-	private record Entry(int index, ResourceLocation rl) {}
+	private record Entry(int index, Identifier rl) {}
 }

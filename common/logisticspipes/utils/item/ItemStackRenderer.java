@@ -24,8 +24,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -39,7 +39,7 @@ import network.rs485.logisticspipes.util.TextUtil;
 
 @Data
 @Accessors(chain = true)
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public class ItemStackRenderer {
 
 	private TextureManager texManager;
@@ -131,7 +131,7 @@ public class ItemStackRenderer {
 	}
 
 	public void renderInGui() {
-		net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		net.minecraft.client.gui.GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		if (gg == null) return;
 
 		ItemStack stack = itemstack;
@@ -140,7 +140,7 @@ public class ItemStackRenderer {
 		}
 		if (stack == null || stack.isEmpty()) return;
 
-		gg.renderItem(stack, posX, posY);
+		gg.item(stack, posX, posY);
 
 		String countLabel = null;
 		if (displayAmount == DisplayAmount.ALWAYS) {
@@ -152,11 +152,11 @@ public class ItemStackRenderer {
 				countLabel = String.valueOf(count);
 			}
 		}
-		gg.renderItemDecorations(font, stack, posX, posY, countLabel);
+		gg.itemDecorations(font, stack, posX, posY, countLabel);
 	}
 
 	private void setupGuiTransform(int xPosition, int yPosition, boolean isGui3d) {
-		// no-op: replaced by GuiGraphics.renderItem in renderInGui()
+		// no-op: replaced by GuiGraphicsExtractor.renderItem in renderInGui()
 	}
 
 	public void renderInWorld() {
@@ -164,24 +164,25 @@ public class ItemStackRenderer {
 		// context and only run under the CCL-activated branch (currently dormant).
 	}
 
-	public void renderInWorld(com.mojang.blaze3d.vertex.PoseStack poseStack, net.minecraft.client.renderer.MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+	public void renderInWorld(com.mojang.blaze3d.vertex.PoseStack poseStack, net.minecraft.client.renderer.SubmitNodeCollector collector, int packedLight, int packedOverlay) {
 		if (itemstack == null || itemstack.isEmpty()) return;
 		Minecraft mc = Minecraft.getInstance();
-		net.minecraft.client.renderer.entity.ItemRenderer ir = mc.getItemRenderer();
-		ir.renderStatic(itemstack, net.minecraft.world.item.ItemDisplayContext.GROUND, packedLight, packedOverlay, poseStack, bufferSource, mc.level, 0);
+		net.minecraft.client.renderer.item.ItemStackRenderState state = new net.minecraft.client.renderer.item.ItemStackRenderState();
+		mc.getItemModelResolver().updateForTopItem(state, itemstack, net.minecraft.world.item.ItemDisplayContext.GROUND, mc.level, null, 0);
+		state.submit(poseStack, collector, packedLight, packedOverlay, 0);
 	}
 
 	public void renderItemInGui(float x, float y, Item item, float zLevel, float scale) {
-		net.minecraft.client.gui.GuiGraphics gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
+		net.minecraft.client.gui.GuiGraphicsExtractor gg = logisticspipes.utils.gui.SimpleGraphics.guiGraphics;
 		if (gg == null || item == null) return;
 		ItemStack stack = new ItemStack(item);
 		if (stack.isEmpty()) return;
-		com.mojang.blaze3d.vertex.PoseStack pose = gg.pose();
-		pose.pushPose();
-		pose.translate(x, y, zLevel);
-		pose.scale(scale, scale, 1.0F);
-		gg.renderItem(stack, 0, 0);
-		pose.popPose();
+		org.joml.Matrix3x2fStack pose = gg.pose();
+		pose.pushMatrix();
+		pose.translate(x, y);
+		pose.scale(scale, scale);
+		gg.item(stack, 0, 0);
+		pose.popMatrix();
 	}
 
 	public enum DisplayAmount {

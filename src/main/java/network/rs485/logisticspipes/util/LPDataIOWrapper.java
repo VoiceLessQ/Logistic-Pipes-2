@@ -37,6 +37,7 @@
 
 package network.rs485.logisticspipes.util;
 
+import logisticspipes.utils.item.CustomDataUtil;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -62,7 +63,7 @@ import net.minecraft.nbt.NbtIo; // was CompressedStreamTools
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import io.netty.buffer.ByteBuf;
 import static io.netty.buffer.Unpooled.buffer;
@@ -251,7 +252,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 	}
 
 	@Override
-	public void writeResourceLocation(@Nullable ResourceLocation resource) {
+	public void writeResourceLocation(@Nullable Identifier resource) {
 		if (resource == null) {
 			writeBoolean(false);
 		} else {
@@ -345,7 +346,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 			writeInt(net.minecraft.core.registries.BuiltInRegistries.ITEM.getId(itemstack.getItem()));
 			writeInt(itemstack.getCount());
 			writeInt(itemstack.getDamageValue());
-			writeCompoundTag(itemstack.getTag());
+			writeCompoundTag(CustomDataUtil.getTag(itemstack));
 		}
 	}
 
@@ -495,9 +496,9 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 
 	@Nullable
 	@Override
-	public ResourceLocation readResourceLocation() {
+	public Identifier readResourceLocation() {
 		if (readBoolean()) {
-			return new ResourceLocation(Objects.requireNonNull(readUTF()));
+			return Identifier.parse(Objects.requireNonNull(readUTF()));
 		}
 		return null;
 	}
@@ -538,7 +539,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 		}
 
 		try {
-			return NbtIo.read(new java.io.DataInputStream(new java.io.BufferedInputStream(new java.util.zip.GZIPInputStream(new ByteArrayInputStream(Objects.requireNonNull(readByteArray()))))), new net.minecraft.nbt.NbtAccounter(MAX_BYTE_ARRAY));
+			return NbtIo.read(new java.io.DataInputStream(new java.io.BufferedInputStream(new java.util.zip.GZIPInputStream(new ByteArrayInputStream(Objects.requireNonNull(readByteArray()))))), net.minecraft.nbt.NbtAccounter.create(MAX_BYTE_ARRAY));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -642,7 +643,7 @@ public final class LPDataIOWrapper implements LPDataInput, LPDataOutput {
 		int damage = readInt();
 		ItemStack stack = new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.byId(itemId), stackSize);
 		// may be null, see code
-		stack.setTag(readCompoundTag());
+		CustomDataUtil.setTag(stack, readCompoundTag());
 		return stack;
 	}
 

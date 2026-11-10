@@ -106,7 +106,7 @@ open class TextButton(
         val cx = absoluteBody.roundedLeft + absoluteBody.roundedWidth / 2 - textWidth / 2
         val yOffset: Int = ((relativeBody.roundedHeight - helper.mcFontRenderer.lineHeight) / 2) + 1
         val cy = absoluteBody.roundedTop + yOffset
-        gg.drawString(helper.mcFontRenderer, trimmedText, cx, cy, color, true)
+        gg.text(helper.mcFontRenderer, trimmedText, cx, cy, color, true)
     }
 
     override fun mouseClicked(mouseX: Float, mouseY: Float, mouseButton: Int): Boolean = if (enabled) {

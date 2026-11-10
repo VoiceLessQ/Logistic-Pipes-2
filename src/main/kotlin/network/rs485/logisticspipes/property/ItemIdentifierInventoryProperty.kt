@@ -46,7 +46,7 @@ import network.rs485.logisticspipes.inventory.SlotAccess
 import java.util.concurrent.CopyOnWriteArraySet
 
 class ItemIdentifierInventoryProperty(private val inv: ItemIdentifierInventory, override val tagKey: String) :
-    InventoryProperty<ItemIdentifierInventory>, IItemIdentifierInventory by inv, Collection<ItemIdentifierStack> {
+    InventoryProperty<ItemIdentifierInventory>, IItemIdentifierInventory by inv {
 
     init {
         require(tagKey.isNotBlank()) { "tagKey must not be blank" }
@@ -60,7 +60,7 @@ class ItemIdentifierInventoryProperty(private val inv: ItemIdentifierInventory, 
     override val propertyObservers: CopyOnWriteArraySet<ObserverCallback<ItemIdentifierInventory>> =
         CopyOnWriteArraySet()
 
-    override val size: Int get() = containerSize
+    val size: Int get() = containerSize
 
     override fun removeItem(index: Int, count: Int): ItemStack = inv.removeItem(index, count).alsoIChanged()
 
@@ -93,13 +93,14 @@ class ItemIdentifierInventoryProperty(private val inv: ItemIdentifierInventory, 
 
     override fun copyProperty(): ItemIdentifierInventoryProperty = ItemIdentifierInventoryProperty(copyValue(), tagKey)
 
-    override fun contains(element: ItemIdentifierStack): Boolean = inv.itemCount(element.item) >= element.getStackSize()
+    fun contains(element: ItemIdentifierStack): Boolean = inv.itemCount(element.item) >= element.getStackSize()
 
-    override fun containsAll(elements: Collection<ItemIdentifierStack>): Boolean = inv.itemsAndCount.let { items ->
+    fun containsAll(elements: Collection<ItemIdentifierStack>): Boolean = inv.itemsAndCount.let { items ->
         elements.all { items[it.item]?.run { compareTo(it.getStackSize()) >= 0 } ?: false }
     }
 
-    override fun iterator(): Iterator<ItemIdentifierStack> =
+    // Container is Iterable<ItemStack> in 26.x, so the identifier view can't be this class's iterator().
+    fun identifierStacks(): Iterator<ItemIdentifierStack> =
         inv.itemsAndCount.map { it.key.makeStack(it.value) }.iterator()
 
 }

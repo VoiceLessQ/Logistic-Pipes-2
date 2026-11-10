@@ -26,7 +26,7 @@ public abstract class ModuleBaseGui extends LogisticsBaseGuiScreen {
 		if (module == null || hasSubGui()) {
 			return super.keyPressed(keyCode, scanCode, modifiers);
 		}
-		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || minecraft.options.keyInventory.matches(keyCode, scanCode)) {
+		if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE || minecraft.options.keyInventory.matches(new net.minecraft.client.input.KeyEvent(keyCode, scanCode, modifiers))) {
 			boolean handled = super.keyPressed(keyCode, scanCode, modifiers);
 			if (module.getSlot() == ModulePositionType.SLOT) {
 				MainProxy.sendPacketToServer(PacketHandler.getPacket(GuiOpenChassis.class).setBlockPos(module.getBlockPos()));

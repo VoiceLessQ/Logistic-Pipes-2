@@ -1,33 +1,41 @@
 package logisticspipes.renderer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import net.minecraft.client.resources.model.BakedModel;
-import com.mojang.blaze3d.pipeline.RenderTarget; // was Framebuffer
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-
-
-
-
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.WallSignBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 import logisticspipes.LPConstants;
 import logisticspipes.LogisticsPipes;
@@ -37,84 +45,106 @@ import logisticspipes.pipes.basic.CoreUnroutedPipe;
 import logisticspipes.pipes.basic.LogisticsTileGenericPipe;
 import logisticspipes.pipes.signs.IPipeSign;
 import logisticspipes.proxy.SimpleServiceLocator;
+import logisticspipes.proxy.object3d.impl.LPRenderStateImpl;
 import logisticspipes.renderer.newpipe.LogisticsNewPipeItemBoxRenderer;
 import logisticspipes.renderer.newpipe.LogisticsNewRenderPipe;
 import logisticspipes.transport.LPTravelingItem;
-import logisticspipes.transport.PipeFluidTransportLogistics;
 import logisticspipes.utils.item.ItemIdentifierStack;
-import logisticspipes.utils.item.ItemStackRenderer;
 import logisticspipes.utils.tuples.Pair;
 import network.rs485.logisticspipes.config.ClientConfiguration;
 import network.rs485.logisticspipes.world.CoordinateUtils;
 import network.rs485.logisticspipes.world.DoubleCoordinates;
 
-public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGenericPipe> {
+public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGenericPipe, LogisticsRenderPipe.State> {
 
-	private static final ExecutorService pool = Executors.newFixedThreadPool(1);
 	private static final int LIQUID_STAGES = 40;
 	private static final int MAX_ITEMS_TO_RENDER = 10;
-	private static final net.minecraft.client.resources.model.Material SIGN = net.minecraft.client.renderer.Sheets.getSignMaterial(net.minecraft.world.level.block.state.properties.WoodType.OAK);
+	/** Atlas geometry of pipes and LP blocks; models carry back-faced copies where the inside is visible. */
+	public static final RenderType ATLAS_TYPE = RenderTypes.entityCutoutCull(TextureAtlas.LOCATION_BLOCKS);
+	private static final BlockState SIGN_BOARD = Blocks.OAK_WALL_SIGN.defaultBlockState().setValue(WallSignBlock.FACING, Direction.SOUTH);
 	public static LogisticsNewRenderPipe secondRenderer = new LogisticsNewRenderPipe();
 	public static LogisticsNewPipeItemBoxRenderer boxRenderer = new LogisticsNewPipeItemBoxRenderer();
 	public static ClientConfiguration config = LogisticsPipes.getClientPlayerConfig();
-	private static final ItemStackRenderer itemRenderer = new ItemStackRenderer(0, 0, 0, false, false);
 
-	// LP1's ModelSign without the stick
-	private final net.minecraft.client.model.geom.ModelPart signBoard;
+	private final ItemModelResolver itemModelResolver;
+
+	public static class State extends BlockEntityRenderState {
+
+		public LogisticsTileGenericPipe tile;
+		public float partialTicks;
+	}
 
 	public LogisticsRenderPipe(BlockEntityRendererProvider.Context context) {
-		signBoard = context.bakeLayer(net.minecraft.client.model.geom.ModelLayers.createSignModelName(net.minecraft.world.level.block.state.properties.WoodType.OAK)).getChild("sign");
+		itemModelResolver = context.itemModelResolver();
+	}
+
+	/**
+	 * Queues LP model geometry: {@code draw} runs when the feature renderer drains the queue, with
+	 * the shared {@link LPRenderStateImpl} bound to that pass's buffer and the pose captured now.
+	 */
+	public static void submitGeometry(SubmitNodeCollector collector, PoseStack poseStack, RenderType type, int light, int overlay, Runnable draw) {
+		if (!(SimpleServiceLocator.cclProxy.getRenderState() instanceof LPRenderStateImpl)) return;
+		collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> {
+			LPRenderStateImpl rs = (LPRenderStateImpl) SimpleServiceLocator.cclProxy.getRenderState();
+			rs.bind(buffer, pose.pose(), pose.normal(), light, overlay);
+			rs.reset();
+			draw.run();
+			rs.draw();
+		});
+	}
+
+	public static TextureAtlasSprite getBlockSprite(Identifier id) {
+		return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(id);
+	}
+
+	/** Multiblock pipes draw outside their own block; the distance check in shouldRender still applies. */
+	@Override
+	public boolean shouldRenderOffScreen() {
+		return true;
 	}
 
 	@Override
-	public void render(LogisticsTileGenericPipe tileentity, float partialTicks, @Nonnull PoseStack poseStack, @Nonnull MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+	public State createRenderState() {
+		return new State();
+	}
+
+	@Override
+	public void extractRenderState(LogisticsTileGenericPipe tile, State state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(tile, state, partialTicks, cameraPosition, breakProgress);
+		state.tile = tile;
+		state.partialTicks = partialTicks;
+	}
+
+	@Override
+	public void submit(State state, @Nonnull PoseStack poseStack, @Nonnull SubmitNodeCollector collector, @Nonnull CameraRenderState camera) {
+		LogisticsTileGenericPipe tileentity = state.tile;
 		if (tileentity == null || tileentity.pipe == null) return;
+		int packedLight = state.lightCoords;
+		int packedOverlay = OverlayTexture.NO_OVERLAY;
 
-		// Fallback placeholder cube — only draws when the OBJ model pipeline failed to load
-		// (empty sideNormal map), so broken-geometry states remain visible in-world. When
-		// loadModels() succeeded, the real LogisticsNewRenderPipe path emits textured quads
-		// through LPRenderStateImpl and the placeholder is skipped.
-		if (logisticspipes.renderer.newpipe.LogisticsNewRenderPipe.sideNormal.isEmpty()) {
-			drawPlaceholderCube(tileentity, poseStack, bufferSource, packedLight, packedOverlay);
+		// placeholder cube when the OBJ pipe models failed to load, so broken geometry stays visible
+		if (LogisticsNewRenderPipe.sideNormal.isEmpty()) {
+			collector.submitCustomGeometry(poseStack, RenderTypes.entitySolid(TextureAtlas.LOCATION_BLOCKS),
+					(pose, buffer) -> drawPlaceholderCube(tileentity, pose, buffer, packedLight, packedOverlay));
 		}
 
-		// Bind CCL render state buffers only when the CCL-based pipe geometry path is active.
-		if (SimpleServiceLocator.cclProxy.isActivated()) {
-			if (SimpleServiceLocator.cclProxy.getRenderState() instanceof logisticspipes.proxy.object3d.impl.LPRenderStateImpl) {
-				logisticspipes.proxy.object3d.impl.LPRenderStateImpl rs =
-					(logisticspipes.proxy.object3d.impl.LPRenderStateImpl) SimpleServiceLocator.cclProxy.getRenderState();
-				com.mojang.blaze3d.vertex.VertexConsumer buffer =
-					bufferSource.getBuffer(net.minecraft.client.renderer.RenderType.cutoutMipped());
-				rs.bind(buffer, poseStack.last().pose(), poseStack.last().normal(), packedLight, packedOverlay);
-				rs.bufferSource = bufferSource;
-			}
-		}
-
-		// renderInternal handles pipe signs, traveling item boxes, and pipe sign rendering.
-		// The CCL-gated sub-paths inside it are individually guarded; call it unconditionally
-		// so that item-in-transit rendering (renderSolids) is not blocked by CCL being off.
 		poseStack.pushPose();
 		try {
-			renderInternal(tileentity, 0, 0, 0, partialTicks, -1, 1.0f, poseStack, bufferSource, packedLight, packedOverlay);
+			renderInternal(tileentity, 0, 0, 0, state.partialTicks, poseStack, collector, packedLight, packedOverlay);
 		} finally {
 			poseStack.popPose();
 		}
 	}
 
-	private void drawPlaceholderCube(LogisticsTileGenericPipe tileentity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-		com.mojang.blaze3d.vertex.VertexConsumer vc = bufferSource.getBuffer(net.minecraft.client.renderer.RenderType.solid());
-		org.joml.Matrix4f m = poseStack.last().pose();
-		org.joml.Matrix3f n = poseStack.last().normal();
-
-		// Core cube 6/16..10/16 — visual placeholder centered in the block.
+	private void drawPlaceholderCube(LogisticsTileGenericPipe tileentity, PoseStack.Pose pose, VertexConsumer vc, int packedLight, int packedOverlay) {
+		// Core cube 6/16..10/16 centered in the block.
 		float a = 0.375f, b = 0.625f;
 		int pipeHash = tileentity.pipe.getClass().getName().hashCode();
 		int r = 64 + ((pipeHash >>> 16) & 0x7F);
 		int g = 64 + ((pipeHash >>> 8) & 0x7F);
 		int bl = 64 + (pipeHash & 0x7F);
-		emitBox(vc, m, n, a, a, a, b, b, b, r, g, bl, packedLight, packedOverlay);
+		emitBox(vc, pose, a, a, a, b, b, b, r, g, bl, 0, 1, 0, 1, packedLight, packedOverlay);
 
-		// Connection stubs on each connected side.
 		if (tileentity.renderState != null && tileentity.renderState.pipeConnectionMatrix != null) {
 			for (Direction dir : Direction.values()) {
 				if (!tileentity.renderState.pipeConnectionMatrix.isConnected(dir)) continue;
@@ -127,39 +157,34 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 					case WEST:  x0 = 0f; x1 = a; break;
 					case EAST:  x0 = b; x1 = 1f; break;
 				}
-				emitBox(vc, m, n, x0, y0, z0, x1, y1, z1, r, g, bl, packedLight, packedOverlay);
+				emitBox(vc, pose, x0, y0, z0, x1, y1, z1, r, g, bl, 0, 1, 0, 1, packedLight, packedOverlay);
 			}
 		}
 	}
 
-	private static void emitBox(com.mojang.blaze3d.vertex.VertexConsumer vc, org.joml.Matrix4f m, org.joml.Matrix3f n,
+	private static void emitBox(VertexConsumer vc, PoseStack.Pose m,
 			float x0, float y0, float z0, float x1, float y1, float z1,
-			int r, int g, int b, int packedLight, int packedOverlay) {
-		// -Y
-		quad(vc, m, n, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, 0, -1, 0, r, g, b, packedLight, packedOverlay);
-		// +Y
-		quad(vc, m, n, x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0, 0, 1, 0, r, g, b, packedLight, packedOverlay);
-		// -Z
-		quad(vc, m, n, x1, y0, z0, x0, y0, z0, x0, y1, z0, x1, y1, z0, 0, 0, -1, r, g, b, packedLight, packedOverlay);
-		// +Z
-		quad(vc, m, n, x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, 0, 0, 1, r, g, b, packedLight, packedOverlay);
-		// -X
-		quad(vc, m, n, x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, -1, 0, 0, r, g, b, packedLight, packedOverlay);
-		// +X
-		quad(vc, m, n, x1, y0, z1, x1, y0, z0, x1, y1, z0, x1, y1, z1, 1, 0, 0, r, g, b, packedLight, packedOverlay);
+			int r, int g, int b, float u0, float u1, float v0, float v1, int packedLight, int packedOverlay) {
+		quad(vc, m, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, 0, -1, 0, r, g, b, u0, u1, v0, v1, packedLight, packedOverlay);
+		quad(vc, m, x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0, 0, 1, 0, r, g, b, u0, u1, v0, v1, packedLight, packedOverlay);
+		quad(vc, m, x1, y0, z0, x0, y0, z0, x0, y1, z0, x1, y1, z0, 0, 0, -1, r, g, b, u0, u1, v0, v1, packedLight, packedOverlay);
+		quad(vc, m, x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, 0, 0, 1, r, g, b, u0, u1, v0, v1, packedLight, packedOverlay);
+		quad(vc, m, x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, -1, 0, 0, r, g, b, u0, u1, v0, v1, packedLight, packedOverlay);
+		quad(vc, m, x1, y0, z1, x1, y0, z0, x1, y1, z0, x1, y1, z1, 1, 0, 0, r, g, b, u0, u1, v0, v1, packedLight, packedOverlay);
 	}
 
-	private static void quad(com.mojang.blaze3d.vertex.VertexConsumer vc, org.joml.Matrix4f m, org.joml.Matrix3f n,
+	private static void quad(VertexConsumer vc, PoseStack.Pose m,
 			float x1, float y1, float z1, float x2, float y2, float z2,
 			float x3, float y3, float z3, float x4, float y4, float z4,
-			float nx, float ny, float nz, int r, int g, int b, int packedLight, int packedOverlay) {
-		vc.vertex(m, x1, y1, z1).color(r, g, b, 255).uv(0, 0).overlayCoords(packedOverlay).uv2(packedLight).normal(n, nx, ny, nz).endVertex();
-		vc.vertex(m, x2, y2, z2).color(r, g, b, 255).uv(1, 0).overlayCoords(packedOverlay).uv2(packedLight).normal(n, nx, ny, nz).endVertex();
-		vc.vertex(m, x3, y3, z3).color(r, g, b, 255).uv(1, 1).overlayCoords(packedOverlay).uv2(packedLight).normal(n, nx, ny, nz).endVertex();
-		vc.vertex(m, x4, y4, z4).color(r, g, b, 255).uv(0, 1).overlayCoords(packedOverlay).uv2(packedLight).normal(n, nx, ny, nz).endVertex();
+			float nx, float ny, float nz, int r, int g, int b,
+			float u0, float u1, float v0, float v1, int packedLight, int packedOverlay) {
+		vc.addVertex(m, x1, y1, z1).setColor(r, g, b, 255).setUv(u0, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(m, nx, ny, nz);
+		vc.addVertex(m, x2, y2, z2).setColor(r, g, b, 255).setUv(u1, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(m, nx, ny, nz);
+		vc.addVertex(m, x3, y3, z3).setColor(r, g, b, 255).setUv(u1, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(m, nx, ny, nz);
+		vc.addVertex(m, x4, y4, z4).setColor(r, g, b, 255).setUv(u0, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(m, nx, ny, nz);
 	}
 
-	private static logisticspipes.proxy.object3d.interfaces.TextureTransformation requestTableIcon = null;
+	public static logisticspipes.proxy.object3d.interfaces.TextureTransformation requestTableIcon = null;
 
 	/**
 	 * Draws the Request Table's full block body. Port of the dead 1.12
@@ -170,25 +195,20 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 	 * (stitched into the block atlas by the {@code blocks/} directory source).
 	 */
 	private void renderRequestTableBlock(PipeBlockRequestTable table, LogisticsTileGenericPipe pipeTile,
-			PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+			PoseStack poseStack, SubmitNodeCollector collector, int packedLight, int packedOverlay) {
 		if (!(SimpleServiceLocator.cclProxy.getRenderState() instanceof logisticspipes.proxy.object3d.impl.LPRenderStateImpl)) return;
 		if (logisticspipes.renderer.newpipe.LogisticsNewSolidBlockWorldRenderer.block == null
 				|| logisticspipes.renderer.newpipe.LogisticsNewSolidBlockWorldRenderer.block.isEmpty()) return;
 
-		logisticspipes.proxy.object3d.impl.LPRenderStateImpl rs =
-				(logisticspipes.proxy.object3d.impl.LPRenderStateImpl) SimpleServiceLocator.cclProxy.getRenderState();
-		com.mojang.blaze3d.vertex.VertexConsumer buffer =
-				bufferSource.getBuffer(net.minecraft.client.renderer.RenderType.cutoutMipped());
-		rs.bind(buffer, poseStack.last().pose(), poseStack.last().normal(), packedLight, packedOverlay);
-		rs.reset();
-
 		if (requestTableIcon == null) {
-			net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = Minecraft.getInstance()
-					.getTextureAtlas(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS)
-					.apply(new ResourceLocation(LPConstants.LP_MOD_ID, "blocks/requesttable/requesttexture"));
+			TextureAtlasSprite sprite = getBlockSprite(Identifier.fromNamespaceAndPath(LPConstants.LP_MOD_ID, "blocks/requesttable/requesttexture"));
 			requestTableIcon = SimpleServiceLocator.cclProxy.createIconTransformer(sprite);
 		}
 		if (requestTableIcon == null) return;
+		submitGeometry(collector, poseStack, ATLAS_TYPE, packedLight, packedOverlay, () -> renderRequestTableModels(table, pipeTile));
+	}
+
+	private void renderRequestTableModels(PipeBlockRequestTable table, LogisticsTileGenericPipe pipeTile) {
 
 		logisticspipes.renderer.newpipe.LogisticsNewSolidBlockWorldRenderer.BlockRotation rotation =
 				logisticspipes.renderer.newpipe.LogisticsNewSolidBlockWorldRenderer.BlockRotation.getRotation(table.getRotation());
@@ -218,11 +238,10 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 				inner.get(rotation).render(requestTableIcon);
 			}
 		}
-		rs.draw();
 	}
 
-	private void renderInternal(@Nullable LogisticsTileGenericPipe tileentity, double x, double y, double z, float partialTicks, int destroyStage, float alpha,
-			PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+	private void renderInternal(LogisticsTileGenericPipe tileentity, double x, double y, double z, float partialTicks,
+			PoseStack poseStack, SubmitNodeCollector collector, int packedLight, int packedOverlay) {
 		// In 1.20.1 the BER PoseStack is pre-translated, so we always pass (0,0,0).
 		// Use tileentity==null as the sole in-hand signal instead.
 		boolean inHand = (tileentity == null);
@@ -239,36 +258,26 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 		try {
 			if (!inHand && SimpleServiceLocator.cclProxy.isActivated()) {
 				if (tileentity.pipe instanceof CoreRoutedPipe) {
-					renderPipeSigns((CoreRoutedPipe) tileentity.pipe, x, y, z, partialTicks, poseStack, bufferSource, packedLight, packedOverlay);
+					renderPipeSigns((CoreRoutedPipe) tileentity.pipe, x, y, z, partialTicks, poseStack, collector, packedLight, packedOverlay);
 				}
 			}
 
 			double distance = !inHand ? new DoubleCoordinates((BlockEntity) tileentity).distanceTo(new DoubleCoordinates(Minecraft.getInstance().player)) : 0;
 
 			if (SimpleServiceLocator.cclProxy.isActivated()) {
-				// Refresh the bound pose matrices to the current PoseStack top so that
-				// any pipe-geometry emission in LogisticsNewRenderPipe lands at the block.
-				if (SimpleServiceLocator.cclProxy.getRenderState() instanceof logisticspipes.proxy.object3d.impl.LPRenderStateImpl) {
-					logisticspipes.proxy.object3d.impl.LPRenderStateImpl rs =
-						(logisticspipes.proxy.object3d.impl.LPRenderStateImpl) SimpleServiceLocator.cclProxy.getRenderState();
-					rs.pose = poseStack.last().pose();
-					rs.normal = poseStack.last().normal();
-					// signs drew with other RenderTypes, which ended the batch the pipe buffer belonged to
-					rs.buffer = bufferSource.getBuffer(net.minecraft.client.renderer.RenderType.cutoutMipped());
-				}
 				// The Request Table is an isPipeBlock() pipe: LogisticsNewRenderPipe skips it and
 				// the 1.12 ISimpleBlockRenderingHandler that drew its block body was never ported,
 				// so without this branch the table is invisible.
 				if (!inHand && tileentity.pipe instanceof PipeBlockRequestTable) {
-					renderRequestTableBlock((PipeBlockRequestTable) tileentity.pipe, tileentity, poseStack, bufferSource, packedLight, packedOverlay);
+					renderRequestTableBlock((PipeBlockRequestTable) tileentity.pipe, tileentity, poseStack, collector, packedLight, packedOverlay);
 				}
-				LogisticsRenderPipe.secondRenderer.renderTileEntityAt(tileentity, x, y, z, partialTicks, distance);
+				LogisticsRenderPipe.secondRenderer.renderTileEntityAt(tileentity, distance, poseStack, collector, packedLight, packedOverlay);
 			}
 
 			if (!inHand && !tileentity.isOpaque()) {
 				// renderSolids uses only Blaze3D / PoseStack — no CCL dependency.
 				if (tileentity.pipe.transport != null) {
-					renderSolids(tileentity.pipe, x, y, z, partialTicks, poseStack, bufferSource, packedLight, packedOverlay);
+					renderSolids(tileentity.pipe, x, y, z, partialTicks, poseStack, collector, packedLight, packedOverlay);
 				}
 			}
 		} finally {
@@ -278,7 +287,7 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 	}
 
 	private void renderSolids(CoreUnroutedPipe pipe, double x, double y, double z, float partialTickTime,
-			PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+			PoseStack poseStack, SubmitNodeCollector collector, int packedLight, int packedOverlay) {
 		poseStack.pushPose();
 
 		float light = 1.0F; // full-bright; actual lighting applied via packedLight parameter
@@ -333,7 +342,7 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 			double itemYawForPitch = lPipe.getItemRenderYaw(fPos, item);
 
 			ItemStack stack = item.getItemIdentifierStack().makeNormalStack();
-			doRenderItem(stack, pipe.container.getWorld(), lX + pos.getXCoord(), lY + pos.getYCoord(), lZ + pos.getZCoord(), light, 0.75F, boxScale, itemYaw, itemPitch, itemYawForPitch, partialTickTime, poseStack, bufferSource, packedLight, packedOverlay);
+			doRenderItem(stack, pipe.container.getWorld(), lX + pos.getXCoord(), lY + pos.getYCoord(), lZ + pos.getZCoord(), light, 0.75F, boxScale, itemYaw, itemPitch, itemYawForPitch, partialTickTime, poseStack, collector, packedLight, packedOverlay);
 			count++;
 		}
 
@@ -348,7 +357,7 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 				continue;
 			}
 			ItemStack stack = item.getValue1().makeNormalStack();
-			doRenderItem(stack, pipe.container.getWorld(), x + pos.getXCoord(), y + pos.getYCoord(), z + pos.getZCoord(), light, 0.25F, 0, 0, 0, 0, partialTickTime, poseStack, bufferSource, packedLight, packedOverlay);
+			doRenderItem(stack, pipe.container.getWorld(), x + pos.getXCoord(), y + pos.getYCoord(), z + pos.getZCoord(), light, 0.25F, 0, 0, 0, 0, partialTickTime, poseStack, collector, packedLight, packedOverlay);
 			count++;
 			if (count >= 27) {
 				break;
@@ -368,8 +377,8 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 	}
 
 	public void doRenderItem(@Nonnull ItemStack itemstack, Level world, double x, double y, double z, float light, float renderScale, double boxScale, double yaw, double pitch, double yawForPitch, float partialTickTime,
-			PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-		LogisticsRenderPipe.boxRenderer.doRenderItem(itemstack, light, x, y, z, boxScale, yaw, pitch, yawForPitch, poseStack, bufferSource, packedLight, packedOverlay);
+			PoseStack poseStack, SubmitNodeCollector collector, int packedLight, int packedOverlay) {
+		LogisticsRenderPipe.boxRenderer.doRenderItem(itemstack, light, x, y, z, boxScale, yaw, pitch, yawForPitch, poseStack, collector, packedLight, packedOverlay);
 
 		poseStack.pushPose();
 		poseStack.translate(x, y, z);
@@ -380,10 +389,8 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 		poseStack.mulPose(new org.joml.Quaternionf().rotationY((float) Math.toRadians(yawForPitch)));
 		poseStack.mulPose(new org.joml.Quaternionf().rotationX((float) Math.toRadians(pitch)));
 		poseStack.mulPose(new org.joml.Quaternionf().rotationY((float) Math.toRadians(-yawForPitch)));
-		// In 1.12.2 the -0.35 offset compensated for EntityItem's foot-to-center gap; in 1.20.1
-		// ir.renderStatic(GROUND) has no such offset, so we leave the item centred in the pipe.
-		itemRenderer.setItemstack(itemstack).setWorld(world).setPartialTickTime(partialTickTime);
-		itemRenderer.renderInWorld(poseStack, bufferSource, packedLight, packedOverlay);
+		// 1.12's -0.35 offset compensated EntityItem's foot-to-center gap; the GROUND transform has none
+		submitItem(itemstack, ItemDisplayContext.GROUND, world, poseStack, collector, packedLight, packedOverlay);
 		poseStack.popPose();
 	}
 
@@ -422,7 +429,7 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 	}
 
 	private void renderPipeSigns(CoreRoutedPipe pipe, double x, double y, double z, float partialTickTime,
-			PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+			PoseStack poseStack, SubmitNodeCollector collector, int packedLight, int packedOverlay) {
 		List<Pair<Direction, IPipeSign>> pipeSigns = pipe.getPipeSigns();
 		if (pipe.container != null && !pipeSigns.isEmpty()) {
 			for (Pair<Direction, IPipeSign> pair : pipeSigns) {
@@ -464,53 +471,48 @@ public class LogisticsRenderPipe implements BlockEntityRenderer<LogisticsTileGen
 						break;
 					default:
 				}
-				renderSign(pipe, pair.getValue2(), partialTickTime, poseStack, bufferSource, packedLight);
+				renderSign(pipe, pair.getValue2(), partialTickTime, poseStack, collector, packedLight);
 				poseStack.popPose();
 			}
 		}
 	}
 
-	private void renderSign(CoreRoutedPipe pipe, IPipeSign type, float partialTickTime, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+	private void renderSign(CoreRoutedPipe pipe, IPipeSign type, float partialTickTime, PoseStack poseStack, SubmitNodeCollector collector, int packedLight) {
 		float signScale = 2 / 3.0F;
 		poseStack.translate(0.0F, -0.3125F, -0.36F);
 		poseStack.mulPose(new org.joml.Quaternionf().rotationY((float) Math.toRadians(180)));
+		// LP1 drew the vanilla sign board (scaled by signScale); 26.x has it as the wall sign block model, front at +z
 		poseStack.pushPose();
-		poseStack.scale(signScale, -signScale, -signScale);
-		signBoard.render(poseStack, SIGN.buffer(bufferSource, net.minecraft.client.renderer.RenderType::entitySolid), packedLight, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);
+		poseStack.translate(-0.5F, -0.1875F, -0.0625F);
+		List<BlockStateModelPart> board = new ArrayList<>();
+		Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(SIGN_BOARD).collectParts(RandomSource.create(0), board);
+		collector.submitBlockModel(poseStack, ATLAS_TYPE, board, BlockModelRenderState.EMPTY_TINTS, packedLight, OverlayTexture.NO_OVERLAY, 0);
 		poseStack.popPose();
 		// LP1's non-framebuffer placement; its framebuffer quad lands within 0.02 of it
 		poseStack.translate(-0.32F, 0.5F * signScale + 0.08F, 0.07F * signScale);
-		type.render(pipe, this, poseStack, bufferSource, packedLight);
-	}
-
-	private void resetStateManager() {
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.depthMask(true);
-		RenderSystem.enableDepthTest();
+		type.render(pipe, this, poseStack, collector, packedLight);
 	}
 
 	public void renderItemStackOnSign(@Nonnull ItemStack itemstack) {
-		// Legacy no-arg stub — rendering deferred. Use the PoseStack overload instead.
+		// Legacy no-arg entry; the PoseStack overload below draws.
 	}
 
-	public void renderItemStackOnSign(@Nonnull ItemStack itemstack, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+	public void renderItemStackOnSign(@Nonnull ItemStack itemstack, PoseStack poseStack, SubmitNodeCollector collector, int packedLight) {
 		if (itemstack.isEmpty()) return;
 		poseStack.pushPose();
 		// LP1: flat GUI-style item on the left of the sign
 		poseStack.translate(0.05F, 0F, 0F);
 		poseStack.scale(0.8F, 0.8F, 0.001F);
 		poseStack.scale(0.4F, 0.4F, 0.4F);
-		Level level = Minecraft.getInstance().level;
-		Minecraft.getInstance().getItemRenderer().renderStatic(
-				itemstack,
-				net.minecraft.world.item.ItemDisplayContext.GUI,
-				packedLight,
-				net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY,
-				poseStack,
-				bufferSource,
-				level,
-				0);
+		submitItem(itemstack, ItemDisplayContext.GUI, Minecraft.getInstance().level, poseStack, collector, packedLight, OverlayTexture.NO_OVERLAY);
 		poseStack.popPose();
+	}
+
+	// a fresh state per item: the collector keeps the state's quad list until the frame is drawn
+	private void submitItem(ItemStack stack, ItemDisplayContext context, Level level, PoseStack poseStack, SubmitNodeCollector collector, int light, int overlay) {
+		ItemStackRenderState state = new ItemStackRenderState();
+		itemModelResolver.updateForTopItem(state, stack, context, level, null, 0);
+		state.submit(poseStack, collector, light, overlay, 0);
 	}
 
 	public String cut(String name, Font renderer) {
